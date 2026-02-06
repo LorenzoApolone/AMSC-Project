@@ -108,3 +108,22 @@ void create_scale_free_network(int N, int m, std::vector<std::vector<int>>& adja
             pool.push_back(new_node);
     }
 }
+
+void create_random_network(int N, double p, std::vector<std::vector<int>>& adjacency_list)
+{
+    adjacency_list.assign(N, {});
+    if (N <= 0 || p < 0.0 || p > 1.0) return;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(0.0, 1.0);
+
+    for (int i = 0; i < N; ++i) {
+        for (int j = i + 1; j < N; ++j) {
+            if (dis(gen) < p) {
+                adjacency_list[i].push_back(j);
+                adjacency_list[j].push_back(i);
+            }
+        }
+    }
+}

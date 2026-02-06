@@ -76,7 +76,10 @@ int main(int argc, char **argv)
   int m = 3; // for scale-free network, number of edges of each new node
   int number_of_converged_small = 0;
   int number_of_converged_scale = 0;
+  int number_of_converged_random = 0;
   int number_of_functions = 0;
+  double p_rewiring = 0.05; // rewiring probability for small-world network
+  double p_random = 0.08; // edge probability for random network
 
   StopCriterion stop(max_iter, delta_x);
 
@@ -139,7 +142,7 @@ int main(int argc, char **argv)
   
     if (rank == 0) {
      // create_scale_free_network(static_cast<int>(n_points), m, adjacency_list);
-      create_network(static_cast<int>(n_points), p, adjacency_list);
+      create_network(static_cast<int>(n_points), p_rewiring, adjacency_list);
       number_of_functions++;
     }
     bcast_adjacency_list(adjacency_list, static_cast<int>(n_points), rank);
@@ -176,12 +179,41 @@ int main(int argc, char **argv)
       if(converged == true)
         number_of_converged_scale++;
    //   result.output_to_file();
+   
     }
       
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
   double t_end_scale = MPI_Wtime();
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_start_random = MPI_Wtime();
+
+  for (const auto& name : function_names) {
+    bool converged = false;
+    auto f_ptr2 = factory[name](dim);
+    std::vector<std::vector<int>> adjacency_list2;
+  
+    if (rank == 0) {
+      create_random_network(static_cast<int>(n_points), p_random, adjacency_list2);
+    }
+    bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
+    OutputObject result = pso_small(*f_ptr2, dim, stop, n_points, adjacency_list2, converged);
+    if (rank == 0) {
+      result.terminal_info();
+      if(converged == true)
+        number_of_converged_random++;
+   //   result.output_to_file();
+   
+    }
+      
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_end_random = MPI_Wtime();
   if (rank == 0) {
     std::cout << "Total time scale-free network: " << (t_end_scale - t_start_scale) << " s\n";
     std::cout << "Convergence rate scale-free network: " << number_of_converged_scale << "/" << number_of_functions << std::endl << std::endl;
@@ -189,6 +221,8 @@ int main(int argc, char **argv)
     std::cout << "Total time small-world network: " << (t_end_small - t_start_small) << " s\n";
     std::cout << "Convergence rate small-world network: " << number_of_converged_small << "/" << number_of_functions << std::endl << std::endl;
 
+    std::cout << "Total time random network: " << (t_end_random - t_start_random) << " s\n";
+    std::cout << "Convergence rate random network: " << number_of_converged_random << "/" << number_of_functions << std::endl << std::endl;
   }
 
   MPI_Finalize();
