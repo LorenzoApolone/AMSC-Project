@@ -1,4 +1,5 @@
 #include "create_network.hpp"
+
 #include "pso_small.cpp"
 #include "../methods.hpp"
 #include "../functions.cpp"     
@@ -58,10 +59,10 @@ int main(int argc, char **argv)
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   // Argouments: <dim> <n_points> <p> <max_iter> <delta_x>
-  if (argc < 6) {
+  if (argc < 5) {
     if (rank == 0) {
       std::cerr << "Usage: " << argv[0]
-                << " <dim> <n_points> <p> <max_iter> <delta_x>\n";
+                << " <dim> <n_points> <max_iter> <delta_x>\n";
     }
     MPI_Finalize();
     return 1;
@@ -69,11 +70,14 @@ int main(int argc, char **argv)
 
   unsigned int dim     = std::atoi(argv[1]);
   unsigned int n_points= std::atoi(argv[2]);
-  double p             = std::atof(argv[3]);
-  unsigned int max_iter= std::atoi(argv[4]);
-  double delta_x       = std::atof(argv[5]);
-  int number_of_converged = 0;
+  unsigned int max_iter= std::atoi(argv[3]);
+  double delta_x       = std::atof(argv[4]);
+  double p             = 0.05; // rewiring probability for small-world network
+  int m = 3; // for scale-free network, number of edges of each new node
+  int number_of_converged_small = 0;
+  int number_of_converged_scale = 0;
   int number_of_functions = 0;
+
   StopCriterion stop(max_iter, delta_x);
 
   // Factory Definition 
@@ -126,13 +130,15 @@ int main(int argc, char **argv)
 
   //  timer MPI evaluate to delete it on the final version
   MPI_Barrier(MPI_COMM_WORLD);
-  double t_start = MPI_Wtime();
+  double t_start_small = MPI_Wtime();
 
   for (const auto& name : function_names) {
     bool converged = false;
     auto f_ptr = factory[name](dim);
     std::vector<std::vector<int>> adjacency_list;
+  
     if (rank == 0) {
+     // create_scale_free_network(static_cast<int>(n_points), m, adjacency_list);
       create_network(static_cast<int>(n_points), p, adjacency_list);
       number_of_functions++;
     }
@@ -141,18 +147,48 @@ int main(int argc, char **argv)
     if (rank == 0) {
       result.terminal_info();
       if(converged == true)
-        number_of_converged++;
+        number_of_converged_small++;
    //   result.output_to_file();
     }
       
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
-  double t_end = MPI_Wtime();
+  double t_end_small = MPI_Wtime();
 
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_start_scale = MPI_Wtime();
+
+  for (const auto& name : function_names) {
+    bool converged = false;
+    auto f_ptr1 = factory[name](dim);
+    std::vector<std::vector<int>> adjacency_list1;
+  
+    if (rank == 0) {
+      create_scale_free_network(static_cast<int>(n_points), m, adjacency_list1);
+    }
+    bcast_adjacency_list(adjacency_list1, static_cast<int>(n_points), rank);
+    OutputObject result = pso_small(*f_ptr1, dim, stop, n_points, adjacency_list1, converged);
+    if (rank == 0) {
+      result.terminal_info();
+      if(converged == true)
+        number_of_converged_scale++;
+   //   result.output_to_file();
+    }
+      
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_end_scale = MPI_Wtime();
   if (rank == 0) {
-    std::cout << "Total time: " << (t_end - t_start) << " s\n";
-    std::cout << "Convergence rate: " << number_of_converged << "/" << number_of_functions << std::endl;
+    std::cout << "Total time scale-free network: " << (t_end_scale - t_start_scale) << " s\n";
+    std::cout << "Convergence rate scale-free network: " << number_of_converged_scale << "/" << number_of_functions << std::endl << std::endl;
+    
+    std::cout << "Total time small-world network: " << (t_end_small - t_start_small) << " s\n";
+    std::cout << "Convergence rate small-world network: " << number_of_converged_small << "/" << number_of_functions << std::endl << std::endl;
+
   }
 
   MPI_Finalize();
