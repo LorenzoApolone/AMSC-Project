@@ -1,0 +1,7 @@
+functions.o: functions.cpp interfaces.hpp
+interfaces.o: interfaces.cpp interfaces.hpp
+main_parallel.o: main_parallel.cpp functions.cpp interfaces.hpp \
+ methods.hpp
+main_serial.o: main_serial.cpp functions.cpp interfaces.hpp methods.hpp
+pso_mpi.o: pso_mpi.cpp interfaces.hpp
+pso_serial.o: pso_serial.cpp interfaces.hpp

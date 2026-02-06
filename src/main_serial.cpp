@@ -37,6 +37,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <chrono>
 
 int main(int argc, char *argv[]) {
   if (argc < 5) {
@@ -60,6 +61,7 @@ int main(int argc, char *argv[]) {
   factory["Sphere"] = [](unsigned int dim) {
     return std::make_unique<Sphere>(dim);
   };
+  
   factory["Ellipsoid"] = [](unsigned int dim) {
     return std::make_unique<Ellipsoid>(dim);
   };
@@ -176,6 +178,10 @@ int main(int argc, char *argv[]) {
                                              "ModifiedXinSheYang3",
                                              "ModifiedXinSheYang5"};
 
+ using clock = std::chrono::high_resolution_clock;
+
+  auto t_start = clock::now();
+
   // Run the solver
   for (const auto &name : function_names) {
     auto f_ptr = factory[name](dim);
@@ -183,6 +189,10 @@ int main(int argc, char *argv[]) {
     result.terminal_info();
     // result.output_to_file();
   }
+  auto t_end = clock::now();
+
+  std::chrono::duration<double> elapsed = t_end - t_start;
+  std::cout << "\nTotal solver time: " << elapsed.count() << " s\n";
 
   std::cout << "\nAll tests completed successfully." << std::endl;
   return 0;

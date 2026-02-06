@@ -1,0 +1,3 @@
+ mpic++ -O2 -std=c++17 main_small.cpp create_network.cpp ../interfaces.cpp ../functions.cpp -o a
+
+ mpirun -np 4 ./a 30 200 0.1 2000 1e-6

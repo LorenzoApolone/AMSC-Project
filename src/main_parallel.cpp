@@ -27,7 +27,10 @@ int main(int argc, char **argv)
   unsigned int max_iter = atoi(argv[3]);
   double delta_x = atof(argv[4]);
   int size;
+  int number_of_converged = 0;
+  int number_of_functions = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
+
 
   // Factory Definition
   std::unordered_map<std::string,
@@ -187,18 +190,36 @@ int main(int argc, char **argv)
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+  //--------------------------------------timer MPI evaluate to delete it on the final version----------------------------------
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_start = MPI_Wtime();
+  //-------------------------------------------end of the timer-------------------------------------------------------
   // Run the solver
   for (const auto &name : function_names)
   {
+    number_of_functions++;
+    bool converged = false;
     auto f_ptr = factory[name](dim);
-    OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points);
+    OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points, converged);
     if (rank == 0)
     {
       result.terminal_info();
       result.output_to_file();
+      if (converged)
+        number_of_converged++;
     }
   }
 
+  //------------------------------------------- new part added to confront the time-------------------------------------------------------
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_end = MPI_Wtime();
+
+  if (rank == 0) {
+    std::cout << "Total time: " << (t_end - t_start) << " s\n";
+    std::cout << "Convergence rate: " << number_of_converged << "/" << number_of_functions << std::endl;
+  }
+  //------------------------------------------- end of the new part-------------------------------------------------------
+  
   MPI_Finalize();
   return 0;
 }
