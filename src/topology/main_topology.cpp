@@ -1,6 +1,6 @@
 #include "create_network.hpp"
 
-#include "pso_small.cpp"
+#include "pso_topology.cpp"
 #include "../methods.hpp"
 #include "../functions.cpp"     
 #include <mpi.h>
