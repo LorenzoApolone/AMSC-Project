@@ -127,3 +127,15 @@ void create_random_network(int N, double p, std::vector<std::vector<int>>& adjac
         }
     }
 }
+
+void create_fully_connected_network(int N, std::vector<std::vector<int>>& adjacency_list)
+{
+    adjacency_list.assign(N, {});
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            if (i != j) {
+                adjacency_list[i].push_back(j);
+            }
+        }
+    }
+}

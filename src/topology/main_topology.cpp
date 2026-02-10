@@ -80,6 +80,7 @@ int main(int argc, char **argv)
   int number_of_converged_scale = 0;
   int number_of_converged_random = 0;
   int number_of_converged_classic = 0;
+  int number_of_converged_complete = 0;
   int number_of_functions = 0;
   double p_rewiring = 0.05; // rewiring probability for small-world network
   double p_random = 0.08; // edge probability for random network
@@ -87,6 +88,7 @@ int main(int argc, char **argv)
   std::vector<std::string> functions_converged_scale;
   std::vector<std::string> functions_converged_random;
   std::vector<std::string> functions_converged_classic;
+  std::vector<std::string> functions_converged_complete;
   StopCriterion stop(max_iter, delta_x);
 
   // Factory Definition 
@@ -190,12 +192,7 @@ int main(int argc, char **argv)
         number_of_converged_scale++;
         functions_converged_scale.push_back(name);
       }
-      
-
-   
-   
-    }
-      
+    }    
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -203,6 +200,7 @@ int main(int argc, char **argv)
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  
   MPI_Barrier(MPI_COMM_WORLD);
   double t_start_random = MPI_Wtime();
 
@@ -255,7 +253,43 @@ MPI_Barrier(MPI_COMM_WORLD);
   double t_end_classic = MPI_Wtime();
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+//--------------------------------------------Codice di prova---------------------------------------------------------------------------
+
+
+ MPI_Barrier(MPI_COMM_WORLD);
+
+ 
+  double t_start_complete = MPI_Wtime();
+  std::vector<std::vector<int>> adjacency_list4;
   if (rank == 0) {
+      create_fully_connected_network(static_cast<int>(n_points), adjacency_list4);
+    }
+    bcast_adjacency_list(adjacency_list4, static_cast<int>(n_points), rank);
+  for (const auto& name : function_names) {
+    bool converged = false;
+    auto f_ptr4 = factory[name](dim);
+   
+  
+    
+    OutputObject result = pso_small(*f_ptr4, dim, stop, n_points, adjacency_list4, converged);
+    if (rank == 0) {
+ //     result.terminal_info();
+  //  result.output_to_file();
+      if(converged == true){
+        number_of_converged_complete++;
+        functions_converged_complete.push_back(name);
+      }
+    }
+      
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_end_complete = MPI_Wtime();
+
+//--------------------------------------------Fine codice di prova---------------------------------------------------------------------------
+if (rank == 0) {
 
     std::cout << "Total time classic PSO: " << (t_end_classic - t_start_classic) << " s\n";
     std::cout << "Convergence rate classic PSO: " << number_of_converged_classic << "/" << number_of_functions << std::endl << std::endl;
@@ -269,6 +303,9 @@ MPI_Barrier(MPI_COMM_WORLD);
     std::cout << "Total time random network: " << (t_end_random - t_start_random) << " s\n";
     std::cout << "Convergence rate random network: " << number_of_converged_random << "/" << number_of_functions << std::endl << std::endl;
 
+
+    std::cout << "Total time complete network: " << (t_end_complete - t_start_complete) << " s\n";
+    std::cout << "Convergence rate complete network: " << number_of_converged_complete << "/" << number_of_functions << std::endl << std::endl;
     std::array<std::vector<std::string>, 5> all = {
         functions_converged_small,
         functions_converged_scale,
@@ -277,7 +314,7 @@ MPI_Barrier(MPI_COMM_WORLD);
         function_names
     };
 
-    uniqueness(all);
+//    uniqueness(all);
   }
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
