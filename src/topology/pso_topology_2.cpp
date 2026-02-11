@@ -21,12 +21,13 @@ struct PSOHyperparameters {
 };
 
 
-
-OutputObject pso_small(const TestFunction &f,
+ double t_allgatherv_val = 0.0;
+ double t_allgatherv_pos = 0.0;
+OutputObject pso_small_timer(const TestFunction &f,
                        int d,
                        const StopCriterion &stop,
                        int n_points,
-                       const std::vector<std::vector<int>> &adjacency_list, bool &converged) {
+                       const std::vector<std::vector<int>> &adjacency_list, bool &converged, double &t_allgatherv_tot) {
 
   // --- MPI Setup ---
   int rank, size;
@@ -137,16 +138,20 @@ OutputObject pso_small(const TestFunction &f,
       for (int j = 0; j < d; ++j)
         local_pbest_pos_flat[i * d + j] = pbest_pos[i][j];
     
-   
+    double t0 = MPI_Wtime();
     MPI_Allgatherv(pbest_val.data(), local_n, MPI_DOUBLE,
                    all_pbest_val.data(), counts.data(), displs.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
-    
+    double t1 = MPI_Wtime();
+    t_allgatherv_val = (t1 - t0);
 
+    double t2 = MPI_Wtime();
     MPI_Allgatherv(local_pbest_pos_flat.data(), local_n * d, MPI_DOUBLE,
                    all_pbest_pos.data(), counts_d.data(), displs_d.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
-    
+    double t3 = MPI_Wtime();
+    t_allgatherv_pos = (t3 - t2);
+    t_allgatherv_tot += (t_allgatherv_val + t_allgatherv_pos);
     // 2) For each local particle, compute lbest from adjacency_list using all_pbest_
     for (int i = 0; i < local_n; ++i) {
       int gid = displs[rank] + i; // global id of this particle

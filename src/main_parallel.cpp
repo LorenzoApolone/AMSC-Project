@@ -203,8 +203,8 @@ int main(int argc, char **argv)
     OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points, converged);
     if (rank == 0)
     {
-      result.terminal_info();
-      result.output_to_file();
+  //    result.terminal_info();
+  //    result.output_to_file();
       if (converged)
         number_of_converged++;
     }

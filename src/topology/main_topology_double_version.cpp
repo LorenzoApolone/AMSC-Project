@@ -152,7 +152,7 @@ int main(int argc, char **argv)
   //  timer MPI evaluate to delete it on the final version
   MPI_Barrier(MPI_COMM_WORLD);
   double t_start_small = MPI_Wtime();
-  double t_allgatherv_tot = 0.0;
+
   for (const auto& name : function_names) {
     bool converged = false;
     auto f_ptr = factory[name](dim);
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
       number_of_functions++;
     }
     bcast_adjacency_list(adjacency_list, static_cast<int>(n_points), rank);
-    OutputObject result = pso_small_timer(*f_ptr, dim, stop, n_points, adjacency_list, converged, t_allgatherv_tot);
+    OutputObject result = pso_small(*f_ptr, dim, stop, n_points, adjacency_list, converged);
     if (rank == 0) {
   //    result.terminal_info();
   //  result.output_to_file();     
@@ -182,6 +182,40 @@ int main(int argc, char **argv)
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+//8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+  //  timer MPI evaluate to delete it on the final version
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_start_small_v2 = MPI_Wtime();
+
+  for (const auto& name : function_names) {
+    bool converged = false;
+    auto f_ptr = factory[name](dim);
+    std::vector<std::vector<int>> adjacency_list;
+  
+    if (rank == 0) {
+     // create_scale_free_network(static_cast<int>(n_points), m, adjacency_list);
+      create_network(static_cast<int>(n_points), p_rewiring, adjacency_list);
+      
+    }
+    bcast_adjacency_list(adjacency_list, static_cast<int>(n_points), rank);
+    OutputObject result = pso_small_debugger(*f_ptr, dim, stop, n_points, adjacency_list, converged);
+    if (rank == 0) {
+  //    result.terminal_info();
+  //  result.output_to_file();     
+      if(converged == true){
+        functions_converged_small1.push_back(name);
+        number_of_converged_small_v2++;
+      }
+
+    }
+      
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_end_small_v2 = MPI_Wtime();
+
+
+//88888888888888888888888888888888888888888888888888888
 
   MPI_Barrier(MPI_COMM_WORLD);
   double t_start_scale = MPI_Wtime();
@@ -211,6 +245,35 @@ int main(int argc, char **argv)
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+//8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_start_scale_v2 = MPI_Wtime();
+
+  for (const auto& name : function_names) {
+    bool converged = false;
+    auto f_ptr1 = factory[name](dim);
+    std::vector<std::vector<int>> adjacency_list1;
+  
+    if (rank == 0) {
+      create_scale_free_network(static_cast<int>(n_points), m, adjacency_list1);
+    }
+    bcast_adjacency_list(adjacency_list1, static_cast<int>(n_points), rank);
+    OutputObject result = pso_small_debugger(*f_ptr1, dim, stop, n_points, adjacency_list1, converged);
+    if (rank == 0) {
+ //   result.terminal_info();
+ //   result.output_to_file();
+      if(converged == true){
+        number_of_converged_scale_v2++;
+        functions_converged_scale1.push_back(name);
+      }
+    }    
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_end_scale_v2 = MPI_Wtime();
+
+//8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
@@ -243,6 +306,38 @@ int main(int argc, char **argv)
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
+//88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+ MPI_Barrier(MPI_COMM_WORLD);
+  double t_start_random_v2 = MPI_Wtime();
+
+  for (const auto& name : function_names) {
+    bool converged = false;
+    auto f_ptr2 = factory[name](dim);
+    std::vector<std::vector<int>> adjacency_list2;
+  
+    if (rank == 0) {
+      create_random_network(static_cast<int>(n_points), p_random, adjacency_list2);
+    }
+    bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
+    OutputObject result = pso_small_debugger(*f_ptr2, dim, stop, n_points, adjacency_list2, converged);
+    if (rank == 0) {
+ //     result.terminal_info();
+  //  result.output_to_file();
+      if(converged == true){
+        number_of_converged_random_v2++;
+        functions_converged_random1.push_back(name);
+      }
+    }
+      
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_end_random_v2 = MPI_Wtime();
+
+
+
+//88888888888888888888888888888888888888888888888888888
 
 MPI_Barrier(MPI_COMM_WORLD);
   double t_start_classic = MPI_Wtime();
@@ -338,13 +433,19 @@ if (rank == 0) {
 
     std::cout << "Total time scale-free network: " << (t_end_scale - t_start_scale) << " s\n";
     std::cout << "Convergence rate scale-free network: " << number_of_converged_scale << "/" << number_of_functions << std::endl;
-    
-    std::cout << "Total time small-world network: " << t_allgatherv_tot << "/" << (t_end_small - t_start_small) << " s\n";
+    std::cout << "Total time scale-free network v2: " << (t_end_scale_v2 - t_start_scale_v2) << " s\n";
+    std::cout << "Convergence rate scale-free network v2: " << number_of_converged_scale_v2 << "/" << number_of_functions << std::endl << std::endl;
+
+    std::cout << "Total time small-world network: " << (t_end_small - t_start_small) << " s\n";
     std::cout << "Convergence rate small-world network: " << number_of_converged_small << "/" << number_of_functions << std::endl;
+    std::cout << "Total time small-world network v2: " << (t_end_small_v2 - t_start_small_v2) << " s\n";
+    std::cout << "Convergence rate small-world network v2 : " << number_of_converged_small_v2 << "/" << number_of_functions << std::endl << std::endl;
     
     std::cout << "Total time random network: " << (t_end_random - t_start_random) << " s\n";
-    std::cout << "Convergence rate random network: " << number_of_converged_random << "/" << number_of_functions << std::endl << std::endl;
-   /*
+    std::cout << "Convergence rate random network: " << number_of_converged_random << "/" << number_of_functions << std::endl;
+    std::cout << "Total time random network v2: " << (t_end_random_v2 - t_start_random_v2) << " s\n";
+    std::cout << "Convergence rate random network v2: " << number_of_converged_random_v2 << "/" << number_of_functions << std::endl << std::endl;
+/*
     std::cout << "Total time complete network: " << (t_end_complete - t_start_complete) << " s\n";
     std::cout << "Convergence rate complete network: " << number_of_converged_complete << "/" << number_of_functions << std::endl << std::endl;
   
@@ -360,7 +461,14 @@ if (rank == 0) {
     not_converged(all, 1);
 
   
- 
+    std::array<std::vector<std::string>, 5> all_v2 = {
+        functions_converged_small1,
+        functions_converged_scale1,
+        functions_converged_random1,
+        functions_converged_classic1,
+        function_names
+    };
+    not_converged(all_v2, 2);
     
 //    uniqueness(all);
   }
