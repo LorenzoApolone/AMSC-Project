@@ -1,5 +1,12 @@
+<<<<<<< HEAD
+=======
+// file con all gather e senza timer 
+
+
+>>>>>>> solve_bottleneck
 #include "../interfaces.hpp"
 #include "create_network.hpp"
+#include "pso_topology.hpp"
 #include <algorithm>
 #include <limits>
 #include <mpi.h>
@@ -17,8 +24,10 @@ struct PSOHyperparameters {
   static constexpr double W_MIN = 0.4;
 
   static constexpr double V_INIT_FACTOR = 0.1;
+  
 };
 
+<<<<<<< HEAD
 /**
  * Versione "corretta" per la scalabilità:
  * - NON fa MPI_Allgatherv dell'intero swarm.
@@ -45,6 +54,17 @@ OutputObject pso_small(const TestFunction &f,
                                      bool &converged)
 {
   // ---------------- MPI setup ----------------
+=======
+
+
+OutputObject pso_normal(const TestFunction &f,
+                       int d,
+                       const StopCriterion &stop,
+                       int n_points,
+                       const std::vector<std::vector<int>> &adjacency_list, bool &converged) {
+
+  // --- MPI Setup ---
+>>>>>>> solve_bottleneck
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -57,8 +77,10 @@ OutputObject pso_small(const TestFunction &f,
   if (rank < remainder) local_n++;
 
   std::vector<int> counts(size), displs(size);
+  // gather local_n from all ranks to compute displs
   MPI_Allgather(&local_n, 1, MPI_INT, counts.data(), 1, MPI_INT, MPI_COMM_WORLD);
 
+  //  it's used for the gid calculation               
   displs[0] = 0;
   for (int r = 1; r < size; ++r)
     displs[r] = displs[r - 1] + counts[r - 1];
@@ -88,6 +110,10 @@ OutputObject pso_small(const TestFunction &f,
   double LB = bounds.first;
   double UB = bounds.second;
 
+<<<<<<< HEAD
+=======
+  // Random generators to dinstribute particel on the domain
+>>>>>>> solve_bottleneck
   std::mt19937 gen(rank + 42);
   std::uniform_real_distribution<> dis(LB, UB);
   std::uniform_real_distribution<> dis01(0.0, 1.0);
@@ -182,16 +208,24 @@ OutputObject pso_small(const TestFunction &f,
   // =====================================================================
   int iter = 0;
   bool must_stop = false;
+<<<<<<< HEAD
   const int max_iter_limit = stop.get_max_iter();
 
   while (!must_stop) {
 
     // Inertia schedule
+=======
+  int max_iter_limit = stop.get_max_iter();
+  int counter =0;
+  while (!must_stop) {
+    counter++;
+>>>>>>> solve_bottleneck
     double current_w =
         PSOHyperparameters::W_MAX -
         ((PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) * (double)iter /
          (double)max_iter_limit);
 
+<<<<<<< HEAD
     // -----------------------------------------------------------------
     // (A) Exchange only needed pbests (ghost update)
     // -----------------------------------------------------------------
@@ -248,6 +282,25 @@ OutputObject pso_small(const TestFunction &f,
     // -----------------------------------------------------------------
     // (B) Update local particles using lbest from local+ghost pbests
     // -----------------------------------------------------------------
+=======
+    // 1) Update particles locally (pos/vel) using the previous neighborhood knowledge
+  
+    // ---- current pbest (val + pos) to all ranks ----
+    for (int i = 0; i < local_n; ++i)
+      for (int j = 0; j < d; ++j)
+        local_pbest_pos_flat[i * d + j] = pbest_pos[i][j];
+    
+    MPI_Allgatherv(pbest_val.data(), local_n, MPI_DOUBLE,
+                   all_pbest_val.data(), counts.data(), displs.data(), MPI_DOUBLE,
+                   MPI_COMM_WORLD);
+   
+
+    MPI_Allgatherv(local_pbest_pos_flat.data(), local_n * d, MPI_DOUBLE,
+                   all_pbest_pos.data(), counts_d.data(), displs_d.data(), MPI_DOUBLE,
+                   MPI_COMM_WORLD);
+   
+    // 2) For each local particle, compute lbest from adjacency_list using all_pbest_
+>>>>>>> solve_bottleneck
     for (int i = 0; i < local_n; ++i) {
       int gid = displs[rank] + i;
 
