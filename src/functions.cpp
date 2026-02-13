@@ -834,3 +834,210 @@ public:
     return 1.0e4 * (1.0 + inner * std::exp(-sum_sin2_sqrtabs));
   }
 };
+
+/**
+ * @class Levy
+ * @brief Lévy function: multimodal with many local minima.
+ *        Using the common definition with w_i = 1 + (x_i - 1)/4:
+ *        f(x) = sin^2(pi w_1) + Σ_{i=1..D-1} (w_i - 1)^2 [1 + 10 sin^2(pi w_i + 1)]
+ *              + (w_D - 1)^2 [1 + sin^2(2 pi w_D)].
+ * @note Global minimum at x* = (1,...,1) with f(x*) = 0.
+ */
+class Levy : public TestFunction {
+public:
+  Levy(unsigned int dim)
+      : TestFunction(dim, "Levy", std::pair<double, double>{-10.0, 10.0},
+                     std::vector<double>(dim, 1.0)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty())
+      return 0.0;
+
+    std::vector<double> w(x.size());
+    for (std::size_t i = 0; i < x.size(); ++i)
+      w[i] = 1.0 + (x[i] - 1.0) / 4.0;
+
+    const std::size_t D = w.size();
+
+    double term1 = std::pow(std::sin(PI() * w[0]), 2.0);
+
+    double sum = 0.0;
+    for (std::size_t i = 0; i + 1 < D; ++i) {
+      const double wi1 = w[i] - 1.0;
+      const double s = std::sin(PI() * w[i] + 1.0);
+      sum += wi1 * wi1 * (1.0 + 10.0 * s * s);
+    }
+
+    const double wD1 = w[D - 1] - 1.0;
+    const double s2 = std::sin(2.0 * PI() * w[D - 1]);
+    double term3 = wD1 * wD1 * (1.0 + s2 * s2);
+
+    return term1 + sum + term3;
+  }
+
+private:
+  static constexpr double PI() { return 3.14159265358979323846; }
+};
+
+/**
+ * @class Michalewicz
+ * @brief Michalewicz function:
+ *        f(x) = - Σ_{i=1..D} sin(x_i) * [ sin( (i x_i^2)/pi ) ]^{2m}, with m=10.
+ * @note Highly multimodal. Often defined on [0, pi]^D.
+ */
+class Michalewicz : public TestFunction {
+public:
+  Michalewicz(unsigned int dim)
+      : TestFunction(dim, "Michalewicz", std::pair<double, double>{0.0, PI()},
+                     std::vector<double>(dim, 0.0)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty())
+      return 0.0;
+
+    const double m = 10.0;
+    double sum = 0.0;
+
+    for (std::size_t i = 0; i < x.size(); ++i) {
+      const double xi = x[i];
+      const double a = std::sin(xi);
+      const double b = std::sin(((i + 1.0) * xi * xi) / PI());
+      sum += a * std::pow(b, 2.0 * m);
+    }
+
+    return -sum;
+  }
+
+private:
+  static constexpr double PI() { return 3.14159265358979323846; }
+};
+
+/**
+ * @class Bohachevsky
+ * @brief Bohachevsky function (pairwise form over consecutive coordinates):
+ *        f(x) = Σ_{i=1..D-1} [ x_i^2 + 2 x_{i+1}^2
+ *                             - 0.3 cos(3 pi x_i) - 0.4 cos(4 pi x_{i+1}) + 0.7 ].
+ * @note Global minimum at x* = 0 with f(x*) = 0.
+ */
+class Bohachevsky : public TestFunction {
+public:
+  Bohachevsky(unsigned int dim)
+      : TestFunction(dim, "Bohachevsky", std::pair<double, double>{-100.0, 100.0},
+                     std::vector<double>(dim, 0.0)) {}
+
+  double value(const std::vector<double> &x) const override {
+    const std::size_t D = x.size();
+    if (D < 2)
+      return 0.0;
+
+    double sum = 0.0;
+    for (std::size_t i = 0; i + 1 < D; ++i) {
+      sum += x[i] * x[i] + 2.0 * x[i + 1] * x[i + 1] -
+             0.3 * std::cos(3.0 * PI() * x[i]) -
+             0.4 * std::cos(4.0 * PI() * x[i + 1]) + 0.7;
+    }
+    return sum;
+  }
+
+private:
+  static constexpr double PI() { return 3.14159265358979323846; }
+};
+
+/**
+ * @class Powell
+ * @brief Powell singular function (groups of 4 variables):
+ *        f(x) = Σ_{i=1..D/4} [ (x_{4i-3}+10x_{4i-2})^2
+ *                              + 5(x_{4i-1}-x_{4i})^2
+ *                              + (x_{4i-2}-2x_{4i-1})^4
+ *                              + 10(x_{4i-3}-x_{4i})^4 ].
+ * @note Global minimum at x* = 0 with f(x*) = 0. Requires D multiple of 4.
+ */
+class Powell : public TestFunction {
+public:
+  Powell(unsigned int dim)
+      : TestFunction(dim, "Powell", std::pair<double, double>{-4.0, 5.0},
+                     std::vector<double>(dim, 0.0)) {}
+
+  double value(const std::vector<double> &x) const override {
+    const std::size_t D = x.size();
+    if (D == 0)
+      return 0.0;
+
+    // If D is not a multiple of 4, we compute up to the largest multiple of 4.
+    const std::size_t D4 = (D / 4) * 4;
+
+    double sum = 0.0;
+    for (std::size_t i = 0; i < D4; i += 4) {
+      const double x1 = x[i];
+      const double x2 = x[i + 1];
+      const double x3 = x[i + 2];
+      const double x4 = x[i + 3];
+
+      sum += std::pow(x1 + 10.0 * x2, 2.0) +
+             5.0 * std::pow(x3 - x4, 2.0) +
+             std::pow(x2 - 2.0 * x3, 4.0) +
+             10.0 * std::pow(x1 - x4, 4.0);
+    }
+    return sum;
+  }
+};
+
+/**
+ * @class DixonPrice
+ * @brief Dixon-Price function:
+ *        f(x) = (x_1 - 1)^2 + Σ_{i=2..D} i * (2 x_i^2 - x_{i-1})^2.
+ * @note Global minimum at x* with x_1=1, x_i = 2^{-(2^i-2)/2^i} (varies with i),
+ *       and f(x*) = 0 for the standard definition.
+ */
+class DixonPrice : public TestFunction {
+public:
+  DixonPrice(unsigned int dim)
+      : TestFunction(dim,
+                     "DixonPrice",
+                     std::pair<double, double>{-10.0, 10.0},
+                     [] (unsigned int d) {
+                        std::vector<double> v(d, 0.0);
+                        if (d > 0) v[0] = 1.0;  // first coordinate = 1
+                        return v;
+                      }(dim)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty())
+      return 0.0;
+
+    double sum = (x[0] - 1.0) * (x[0] - 1.0);
+
+    for (std::size_t i = 1; i < x.size(); ++i) {
+      double term = 2.0 * x[i] * x[i] - x[i - 1];
+      sum += (i + 1.0) * term * term;
+    }
+
+    return sum;
+  }
+};
+
+
+/**
+ * @class StyblinskiTang
+ * @brief Styblinski-Tang function:
+ *        f(x) = 0.5 * Σ_{i=1..D} (x_i^4 - 16 x_i^2 + 5 x_i).
+ * @note Multimodal; global minimum at x_i ≈ -2.903534 for all i,
+ *       f(x*) ≈ -39.16599 * D.
+ */
+class StyblinskiTang : public TestFunction {
+public:
+  StyblinskiTang(unsigned int dim)
+      : TestFunction(dim, "StyblinskiTang", std::pair<double, double>{-5.0, 5.0},
+                     std::vector<double>(dim, -2.903534)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty())
+      return 0.0;
+
+    double sum = 0.0;
+    for (double xi : x) {
+      sum += std::pow(xi, 4.0) - 16.0 * xi * xi + 5.0 * xi;
+    }
+    return 0.5 * sum;
+  }
+};

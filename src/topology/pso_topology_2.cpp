@@ -23,7 +23,7 @@ struct PSOHyperparameters {
 
  double t_allgatherv_val = 0.0;
  double t_allgatherv_pos = 0.0;
-OutputObject pso_small_timer(const TestFunction &f,
+OutputObject pso_small_timerv(const TestFunction &f,
                        int d,
                        const StopCriterion &stop,
                        int n_points,

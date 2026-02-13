@@ -1,3 +1,5 @@
+// file con all gather e senza timer 
+
 
 #include "../interfaces.hpp"
 #include "create_network.hpp"
@@ -22,7 +24,7 @@ struct PSOHyperparameters {
 
 
 
-OutputObject pso_small(const TestFunction &f,
+OutputObject pso_normal(const TestFunction &f,
                        int d,
                        const StopCriterion &stop,
                        int n_points,
@@ -137,16 +139,15 @@ OutputObject pso_small(const TestFunction &f,
       for (int j = 0; j < d; ++j)
         local_pbest_pos_flat[i * d + j] = pbest_pos[i][j];
     
-   
     MPI_Allgatherv(pbest_val.data(), local_n, MPI_DOUBLE,
                    all_pbest_val.data(), counts.data(), displs.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
-    
+   
 
     MPI_Allgatherv(local_pbest_pos_flat.data(), local_n * d, MPI_DOUBLE,
                    all_pbest_pos.data(), counts_d.data(), displs_d.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
-    
+   
     // 2) For each local particle, compute lbest from adjacency_list using all_pbest_
     for (int i = 0; i < local_n; ++i) {
       int gid = displs[rank] + i; // global id of this particle

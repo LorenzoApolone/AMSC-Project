@@ -153,6 +153,12 @@ int main(int argc, char **argv)
   {
     return std::make_unique<ModifiedXinSheYang5>(dim);
   };
+  factory["Levy"] = [](unsigned int dim){ return std::make_unique<Levy>(dim); };
+  factory["Michalewicz"] = [](unsigned int dim){ return std::make_unique<Michalewicz>(dim); };
+  factory["Bohachevsky"] = [](unsigned int dim){ return std::make_unique<Bohachevsky>(dim); };
+  factory["Powell"] = [](unsigned int dim){ return std::make_unique<Powell>(dim); };
+  factory["DixonPrice"] = [](unsigned int dim){ return std::make_unique<DixonPrice>(dim); };
+  factory["StyblinskiTang"] = [](unsigned int dim){ return std::make_unique<StyblinskiTang>(dim); };
 
   // List of functions to execute (maintaining the previous order)
   std::vector<std::string> function_names = {"Sphere",
@@ -183,7 +189,13 @@ int main(int argc, char **argv)
                                              "ModifiedRidge",
                                              "Zakharov",
                                              "ModifiedXinSheYang3",
-                                             "ModifiedXinSheYang5"};
+                                             "ModifiedXinSheYang5",
+                                             "Levy",
+                                             "Michalewicz",
+                                             "Bohachevsky",
+                                             "Powell",
+                                             "DixonPrice",
+                                             "StyblinskiTang"};
 
   StopCriterion stop(max_iter, delta_x);
 
