@@ -36,5 +36,9 @@ tests
 plots
 run_parameters.json
 
+main_serial
+main_parallel
+main_small
+a
 
 /src/small_world/commented_code.cpp
