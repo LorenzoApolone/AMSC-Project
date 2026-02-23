@@ -3,9 +3,7 @@
 #include "pso_topology.hpp"
 #include "../methods.hpp"
 #include "../functions.cpp" 
-    
 #include <mpi.h>
-
 #include <array>
 #include <cmath>
 #include <functional>
@@ -152,10 +150,11 @@ int main(int argc, char **argv)
     "Levy","Michalewicz","Bohachevsky","Powell","DixonPrice","StyblinskiTang"
   };
 
-  
+//--------------------------------------------------SMALL WORLD-----------------------------------------------------------------
   //+++++++++++++++++++++++++++++++++++++++++++++++++Timer version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  //  timer MPI evaluate to delete it on the final version
-  MPI_Barrier(MPI_COMM_WORLD);
+  
+    
+  MPI_Barrier(MPI_COMM_WORLD);  //  timer MPI evaluate to delete it on the final version
   double t_start_small = MPI_Wtime();
   double t_allgatherv_small = 0.0;
   for (const auto& name : function_names) {
@@ -221,8 +220,9 @@ int main(int argc, char **argv)
 //+++++++++++++++++++++++++++++++++++++++++++++++Normal version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 */
 
+//--------------------------------------------------SCALE FREE-----------------------------------------------------------------
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++Timer version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  //+++++++++++++++++++++++++++++++++++++++++++++++++Timer version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   MPI_Barrier(MPI_COMM_WORLD);
   double t_start_scale = MPI_Wtime();
@@ -283,32 +283,34 @@ int main(int argc, char **argv)
 //++++++++++++++++++++++++++++++++++++++++++++++Normal Version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 */
-//+++++++++++++++++++++++++++++++++++++++++++++++Timer Version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//--------------------------------------------------RANDOM-----------------------------------------------------------------
+
+   //+++++++++++++++++++++++++++++++++++++++++++++++Timer Version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
-MPI_Barrier(MPI_COMM_WORLD);
-double t_start_random = MPI_Wtime();
-double t_allgatherv_random = 0.0;
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_start_random = MPI_Wtime();
+  double t_allgatherv_random = 0.0;
 
-for (const auto& name : function_names) {
-  bool converged = false;
-  auto f_ptr2 = factory[name](dim);
-  std::vector<std::vector<int>> adjacency_list2;
+  for (const auto& name : function_names) {
+    bool converged = false;
+    auto f_ptr2 = factory[name](dim);
+    std::vector<std::vector<int>> adjacency_list2;
 
-  if (rank == 0) {
-    create_random_network(static_cast<int>(n_points), p_random, adjacency_list2);
+    if (rank == 0) {
+      create_random_network(static_cast<int>(n_points), p_random, adjacency_list2);
+    }
+
+    bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
+    OutputObject result = pso_small_timerv(*f_ptr2, dim, stop, n_points, adjacency_list2, converged, t_allgatherv_random);
+
+    if (rank == 0 && converged) {
+      number_of_converged_random++;
+      functions_converged_random.push_back(name);
+    }
   }
 
-  bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
-  OutputObject result = pso_small_timerv(*f_ptr2, dim, stop, n_points, adjacency_list2, converged, t_allgatherv_random);
-
-  if (rank == 0 && converged) {
-    number_of_converged_random++;
-    functions_converged_random.push_back(name);
-  }
-}
-
-MPI_Barrier(MPI_COMM_WORLD);
-double t_end_random = MPI_Wtime();
+  MPI_Barrier(MPI_COMM_WORLD);
+  double t_end_random = MPI_Wtime();
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++Timer Version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -340,6 +342,7 @@ for (const auto& name : function_names) {
 MPI_Barrier(MPI_COMM_WORLD);
 double t_end_random_v1 = MPI_Wtime();
 
+//---------------------------------------------------PARALLEL VERSION------------------------------------------------------------------------------------------------
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++Normal version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 */
  MPI_Barrier(MPI_COMM_WORLD);
