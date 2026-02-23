@@ -49,6 +49,9 @@ static void bcast_adjacency_list(std::vector<std::vector<int>>& adjacency_list,
   }
 }
 
+
+
+
 int main(int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
@@ -151,7 +154,6 @@ int main(int argc, char **argv)
   };
 
 //--------------------------------------------------SMALL WORLD-----------------------------------------------------------------
-  //+++++++++++++++++++++++++++++++++++++++++++++++++Timer version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
     
   MPI_Barrier(MPI_COMM_WORLD);  //  timer MPI evaluate to delete it on the final version
@@ -184,45 +186,9 @@ int main(int argc, char **argv)
   MPI_Barrier(MPI_COMM_WORLD);
   double t_end_small = MPI_Wtime();
 
-//+++++++++++++++++++++++++++++++++++++++++++++++Timer version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-/*
-  //+++++++++++++++++++++++++++++++++++++++++++++++++Normal version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  //  timer MPI evaluate to delete it on the final version
-  MPI_Barrier(MPI_COMM_WORLD);
-  double t_start_small_v1 = MPI_Wtime();
-  for (const auto& name : function_names) {
-    bool converged = false;
-    auto f_ptr = factory[name](dim);
-    std::vector<std::vector<int>> adjacency_list_v1;
-  
-    if (rank == 0) {
-     // create_small_world_network(static_cast<int>(n_points), m, adjacency_list);
-      create_network(static_cast<int>(n_points), p_rewiring, adjacency_list_v1);
-      
-    }
-    bcast_adjacency_list(adjacency_list_v1, static_cast<int>(n_points), rank);
-    OutputObject result = pso_normal(*f_ptr, dim, stop, n_points, adjacency_list_v1, converged);
-    if (rank == 0) {
-  //    result.terminal_info();
-  //  result.output_to_file();     
-      if(converged == true){
-        number_of_converged_small_v1++;
-      }
-
-    }
-      
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  double t_end_small_v1 = MPI_Wtime();
-
-//+++++++++++++++++++++++++++++++++++++++++++++++Normal version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*/
 
 //--------------------------------------------------SCALE FREE-----------------------------------------------------------------
 
-  //+++++++++++++++++++++++++++++++++++++++++++++++++Timer version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   MPI_Barrier(MPI_COMM_WORLD);
   double t_start_scale = MPI_Wtime();
@@ -250,42 +216,8 @@ int main(int argc, char **argv)
   MPI_Barrier(MPI_COMM_WORLD);
   double t_end_scale = MPI_Wtime();
 
-//++++++++++++++++++++++++++++++++++++++++++++++Timer Version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-/*
-//+++++++++++++++++++++++++++++++++++++++++++++++++Normal version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  double t_start_scale_v1 = MPI_Wtime();
-  for (const auto& name : function_names) {
-    bool converged = false;
-    auto f_ptr1 = factory[name](dim);
-    std::vector<std::vector<int>> adjacency_list_v2;
-  
-    if (rank == 0) {
-      create_scale_free_network(static_cast<int>(n_points), m, adjacency_list_v2);
-    }
-    bcast_adjacency_list(adjacency_list_v2, static_cast<int>(n_points), rank);
-    OutputObject result = pso_normal(*f_ptr1, dim, stop, n_points, adjacency_list_v2, converged);
-    if (rank == 0) {
- //   result.terminal_info();
- //   result.output_to_file();
-      if(converged == true){
-        number_of_converged_scale_v1++;
-      }
-    }    
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  double t_end_scale_v1 = MPI_Wtime();
-
-//++++++++++++++++++++++++++++++++++++++++++++++Normal Version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-*/
 //--------------------------------------------------RANDOM-----------------------------------------------------------------
 
-   //+++++++++++++++++++++++++++++++++++++++++++++++Timer Version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
   MPI_Barrier(MPI_COMM_WORLD);
   double t_start_random = MPI_Wtime();
@@ -315,36 +247,7 @@ int main(int argc, char **argv)
 
 //+++++++++++++++++++++++++++++++++++++++++++++++Timer Version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-/*
-//+++++++++++++++++++++++++++++++++++++++++++++++++Normal version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
- 
-MPI_Barrier(MPI_COMM_WORLD);
-double t_start_random_v1 = MPI_Wtime();
-
-for (const auto& name : function_names) {
-  bool converged = false;
-  auto f_ptr2 = factory[name](dim);
-  std::vector<std::vector<int>> adjacency_list_v2;
-
-  if (rank == 0) {
-    create_random_network(static_cast<int>(n_points), p_random, adjacency_list_v2);
-  }
-
-  bcast_adjacency_list(adjacency_list_v2, static_cast<int>(n_points), rank);
-  OutputObject result = pso_normal(*f_ptr2, dim, stop, n_points, adjacency_list_v2, converged);
-
-  if (rank == 0 && converged) {
-    number_of_converged_random_v1++;
-  }
-}
-
-MPI_Barrier(MPI_COMM_WORLD);
-double t_end_random_v1 = MPI_Wtime();
-
-//---------------------------------------------------PARALLEL VERSION------------------------------------------------------------------------------------------------
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++Normal version++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*/
  MPI_Barrier(MPI_COMM_WORLD);
 
 
@@ -370,7 +273,8 @@ MPI_Barrier(MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   double t_end_classic = MPI_Wtime();
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+//-----------------------------------------------------COMPLETE VERSION------------------------------------------------------------------------------------------------
 /*
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -400,64 +304,10 @@ MPI_Barrier(MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   double t_end_complete = MPI_Wtime();
 */
-//--------------------------------------------Codice di prova---------------------------------------------------------------------------
 
-/*
- MPI_Barrier(MPI_COMM_WORLD);
-
-
-  double t_start_complete = MPI_Wtime();
-  std::vector<std::vector<int>> adjacency_list4;
-  if (rank == 0) {
-      create_fully_connected_network(static_cast<int>(n_points), adjacency_list4);
-    }
-    bcast_adjacency_list(adjacency_list4, static_cast<int>(n_points), rank);
-  for (const auto& name : function_names) {
-    bool converged = false;
-    auto f_ptr4 = factory[name](dim);
-   
-  
-    
-    OutputObject result = pso_small_debugger(*f_ptr4, dim, stop, n_points, adjacency_list4, converged);
-    if (rank == 0) {
- //     result.terminal_info();
-  //  result.output_to_file();
-      if(converged == true){
-        number_of_converged_complete++;
-        functions_converged_complete.push_back(name);
-      }
-    }
-      
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  double t_end_complete = MPI_Wtime();
-
-  */
-//--------------------------------------------Fine codice di prova---------------------------------------------------------------------------
 if (rank == 0) {
 
-    std::cout << "Total time classic PSO: " << (t_end_classic - t_start_classic) << " s\n";
-    std::cout << "Convergence rate classic PSO: " << number_of_converged_classic << "/" << number_of_functions << std::endl << std::endl;
-
-    std::cout << "Total time scale-free network timer version: " << t_allgatherv_scale << "/" << (t_end_scale - t_start_scale) << " s\n";
-    std::cout << "Convergence rate scale-free network: " << number_of_converged_scale << "/" << number_of_functions << std::endl;
- //   std::cout << "Total time scale-free network normal version: " <<  (t_end_scale_v1 - t_start_scale_v1) << " s\n \n";
-
-
-    std::cout << "Total time small-world network timer version: "  << t_allgatherv_small << "/" << (t_end_small - t_start_small) << " s\n";
-    std::cout << "Convergence rate small-world network: " << number_of_converged_small << "/" << number_of_functions << std::endl;
- //   std::cout << "Total time small-world network normal version: "  << (t_end_small_v1 - t_start_small_v1) << " s\n \n";
-
-    std::cout << "Total time random network timer version: " << t_allgatherv_random << "/" << (t_end_random - t_start_random) << " s\n\n";
-    std::cout << "Convergence rate random network: " << number_of_converged_random << "/" << number_of_functions << std::endl << std::endl;
- //   std::cout << "Total time random network normal version: " << (t_end_random_v1 - t_start_random_v1) << " s\n\n";
-    /*
-    std::cout << "Total time complete network: " << (t_end_complete - t_start_complete) << " s\n";
-    std::cout << "Convergence rate complete network: " << number_of_converged_complete << "/" << number_of_functions << std::endl << std::endl;
-  
-  */
-    std::array<std::vector<std::string>, 5> all = {
+  std::array<std::vector<std::string>, 5> all = {
         functions_converged_small,
         functions_converged_scale,
         functions_converged_random,
@@ -465,14 +315,76 @@ if (rank == 0) {
         function_names
     };
     
-    not_converged(all, 1);
+   int n = not_converged(all);
 
+//uniform output format for benchmarking
+  std::cout << "\n";
+  double time_classic = t_end_classic - t_start_classic;
+
+  std::cout << "RESULT,"
+            << "version=classic,"
+            << "time=" << time_classic << ","
+            << "conv=" << number_of_converged_classic << ","
+            << "total=" << number_of_functions << ","
+            << "\n";
+
+  double time_scale_total = t_end_scale - t_start_scale;
+
+  std::cout << "RESULT,"
+            << "version=scale_free,"
+            << "time1=" << t_allgatherv_scale << ","
+            << "time2=" << time_scale_total << ","
+            << "conv=" << number_of_converged_scale << ","
+            << "total=" << number_of_functions << ","
+            << "\n";
+
+  double time_small_total = t_end_small - t_start_small;
+
+  std::cout << "RESULT,"
+            << "version=small_world,"
+            << "time1=" << t_allgatherv_small << ","
+            << "time2=" << time_small_total << ","
+            << "conv=" << number_of_converged_small << ","
+            << "total=" << number_of_functions << ","
+            << "\n";
+
+  double time_random_total = t_end_random - t_start_random;
+
+  std::cout << "RESULT,"
+            << "version=random,"
+            << "time1=" << t_allgatherv_random << ","
+            << "time2=" << time_random_total << ","
+            << "conv=" << number_of_converged_random << ","
+            << "total=" << number_of_functions << ","
+            << "\n";
+            
+  std::cout << "RESULT," 
+            << "not_converged=" << n << ","
+            << "total=" << number_of_functions << ","
+             << "\n";
+
+   std::cout << "\n";
+
+// output in human friendly format
+
+  std::cout << "Total time classic PSO: " << (t_end_classic - t_start_classic) << " s\n";
+  std::cout << "Convergence rate classic PSO: " << number_of_converged_classic << "/" << number_of_functions << std::endl << std::endl;
+
+  std::cout << "Total time scale-free network timer version: " << t_allgatherv_scale << "/" << (t_end_scale - t_start_scale) << " s\n";
+  std::cout << "Convergence rate scale-free network: " << number_of_converged_scale << "/" << number_of_functions << std::endl;
+
+  std::cout << "Total time small-world network timer version: "  << t_allgatherv_small << "/" << (t_end_small - t_start_small) << " s\n";
+  std::cout << "Convergence rate small-world network: " << number_of_converged_small << "/" << number_of_functions << std::endl;
+
+  std::cout << "Total time random network timer version: " << t_allgatherv_random << "/" << (t_end_random - t_start_random) << " s\n";
+  std::cout << "Convergence rate random network: " << number_of_converged_random << "/" << number_of_functions << std::endl << std::endl;
+   
+  
   
  
     
 //    uniqueness(all);
-  }
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+}
 
   MPI_Finalize();
   return 0;

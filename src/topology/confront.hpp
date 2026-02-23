@@ -12,4 +12,4 @@ enum class Topology : std::size_t {
 };
 
 void uniqueness(const std::array<std::vector<std::string>, 5>& vectors);
-void not_converged(const std::array<std::vector<std::string>, 5>& vectors, int v);
+int not_converged(const std::array<std::vector<std::string>, 5>& vectors);
