@@ -40,7 +40,7 @@ private:
   std::vector<double> gbest_pos; // Class best memory (local to the subset)
   double gbest_val;
 
-  std::vector<std::vector<int>> adjacency_list; // Scale-Free or other Topology
+  std::vector<std::vector<int>> adjacency_list;
 
   double bounds_lower;
   double bounds_upper;

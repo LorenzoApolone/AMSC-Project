@@ -40,5 +40,7 @@ main_serial
 main_parallel
 main_small
 a
+test_cpso
+test_cpso_parallel
 
 /src/small_world/commented_code.cpp
