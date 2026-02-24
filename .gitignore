@@ -36,9 +36,13 @@ tests
 plots
 run_parameters.json
 
-main_serial
+
+/src/topology/commented_code.cpp
+
 main_parallel
+main_serial
 main_small
 a
 
-/src/small_world/commented_code.cpp
+*Zone.Identifier*
+*:Zone.Identifier*
