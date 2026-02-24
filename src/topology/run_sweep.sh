@@ -1,35 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# =========================
-# Configurazione (modifica qui)
-# =========================
+
 EXE="./a"
 OUTDIR="results"
 LOGDIR="$OUTDIR/logs"
 CSV="$OUTDIR/runs.csv"
 
-# Sweep parameters (modifica facilmente queste liste)
+# Changhe the parameteres here to change the sweep. 
 NPS=(1 2 4)
 DIMS=(3 10)
 NPOINTS=(100)
 MAXITERS=(100 1000)
 DELTAS=(0.001)
-
-# Ripetizioni per ogni combinazione
 REPS=1
 
-# =========================
-# Setup cartelle + header CSV
-# =========================
 mkdir -p "$OUTDIR" "$LOGDIR"
 
-# Header nuovo (coerente): time_total = tempo totale; time_comm = tempo comunicazione (allgatherv, se presente)
+
 if [[ ! -f "$CSV" ]]; then
   echo "np,dim,n_points,max_iter,delta,rep,version,time_total,time_comm,conv,total" > "$CSV"
 fi
 
-# Estrae il valore di key=... da una riga "RESULT,..."
+# Extract the values starting from the key"
 get_kv() {
   local line="$1"
   local key="$2"
@@ -39,7 +32,7 @@ get_kv() {
 run_idx=0
 
 # =========================
-# Sweep
+# Sweep process
 # =========================
 for np in "${NPS[@]}"; do
   for dim in "${DIMS[@]}"; do
@@ -55,7 +48,7 @@ for np in "${NPS[@]}"; do
             echo ">>> $run_id"
             mpirun -np "$np" "$EXE" "$dim" "$npt" "$mi" "$dx" | tee "$logfile" >/dev/null
 
-            # Legge SOLO le righe strutturate
+            
             while IFS= read -r line; do
               version="$(get_kv "$line" "version")"
               t_time="$(get_kv "$line" "time")"
@@ -64,9 +57,7 @@ for np in "${NPS[@]}"; do
               conv="$(get_kv "$line" "conv")"
               total="$(get_kv "$line" "total")"
 
-              # Normalizzazione:
-              # - classic: ha "time" (tempo totale)
-              # - altre topologie: hanno "time1" (comm) e "time2" (totale)
+              #line to handle the two types of output: with or without time1/time2
               if [[ -n "${t_time:-}" ]]; then
                 time_total="$t_time"
                 time_comm=""

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
+
+# this files dele the data created by run_sweep.sh
 set -euo pipefail
 
 OUTDIR="results"
 
-# Se vuoi cambiare cartella risultati, cambia OUTDIR
-# OUTDIR="results_new"
+
 
 if [[ ! -d "$OUTDIR" ]]; then
   echo "Nessuna cartella '$OUTDIR' trovata. Nulla da pulire."
