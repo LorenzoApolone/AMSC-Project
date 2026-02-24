@@ -5,10 +5,24 @@
 #include <numeric>
 
 CPSOParallel::CPSOParallel(int k_subswarms, int num_particles_per_swarm,
-                           double w_start, double w_end, double coeff1,
-                           double coeff2)
+                           NetworkType topology, double w_start, double w_end,
+                           double c1, double c2)
     : num_subswarms(k_subswarms), particles_per_swarm(num_particles_per_swarm),
-      w_max(w_start), w_min(w_end), c1(coeff1), c2(coeff2) {}
+      w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
+  subswarm_topologies.assign(k_subswarms, topology);
+}
+
+CPSOParallel::CPSOParallel(int k_subswarms, int num_particles_per_swarm,
+                           const std::vector<NetworkType> &topologies,
+                           double w_start, double w_end, double c1, double c2)
+    : num_subswarms(k_subswarms), particles_per_swarm(num_particles_per_swarm),
+      w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
+  subswarm_topologies = topologies;
+  while (subswarm_topologies.size() < static_cast<size_t>(k_subswarms)) {
+    subswarm_topologies.push_back(topologies.empty() ? NetworkType::SCALE_FREE
+                                                     : topologies.front());
+  }
+}
 
 OutputObject CPSOParallel::optimize(const TestFunction &f,
                                     StoppingCriteriaManager &stop_manager) {
@@ -29,7 +43,6 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
   int total_dim = f.dim;
   auto bounds = f.get_domain();
 
-  // Dimensions Division and Sub-Swarms Initialization
   int dims_per_swarm = total_dim / num_subswarms;
   int remainder = total_dim % num_subswarms;
 
@@ -45,15 +58,26 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
     }
     current_dim_start += swarm_dims;
 
-    // Scale-Free Network Generation for this Sub-Swarm
     std::vector<std::vector<int>> sub_adj_list;
-    create_scale_free_network(particles_per_swarm, 2, sub_adj_list);
+    switch (subswarm_topologies[i]) {
+    case NetworkType::SMALL_WORLD:
+      create_network(particles_per_swarm, 0.3, sub_adj_list);
+      break;
+    case NetworkType::SCALE_FREE:
+      create_scale_free_network(particles_per_swarm, 2, sub_adj_list);
+      break;
+    case NetworkType::RANDOM:
+      create_random_network(particles_per_swarm, 0.5, sub_adj_list);
+      break;
+    case NetworkType::FULLY_CONNECTED:
+      create_fully_connected_network(particles_per_swarm, sub_adj_list);
+      break;
+    }
 
     swarms.emplace_back(particles_per_swarm, active_dims, bounds.first,
                         bounds.second, sub_adj_list);
   }
 
-  // Distribute Sub-Swarms evenly across MPI processes
   std::vector<int> swarms_per_proc(mpi_size, num_subswarms / mpi_size);
   for (int i = 0; i < num_subswarms % mpi_size; ++i) {
     swarms_per_proc[i]++;
@@ -65,7 +89,6 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
   }
   int local_end_idx = local_start_idx + swarms_per_proc[mpi_rank];
 
-  // Context Vector Initialization
   ContextVector context(total_dim);
   std::vector<double> init_vec(total_dim);
   std::uniform_real_distribution<double> dist_pos(bounds.first, bounds.second);
@@ -73,7 +96,6 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
     init_vec[i] = dist_pos(global_gen);
   context.set_full_vector(init_vec, f.value(init_vec));
 
-  // Particles Initialization
   for (int i = 0; i < num_subswarms; ++i) {
     swarms[i].initialize(gens[i], context, f);
     context.update(swarms[i].get_gbest_pos(), swarms[i].get_active_dims(),
@@ -84,12 +106,8 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
   int iter = 0;
   bool must_stop = false;
 
-  // Main CPSO-P Loop
   while (!must_stop) {
     iter++;
-
-    // Temporary structures for "parallel" (logical) update of the
-    // context vector
     std::vector<std::vector<double>> subswarm_bests(num_subswarms);
     std::vector<double> subswarm_best_vals(num_subswarms);
     std::vector<std::vector<int>> subswarm_active_dims(num_subswarms);
@@ -105,28 +123,22 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
 
     for (int i = local_start_idx; i < local_end_idx; ++i) {
 
-      // Updates positions and velocities of the sub-swarm
       swarms[i].update_velocities_and_positions(current_w, c1, c2, gens[i]);
 
-      // Evaluates using the old Context Vector (Snapshotted at the beginning
-      // of the iteration)
       int fevals = swarms[i].evaluate_and_update(context, f);
       local_fevals += fevals;
 
-      // Save the best that we will propose to apply to the Vector
       subswarm_bests[i] = swarms[i].get_gbest_pos();
       subswarm_best_vals[i] = swarms[i].get_gbest_val();
       subswarm_active_dims[i] = swarms[i].get_active_dims();
     }
 
-    // --- MPI Synchronization ---
 #ifdef MPI_VERSION
     int global_fevals = 0;
     MPI_Allreduce(&local_fevals, &global_fevals, 1, MPI_INT, MPI_SUM,
                   MPI_COMM_WORLD);
     stop_manager.add_evaluations(global_fevals);
 
-    // Flatten our local proposed subswarm_best_vals and positions
     std::vector<double> local_vals;
     std::vector<double> local_pos;
     for (int i = local_start_idx; i < local_end_idx; ++i) {
@@ -136,7 +148,6 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
       }
     }
 
-    // Gather sizes and displacements for MPI_Allgatherv
     std::vector<int> recvcounts_vals(mpi_size);
     std::vector<int> displs_vals(mpi_size, 0);
     std::vector<int> recvcounts_pos(mpi_size);
@@ -163,7 +174,7 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
     }
 
     std::vector<double> global_vals(num_subswarms);
-    std::vector<double> global_pos(total_dim); // Overall size is total_dim
+    std::vector<double> global_pos(total_dim);
 
     MPI_Allgatherv(local_vals.data(), local_vals.size(), MPI_DOUBLE,
                    global_vals.data(), recvcounts_vals.data(),
@@ -173,8 +184,6 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
                    global_pos.data(), recvcounts_pos.data(), displs_pos.data(),
                    MPI_DOUBLE, MPI_COMM_WORLD);
 
-    // Unpack global arrays back into subswarm_bests and subswarm_best_vals
-    // everywhere
     int pos_idx = 0;
     for (int i = 0; i < num_subswarms; ++i) {
       subswarm_best_vals[i] = global_vals[i];

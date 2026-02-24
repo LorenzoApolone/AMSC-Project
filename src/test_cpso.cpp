@@ -47,7 +47,8 @@ int main(int argc, char **argv) {
     // Test CPSO-S
     auto f1 = get_function(name, dim);
     StoppingCriteriaManager stop1(max_fevals, 100, 1e-8);
-    CPSOSerial cpso_s(k_subswarms, particles_per_swarm);
+    CPSOSerial cpso_s(k_subswarms, particles_per_swarm,
+                      NetworkType::SCALE_FREE);
     OutputObject out_s = cpso_s.optimize(*f1, stop1);
 
     std::cout << "[CPSO-S] Best Fitness: " << out_s.f_val

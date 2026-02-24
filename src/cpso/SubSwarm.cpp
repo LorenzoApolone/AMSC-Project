@@ -18,7 +18,6 @@ SubSwarm::SubSwarm(int num_particles, const std::vector<int> &active_dimensions,
 void SubSwarm::initialize(std::mt19937 &gen, ContextVector &ctx,
                           const TestFunction &f) {
   std::uniform_real_distribution<double> dist_pos(bounds_lower, bounds_upper);
-  // Velocity initialization at ±10% of the range
   double range = bounds_upper - bounds_lower;
   std::uniform_real_distribution<double> dist_vel(-0.1 * range, 0.1 * range);
 
@@ -29,11 +28,9 @@ void SubSwarm::initialize(std::mt19937 &gen, ContextVector &ctx,
       p.best_position[d] = p.position[d];
     }
 
-    // Initial evaluation by combining with the Context Vector
     p.current_value = ctx.evaluate_particle(f, p.position, active_dims);
     p.best_value = p.current_value;
 
-    // Updates the global best local to the sub-swarm
     if (p.current_value < gbest_val) {
       gbest_val = p.current_value;
       gbest_pos = p.position;
@@ -48,8 +45,7 @@ void SubSwarm::update_velocities_and_positions(double w, double c1, double c2,
   for (size_t i = 0; i < particles.size(); ++i) {
     auto &p = particles[i];
 
-    // 1. Determine the network's lBest (Local Best)
-    std::vector<double> lbest_pos = p.best_position; // Itself as starting point
+    std::vector<double> lbest_pos = p.best_position;
     double lbest_val = p.best_value;
 
     if (!adjacency_list.empty()) {
@@ -60,23 +56,18 @@ void SubSwarm::update_velocities_and_positions(double w, double c1, double c2,
         }
       }
     } else {
-      // No list = Fully Connected (Global Topology)
       lbest_pos = gbest_pos;
     }
 
-    // 2. Coordinate update
     for (size_t d = 0; d < active_dims.size(); ++d) {
       double r1 = dist01(gen);
       double r2 = dist01(gen);
-
-      // Standard PSO equation, but influenced by lBest (Scale-Free network)
       p.velocity[d] = w * p.velocity[d] +
                       c1 * r1 * (p.best_position[d] - p.position[d]) +
                       c2 * r2 * (lbest_pos[d] - p.position[d]);
 
       p.position[d] += p.velocity[d];
 
-      // Clamping to avoid exceeding permitted bounds
       if (p.position[d] < bounds_lower)
         p.position[d] = bounds_lower;
       if (p.position[d] > bounds_upper)
@@ -89,17 +80,14 @@ int SubSwarm::evaluate_and_update(ContextVector &ctx, const TestFunction &f) {
   int evaluations_done = 0;
 
   for (auto &p : particles) {
-    // New evaluation
     p.current_value = ctx.evaluate_particle(f, p.position, active_dims);
     evaluations_done++;
 
-    // Personal best update
     if (p.current_value < p.best_value) {
       p.best_value = p.current_value;
       p.best_position = p.position;
     }
 
-    // Global best (local to the sub-swarm) update
     if (p.best_value < gbest_val) {
       gbest_val = p.best_value;
       gbest_pos = p.best_position;
