@@ -47,4 +47,4 @@ test_cpso
 test_cpso_parallel
 
 *Zone.Identifier*
-*:Zone.Identifier*
+*:Zone.Identifier*.DS_Store
