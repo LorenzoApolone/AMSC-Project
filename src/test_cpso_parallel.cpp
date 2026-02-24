@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-
 int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
 
@@ -58,10 +57,14 @@ int main(int argc, char **argv) {
       std::cout << "=== Testing " << name << " ===\n";
     }
 
-    // Test CPSO-P
     auto f2 = get_function(name, dim);
+
+    std::vector<NetworkType> topologies = {NetworkType::SCALE_FREE,
+                                           NetworkType::SMALL_WORLD,
+                                           NetworkType::FULLY_CONNECTED};
+
     StoppingCriteriaManager stop2(max_fevals, 100, 1e-8);
-    CPSOParallel cpso_p(k_subswarms, particles_per_swarm);
+    CPSOParallel cpso_p(k_subswarms, particles_per_swarm, topologies);
 
     MPI_Barrier(MPI_COMM_WORLD);
     double t_start = MPI_Wtime();
