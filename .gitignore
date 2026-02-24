@@ -43,6 +43,8 @@ main_parallel
 main_serial
 main_small
 a
+test_cpso
+test_cpso_parallel
 
 *Zone.Identifier*
 *:Zone.Identifier*
