@@ -148,6 +148,6 @@ public:
 
   void terminal_info();
   void output_to_file();
-};
+void append_summary_csv_by_method(const std::string& method_name, int rep) const;};
 
 #endif

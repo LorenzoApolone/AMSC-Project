@@ -27,6 +27,15 @@ using namespace std;
  *
  * Call it after a PSO run to get a quick overview of results. not suggested for massive testing, in this case use output_to_file() 
  */
+
+static std::string sanitize_filename(std::string s)
+{
+    for (char& c : s) {
+        if (!(std::isalnum(static_cast<unsigned char>(c)) || c=='-' || c=='_'))
+            c = '_';
+    }
+    return s;
+}
 void OutputObject::terminal_info(){
     std::cout << "\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
     std::cout << "Test function: " << function_name << std::endl;
@@ -108,8 +117,71 @@ void OutputObject::output_to_file(){
         << i << " "
         << conv_history[i] << " "
         << execution_time << "\n";
-    }
+     }
 
     // Close the file
     MyFile.close();
 };
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+NON USARE ASSOLUTAMENTE PRIMA DI AVER CHIESTO A LORENZO 
+
+questa funzione salva su file .csv i risultati della soluzione di pso per ogni funzione testata. 
+I risultati sono salvati in un file .csv con nome che identifica il metodo usato, la dimensione, il numero di particelle, il numero di core e il numero di ripetizione del test.
+Se tutti questi parametri rimangono uguali in due esecuzioni diverse, i risultati vengono appesi in fondo nello stesso file. NON VA BENE. 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+void OutputObject::append_summary_csv_by_method(const std::string& method_name, int rep) const
+{
+    namespace fs = std::filesystem;
+
+    fs::path out_dir = fs::path("tests") / "summary";
+    fs::create_directories(out_dir);
+
+    const std::string m = sanitize_filename(method_name);
+
+    fs::path csv_path =
+        out_dir / (m +
+                   "_d"  + std::to_string(d) +
+                   "_np" + std::to_string(n_points) +
+                   "_c"  + std::to_string(n_cores) +
+                   "_rep" + std::to_string(rep) +
+                   ".csv");
+
+    const bool file_exists = fs::exists(csv_path);
+
+    std::ofstream out(csv_path, std::ios::app);
+    if (!out.is_open()) {
+        std::cerr << "Errore apertura CSV: " << csv_path << "\n";
+        return;
+    }
+
+    if (!file_exists) {
+        out << "# method=" << method_name << "\n";
+        out << "# dim=" << d << "\n";
+        out << "# n_points=" << n_points << "\n";
+        out << "# n_cores=" << n_cores << "\n";
+        out << "# max_iter=" << stopcriterion.get_max_iter() << "\n";
+        out << "# tol=" << stopcriterion.get_tolerance() << "\n";
+        out << "# rep=" << rep << "\n\n";
+
+        out << "function,converged,iters,final_err,final_fitness,time_s\n";
+    }
+
+    const size_t iters = conv_history.size();
+    const double final_err = (iters > 0 ? conv_history.back()
+                                        : std::numeric_limits<double>::quiet_NaN());
+
+  
+    const int converged_flag =
+        (std::isfinite(final_err) && final_err < stopcriterion.get_tolerance()) ? 1 : 0;
+
+    out << function_name << ","
+        << converged_flag << ","
+        << iters << ","
+        << final_err << ","
+        << f_val << ","
+        << execution_time
+        << "\n";
+}

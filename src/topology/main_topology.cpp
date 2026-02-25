@@ -172,6 +172,7 @@ int main(int argc, char **argv)
     bcast_adjacency_list(adjacency_list, static_cast<int>(n_points), rank);
     OutputObject result = pso_small_timerv(*f_ptr, dim, stop, n_points, adjacency_list, converged, t_allgatherv_small);
     if (rank == 0) {
+      result.append_summary_csv_by_method("small_world", 1);
   //    result.terminal_info();
   //  result.output_to_file();     
       if(converged == true){
@@ -204,6 +205,8 @@ int main(int argc, char **argv)
     bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
     OutputObject result = pso_small_timerv(*f_ptr1, dim, stop, n_points, adjacency_list2, converged, t_allgatherv_scale);
     if (rank == 0) {
+      result.append_summary_csv_by_method("scale_free", 1);
+
  //   result.terminal_info();
  //   result.output_to_file();
       if(converged == true){
@@ -234,7 +237,12 @@ int main(int argc, char **argv)
 
     bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
     OutputObject result = pso_small_timerv(*f_ptr2, dim, stop, n_points, adjacency_list2, converged, t_allgatherv_random);
-
+    if(rank == 0){
+      result.append_summary_csv_by_method("random", 1);
+    }
+   //   result.terminal_info();
+     // result.output_to_file();
+      
     if (rank == 0 && converged) {
       number_of_converged_random++;
       functions_converged_random.push_back(name);
@@ -261,6 +269,8 @@ MPI_Barrier(MPI_COMM_WORLD);
     OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points, converged);
     if (rank == 0)
     {
+            result.append_summary_csv_by_method("classic", 1);
+
  //     result.terminal_info();
  //     result.output_to_file();
       if (converged){
