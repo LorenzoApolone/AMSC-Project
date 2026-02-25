@@ -12,7 +12,7 @@
 void run_benchmark(const TestFunction& func, unsigned int dim, 
                    int max_iter, unsigned int particles_per_rank,
                    int rank, int size) {
-    StopCriterion stop(max_iter, 1e-12);
+    StopCriterion stop(max_iter, 1e-3);
     OutputObject res = pso_mpi(func, dim, stop, particles_per_rank);
 
     if (rank == 0) {
@@ -35,11 +35,12 @@ int main(int argc, char** argv) {
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+    double start_time = MPI_Wtime();
 
-    std::vector<unsigned int> dims = {10};
+    std::vector<unsigned int> dims = {20};
 
-    const unsigned int particles_per_rank = 50;
-    const int base_iter = 100;
+    const unsigned int particles_per_rank = 25;
+    const int base_iter = 10000;
 
     if (rank == 0) {
         std::cout << "\n+" << std::string(90, '-') << "+" << std::endl;
@@ -60,7 +61,7 @@ int main(int argc, char** argv) {
 
     for (unsigned int dim : dims) {
         unsigned int ppr = particles_per_rank;
-        int iters = base_iter + 20 * (int)dim;
+        int iters = base_iter;
 
         { Sphere f(dim);           run_benchmark(f, dim, iters, ppr, rank, size); }
         { Ellipsoid f(dim);        run_benchmark(f, dim, iters, ppr, rank, size); }
@@ -98,6 +99,8 @@ int main(int argc, char** argv) {
 
     if (rank == 0) {
         std::cout << "\n=== ALL BENCHMARKS COMPLETED ===" << std::endl;
+        double end_time = MPI_Wtime();
+        std::cout << "Tempo totale esecuzione: " << (end_time - start_time) << " s" << std::endl;
     }
 
     MPI_Finalize();

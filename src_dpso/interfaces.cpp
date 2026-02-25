@@ -28,16 +28,7 @@ using namespace std;
  * Call it after a PSO run to get a quick overview of results. not suggested for massive testing, in this case use output_to_file() 
  */
 void OutputObject::terminal_info(){
-    std::cout << "\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
-    std::cout << "Test function: " << function_name << std::endl;
-    std::cout << "Dimension: " << x_best.size() << std::endl;
-    std::cout << "Number of points: " << n_points << std::endl;
-    std::cout << "Number of cores: " << n_cores << std::endl;
-    std::cout << "Stopping criterion: " << std::endl;
-    std::cout << "Final delta x: " << conv_history[conv_history.size() - 1] << std::endl;
-    std::cout << "Execution time: " << execution_time << std::endl;
-    std::cout << "Iterations: " << conv_history.size() << std::endl;
-    std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" << std::endl;
+    std::cout << execution_time << std::endl;
 }
 
 int get_max_test_number(const std::filesystem::path& dir) {
