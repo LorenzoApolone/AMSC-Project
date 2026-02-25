@@ -1,5 +1,6 @@
 #include "CPSOParallel.hpp"
 #include "../topology/create_network.hpp"
+#include <algorithm>
 #include <chrono>
 #include <mpi.h>
 #include <numeric>
@@ -91,10 +92,22 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
 
   ContextVector context(total_dim);
   std::vector<double> init_vec(total_dim);
-  std::uniform_real_distribution<double> dist_pos(bounds.first, bounds.second);
-  for (int i = 0; i < total_dim; ++i)
-    init_vec[i] = dist_pos(global_gen);
-  context.set_full_vector(init_vec, f.value(init_vec));
+  double init_fitness = 0.0;
+
+  if (mpi_rank == 0) {
+    std::uniform_real_distribution<double> dist_pos(bounds.first,
+                                                    bounds.second);
+    for (int i = 0; i < total_dim; ++i)
+      init_vec[i] = dist_pos(global_gen);
+    init_fitness = f.value(init_vec);
+  }
+
+#ifdef MPI_VERSION
+  MPI_Bcast(init_vec.data(), total_dim, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&init_fitness, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+#endif
+
+  context.set_full_vector(init_vec, init_fitness);
 
   for (int i = 0; i < num_subswarms; ++i) {
     swarms[i].initialize(gens[i], context, f);
@@ -110,7 +123,6 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
     iter++;
     std::vector<std::vector<double>> subswarm_bests(num_subswarms);
     std::vector<double> subswarm_best_vals(num_subswarms);
-    std::vector<std::vector<int>> subswarm_active_dims(num_subswarms);
     double progress_ratio = (double)stop_manager.get_current_fevals() /
                             stop_manager.get_max_fevals();
 
@@ -130,7 +142,6 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
 
       subswarm_bests[i] = swarms[i].get_gbest_pos();
       subswarm_best_vals[i] = swarms[i].get_gbest_val();
-      subswarm_active_dims[i] = swarms[i].get_active_dims();
     }
 
 #ifdef MPI_VERSION
@@ -153,6 +164,7 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
     std::vector<int> recvcounts_pos(mpi_size);
     std::vector<int> displs_pos(mpi_size, 0);
 
+    int total_active_dims = 0;
     for (int i = 0; i < mpi_size; ++i) {
       recvcounts_vals[i] = swarms_per_proc[i];
 
@@ -166,6 +178,7 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
         elements += swarms[k].get_active_dims().size();
       }
       recvcounts_pos[i] = elements;
+      total_active_dims += elements;
 
       if (i > 0) {
         displs_vals[i] = displs_vals[i - 1] + recvcounts_vals[i - 1];
@@ -174,7 +187,7 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
     }
 
     std::vector<double> global_vals(num_subswarms);
-    std::vector<double> global_pos(total_dim);
+    std::vector<double> global_pos(total_active_dims);
 
     MPI_Allgatherv(local_vals.data(), local_vals.size(), MPI_DOUBLE,
                    global_vals.data(), recvcounts_vals.data(),
@@ -200,9 +213,16 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
 #endif
 
     for (int i = 0; i < num_subswarms; ++i) {
-      context.update(subswarm_bests[i], subswarm_active_dims[i],
-                     subswarm_best_vals[i]);
+      if (subswarm_best_vals[i] < context.get_best_fitness()) {
+        context.update(subswarm_bests[i], swarms[i].get_active_dims(),
+                       subswarm_best_vals[i]);
+      }
     }
+
+    double new_true_fitness = f.value(context.get_full_vector());
+    context.set_full_vector(
+        context.get_full_vector(),
+        std::min(context.get_best_fitness(), new_true_fitness));
 
     double current_best_fitness = context.get_best_fitness();
     const std::vector<double> &current_gbest_pos = context.get_full_vector();

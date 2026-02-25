@@ -97,19 +97,26 @@ OutputObject CPSOSerial::optimize(const TestFunction &f,
       progress_ratio = 1.0;
 
     double current_w = w_max - (w_max - w_min) * progress_ratio;
-
     for (auto &swarm : swarms) {
       swarm.update_velocities_and_positions(current_w, c1, c2, gen);
-
       int fevals = swarm.evaluate_and_update(context, f);
       stop_manager.add_evaluations(fevals);
-
-      context.update(swarm.get_gbest_pos(), swarm.get_active_dims(),
-                     swarm.get_gbest_val());
     }
+
+    for (auto &swarm : swarms) {
+      if (swarm.get_gbest_val() < context.get_best_fitness()) {
+        context.update(swarm.get_gbest_pos(), swarm.get_active_dims(),
+                       swarm.get_gbest_val());
+      }
+    }
+
+    double new_true_fitness = f.value(context.get_full_vector());
+    context.set_full_vector(
+        context.get_full_vector(),
+        std::min(context.get_best_fitness(), new_true_fitness));
+
     double current_best_fitness = context.get_best_fitness();
     const std::vector<double> &current_gbest_pos = context.get_full_vector();
-
     double current_normalized_error = f.error(current_gbest_pos);
     history.push_back(current_normalized_error);
 
