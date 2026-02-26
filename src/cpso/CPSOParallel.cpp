@@ -6,18 +6,19 @@
 #include <numeric>
 
 CPSOParallel::CPSOParallel(int k_subswarms, int num_particles_per_swarm,
-                           NetworkType topology, double w_start, double w_end,
-                           double c1, double c2)
+                           NetworkType topology, int shuffle_freq,
+                           double w_start, double w_end, double c1, double c2)
     : num_subswarms(k_subswarms), particles_per_swarm(num_particles_per_swarm),
-      w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
+      shuffle_freq(shuffle_freq), w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
   subswarm_topologies.assign(k_subswarms, topology);
 }
 
 CPSOParallel::CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                            const std::vector<NetworkType> &topologies,
-                           double w_start, double w_end, double c1, double c2)
+                           int shuffle_freq, double w_start, double w_end,
+                           double c1, double c2)
     : num_subswarms(k_subswarms), particles_per_swarm(num_particles_per_swarm),
-      w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
+      shuffle_freq(shuffle_freq), w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
   subswarm_topologies = topologies;
   while (subswarm_topologies.size() < static_cast<size_t>(k_subswarms)) {
     subswarm_topologies.push_back(topologies.empty() ? NetworkType::SCALE_FREE
@@ -121,6 +122,30 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
 
   while (!must_stop) {
     iter++;
+
+    if (iter > 1 && iter % shuffle_freq == 0) {
+      std::vector<int> permutation(total_dim);
+      if (mpi_rank == 0) {
+        std::iota(permutation.begin(), permutation.end(), 0);
+        std::shuffle(permutation.begin(), permutation.end(), global_gen);
+      }
+#ifdef MPI_VERSION
+      MPI_Bcast(permutation.data(), total_dim, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
+
+      int current_dim_start = 0;
+      for (int i = 0; i < num_subswarms; ++i) {
+        int swarm_dims = dims_per_swarm + (i < remainder ? 1 : 0);
+        std::vector<int> new_active_dims(swarm_dims);
+        for (int d = 0; d < swarm_dims; ++d) {
+          new_active_dims[d] = permutation[current_dim_start + d];
+        }
+        current_dim_start += swarm_dims;
+
+        swarms[i].update_active_dims(new_active_dims);
+      }
+    }
+
     std::vector<std::vector<double>> subswarm_bests(num_subswarms);
     std::vector<double> subswarm_best_vals(num_subswarms);
     double progress_ratio = (double)stop_manager.get_current_fevals() /

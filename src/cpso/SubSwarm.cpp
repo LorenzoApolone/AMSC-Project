@@ -1,4 +1,5 @@
 #include "SubSwarm.hpp"
+#include <stdexcept>
 
 SubSwarm::SubSwarm(int num_particles, const std::vector<int> &active_dimensions,
                    double lower_bound, double upper_bound,
@@ -104,4 +105,23 @@ const std::vector<int> &SubSwarm::get_active_dims() const {
 }
 const std::vector<CPSOParticle> &SubSwarm::get_particles() const {
   return particles;
+}
+
+void SubSwarm::update_active_dims(const std::vector<int> &new_dims) {
+  if (new_dims.size() != active_dims.size()) {
+    throw std::runtime_error("Size mismatch during dimension shuffling");
+  }
+
+  active_dims = new_dims;
+
+  gbest_val = std::numeric_limits<double>::infinity();
+  for (auto &p : particles) {
+    p.current_value = std::numeric_limits<double>::infinity();
+    p.best_value = std::numeric_limits<double>::infinity();
+    p.best_position = p.position;
+
+    for (size_t d = 0; d < active_dims.size(); ++d) {
+      p.velocity[d] = 0.0;
+    }
+  }
 }
