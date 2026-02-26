@@ -11,6 +11,7 @@ DEPEND = make.dep
 # Define both executables
 EXEC_SERIAL = main_serial
 EXEC_PARALLEL = main_parallel
+EXEC_DPSO = main_dpso
 
 # Common source files (excluding main files and algorithm implementations)
 COMMON_SRCS := $(filter-out main_serial.cpp main_parallel.cpp pso_serial.cpp pso_mpi.cpp, $(wildcard *.cpp))
@@ -24,6 +25,21 @@ SERIAL_OBJS = $(SERIAL_SRCS:.cpp=.o)
 PARALLEL_SRCS = $(COMMON_SRCS) main_parallel.cpp pso_mpi.cpp
 PARALLEL_OBJS = $(PARALLEL_SRCS:.cpp=.o)
 
+# Aggiungi i file della cartella dpso
+DPSO_SRCS := dpso/dpso.cpp
+DPSO_OBJS := $(DPSO_SRCS:.cpp=.o)
+
+# Aggiorna le variabili dei sorgenti
+COMMON_SRCS := $(filter-out main_serial.cpp main_parallel.cpp pso_serial.cpp pso_mpi.cpp, $(wildcard *.cpp)) $(DPSO_SRCS)
+COMMON_OBJS := $(COMMON_SRCS:.cpp=.o)
+
+# Aggiorna le variabili degli oggetti per seriale e parallelo
+SERIAL_SRCS = $(COMMON_SRCS) main_serial.cpp pso_serial.cpp
+SERIAL_OBJS = $(SERIAL_SRCS:.cpp=.o)
+
+PARALLEL_SRCS = $(COMMON_SRCS) main_parallel.cpp pso_mpi.cpp
+PARALLEL_OBJS = $(PARALLEL_SRCS:.cpp=.o)
+
 .PHONY = all serial parallel clean distclean $(DEPEND)
 
 all: $(DEPEND) serial parallel
@@ -32,13 +48,19 @@ serial: $(EXEC_SERIAL)
 
 parallel: $(EXEC_PARALLEL)
 
-$(EXEC_SERIAL): $(SERIAL_OBJS)
+$(EXEC_SERIAL): main_serial.o pso_serial.o functions.o interfaces.o dpso/dpso.o
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
 
-$(EXEC_PARALLEL): $(PARALLEL_OBJS)
+$(EXEC_PARALLEL): main_parallel.o pso_mpi.o functions.o interfaces.o dpso/dpso.o
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
+
+main_dpso: dpso/main_dpso.o dpso/dpso.o functions.o interfaces.o
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
 
 %.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+dpso/%.o: dpso/%.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 clean:
@@ -46,7 +68,7 @@ clean:
 	$(RM) *.o
 
 distclean: clean
-	$(RM) $(EXEC_SERIAL) $(EXEC_PARALLEL)
+	$(RM) $(EXEC_SERIAL) $(EXEC_PARALLEL) $(EXEC_DPSO)
 	$(RM) *.csv *.out *.bak *~ run_parameters.json
 
 $(DEPEND): $(wildcard *.cpp)
