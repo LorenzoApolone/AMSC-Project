@@ -42,6 +42,11 @@ public:
 
   void initialize(std::mt19937 &gen, ContextVector &ctx, const TestFunction &f);
 
+  void update_active_dims(const std::vector<int> &new_dims,
+                          const ContextVector &ctx, std::mt19937 &gen);
+
+  void inject_velocities(std::mt19937 &gen);
+
   void update_velocities_and_positions(double w, double c1, double c2,
                                        std::mt19937 &gen);
 
