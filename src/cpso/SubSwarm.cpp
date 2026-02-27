@@ -69,10 +69,13 @@ void SubSwarm::update_velocities_and_positions(double w, double c1, double c2,
 
       p.position[d] += p.velocity[d];
 
-      if (p.position[d] < bounds_lower)
+      if (p.position[d] < bounds_lower) {
         p.position[d] = bounds_lower;
-      if (p.position[d] > bounds_upper)
+        p.velocity[d] = -0.5 * p.velocity[d];
+      } else if (p.position[d] > bounds_upper) {
         p.position[d] = bounds_upper;
+        p.velocity[d] = -0.5 * p.velocity[d];
+      }
     }
   }
 }
@@ -107,7 +110,8 @@ const std::vector<CPSOParticle> &SubSwarm::get_particles() const {
   return particles;
 }
 
-void SubSwarm::update_active_dims(const std::vector<int> &new_dims) {
+void SubSwarm::update_active_dims(const std::vector<int> &new_dims,
+                                  const ContextVector &ctx, std::mt19937 &gen) {
   if (new_dims.size() != active_dims.size()) {
     throw std::runtime_error("Size mismatch during dimension shuffling");
   }
@@ -115,13 +119,41 @@ void SubSwarm::update_active_dims(const std::vector<int> &new_dims) {
   active_dims = new_dims;
 
   gbest_val = std::numeric_limits<double>::infinity();
+
+  const std::vector<double> &context_vec = ctx.get_full_vector();
+  double range = bounds_upper - bounds_lower;
+  std::uniform_real_distribution<double> dist_vel(-0.01 * range, 0.01 * range);
+
   for (auto &p : particles) {
     p.current_value = std::numeric_limits<double>::infinity();
     p.best_value = std::numeric_limits<double>::infinity();
-    p.best_position = p.position;
 
     for (size_t d = 0; d < active_dims.size(); ++d) {
-      p.velocity[d] = 0.0;
+      p.position[d] = context_vec[active_dims[d]];
+      p.best_position[d] = p.position[d];
+
+      p.velocity[d] += dist_vel(gen);
+    }
+  }
+}
+
+void SubSwarm::inject_velocities(std::mt19937 &gen) {
+  double range = bounds_upper - bounds_lower;
+  std::uniform_real_distribution<double> dist_vel(-0.1 * range, 0.1 * range);
+
+  for (auto &p : particles) {
+    bool is_gbest = true;
+    for (size_t d = 0; d < active_dims.size(); ++d) {
+      if (p.best_position[d] != gbest_pos[d]) {
+        is_gbest = false;
+        break;
+      }
+    }
+
+    if (!is_gbest) {
+      for (size_t d = 0; d < active_dims.size(); ++d) {
+        p.velocity[d] = dist_vel(gen);
+      }
     }
   }
 }

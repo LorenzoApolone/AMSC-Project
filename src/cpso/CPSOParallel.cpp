@@ -7,18 +7,21 @@
 
 CPSOParallel::CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                            NetworkType topology, int shuffle_freq,
-                           double w_start, double w_end, double c1, double c2)
+                           int stagnation_patience, double w_start,
+                           double w_end, double c1, double c2)
     : num_subswarms(k_subswarms), particles_per_swarm(num_particles_per_swarm),
-      shuffle_freq(shuffle_freq), w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
+      shuffle_freq(shuffle_freq), stagnation_patience(stagnation_patience),
+      w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
   subswarm_topologies.assign(k_subswarms, topology);
 }
 
 CPSOParallel::CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                            const std::vector<NetworkType> &topologies,
-                           int shuffle_freq, double w_start, double w_end,
-                           double c1, double c2)
+                           int shuffle_freq, int stagnation_patience,
+                           double w_start, double w_end, double c1, double c2)
     : num_subswarms(k_subswarms), particles_per_swarm(num_particles_per_swarm),
-      shuffle_freq(shuffle_freq), w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
+      shuffle_freq(shuffle_freq), stagnation_patience(stagnation_patience),
+      w_max(w_start), w_min(w_end), c1(c1), c2(c2) {
   subswarm_topologies = topologies;
   while (subswarm_topologies.size() < static_cast<size_t>(k_subswarms)) {
     subswarm_topologies.push_back(topologies.empty() ? NetworkType::SCALE_FREE
@@ -116,12 +119,16 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
                    swarms[i].get_gbest_val());
   }
 
+  int stagnation_counter = 0;
+  double previous_best_fitness = context.get_best_fitness();
+
   std::vector<double> history;
   int iter = 0;
   bool must_stop = false;
 
   while (!must_stop) {
     iter++;
+    stop_manager.increment_iterations();
 
     if (iter > 1 && iter % shuffle_freq == 0) {
       std::vector<int> permutation(total_dim);
@@ -142,101 +149,54 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
         }
         current_dim_start += swarm_dims;
 
-        swarms[i].update_active_dims(new_active_dims);
+        swarms[i].update_active_dims(new_active_dims, context, gens[i]);
       }
     }
 
     std::vector<std::vector<double>> subswarm_bests(num_subswarms);
     std::vector<double> subswarm_best_vals(num_subswarms);
-    double progress_ratio = (double)stop_manager.get_current_fevals() /
-                            stop_manager.get_max_fevals();
+    double progress_ratio =
+        (double)stop_manager.get_current_iters() / stop_manager.get_max_iters();
 
     if (progress_ratio > 1.0)
       progress_ratio = 1.0;
 
     double current_w = w_max - (w_max - w_min) * progress_ratio;
 
-    int local_fevals = 0;
-
     for (int i = local_start_idx; i < local_end_idx; ++i) {
 
       swarms[i].update_velocities_and_positions(current_w, c1, c2, gens[i]);
 
-      int fevals = swarms[i].evaluate_and_update(context, f);
-      local_fevals += fevals;
+      swarms[i].evaluate_and_update(context, f);
 
       subswarm_bests[i] = swarms[i].get_gbest_pos();
       subswarm_best_vals[i] = swarms[i].get_gbest_val();
     }
 
 #ifdef MPI_VERSION
-    int global_fevals = 0;
-    MPI_Allreduce(&local_fevals, &global_fevals, 1, MPI_INT, MPI_SUM,
-                  MPI_COMM_WORLD);
-    stop_manager.add_evaluations(global_fevals);
+    std::vector<double> send_context = context.get_full_vector();
+    std::vector<double> recv_context(total_dim);
 
-    std::vector<double> local_vals;
-    std::vector<double> local_pos;
+    int right_nbr = (mpi_rank + 1) % mpi_size;
+    int left_nbr = (mpi_rank - 1 + mpi_size) % mpi_size;
+
+    MPI_Sendrecv(send_context.data(), total_dim, MPI_DOUBLE, right_nbr, 0,
+                 recv_context.data(), total_dim, MPI_DOUBLE, left_nbr, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
     for (int i = local_start_idx; i < local_end_idx; ++i) {
-      local_vals.push_back(subswarm_best_vals[i]);
-      for (double p : subswarm_bests[i]) {
-        local_pos.push_back(p);
+      const auto &active_dims = swarms[i].get_active_dims();
+      for (size_t d = 0; d < active_dims.size(); ++d) {
+        recv_context[active_dims[d]] = subswarm_bests[i][d];
       }
     }
 
-    std::vector<int> recvcounts_vals(mpi_size);
-    std::vector<int> displs_vals(mpi_size, 0);
-    std::vector<int> recvcounts_pos(mpi_size);
-    std::vector<int> displs_pos(mpi_size, 0);
+    double new_true_fitness = f.value(recv_context);
 
-    int total_active_dims = 0;
-    for (int i = 0; i < mpi_size; ++i) {
-      recvcounts_vals[i] = swarms_per_proc[i];
-
-      int elements = 0;
-      int p_start = 0;
-      for (int j = 0; j < i; ++j)
-        p_start += swarms_per_proc[j];
-      int p_end = p_start + swarms_per_proc[i];
-
-      for (int k = p_start; k < p_end; ++k) {
-        elements += swarms[k].get_active_dims().size();
-      }
-      recvcounts_pos[i] = elements;
-      total_active_dims += elements;
-
-      if (i > 0) {
-        displs_vals[i] = displs_vals[i - 1] + recvcounts_vals[i - 1];
-        displs_pos[i] = displs_pos[i - 1] + recvcounts_pos[i - 1];
-      }
+    if (new_true_fitness < context.get_best_fitness()) {
+      context.set_full_vector(recv_context, new_true_fitness);
     }
-
-    std::vector<double> global_vals(num_subswarms);
-    std::vector<double> global_pos(total_active_dims);
-
-    MPI_Allgatherv(local_vals.data(), local_vals.size(), MPI_DOUBLE,
-                   global_vals.data(), recvcounts_vals.data(),
-                   displs_vals.data(), MPI_DOUBLE, MPI_COMM_WORLD);
-
-    MPI_Allgatherv(local_pos.data(), local_pos.size(), MPI_DOUBLE,
-                   global_pos.data(), recvcounts_pos.data(), displs_pos.data(),
-                   MPI_DOUBLE, MPI_COMM_WORLD);
-
-    int pos_idx = 0;
-    for (int i = 0; i < num_subswarms; ++i) {
-      subswarm_best_vals[i] = global_vals[i];
-
-      int dims = swarms[i].get_active_dims().size();
-      subswarm_bests[i].resize(dims);
-      for (int d = 0; d < dims; ++d) {
-        subswarm_bests[i][d] = global_pos[pos_idx++];
-      }
-    }
-
 #else
-    stop_manager.add_evaluations(local_fevals);
-#endif
-
     for (int i = 0; i < num_subswarms; ++i) {
       if (subswarm_best_vals[i] < context.get_best_fitness()) {
         context.update(subswarm_bests[i], swarms[i].get_active_dims(),
@@ -245,22 +205,73 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
     }
 
     double new_true_fitness = f.value(context.get_full_vector());
-    context.set_full_vector(
-        context.get_full_vector(),
-        std::min(context.get_best_fitness(), new_true_fitness));
+
+    if (new_true_fitness < context.get_best_fitness()) {
+      context.set_full_vector(context.get_full_vector(), new_true_fitness);
+    }
+#endif
 
     double current_best_fitness = context.get_best_fitness();
+
+    if (previous_best_fitness - current_best_fitness < 1e-6) {
+      stagnation_counter++;
+    } else {
+      stagnation_counter = 0;
+      previous_best_fitness = current_best_fitness;
+    }
+
+    if (stagnation_counter >= stagnation_patience) {
+      for (int i = local_start_idx; i < local_end_idx; ++i) {
+        swarms[i].inject_velocities(gens[i]);
+      }
+      stagnation_counter = 0;
+    }
+
     const std::vector<double> &current_gbest_pos = context.get_full_vector();
 
     double current_normalized_error = f.error(current_gbest_pos);
     history.push_back(current_normalized_error);
 
-    std::vector<std::vector<double>> empty_diversity;
-
-    if (stop_manager.should_stop(current_best_fitness, empty_diversity,
-                                 current_gbest_pos)) {
-      must_stop = true;
+    // Calculate explicitly the average distance
+    std::vector<double> local_dist_sq(particles_per_swarm, 0.0);
+    for (int p = 0; p < particles_per_swarm; ++p) {
+      for (int i = local_start_idx; i < local_end_idx; ++i) {
+        const auto &particle = swarms[i].get_particles()[p];
+        const auto &active_dims = swarms[i].get_active_dims();
+        for (size_t d = 0; d < active_dims.size(); ++d) {
+          double diff =
+              particle.position[d] - current_gbest_pos[active_dims[d]];
+          local_dist_sq[p] += diff * diff;
+        }
+      }
     }
+
+    std::vector<double> global_dist_sq(particles_per_swarm, 0.0);
+#ifdef MPI_VERSION
+    MPI_Allreduce(local_dist_sq.data(), global_dist_sq.data(),
+                  particles_per_swarm, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+#else
+    global_dist_sq = local_dist_sq;
+#endif
+
+    double total_distance = 0.0;
+    for (int p = 0; p < particles_per_swarm; ++p) {
+      total_distance += std::sqrt(global_dist_sq[p]);
+    }
+    double avg_distance = total_distance / particles_per_swarm;
+
+    bool local_stop =
+        stop_manager.should_stop(current_best_fitness, avg_distance);
+
+#ifdef MPI_VERSION
+    int local_stop_int = local_stop ? 1 : 0;
+    int global_stop_int = 0;
+    MPI_Allreduce(&local_stop_int, &global_stop_int, 1, MPI_INT, MPI_MAX,
+                  MPI_COMM_WORLD);
+    must_stop = (global_stop_int > 0);
+#else
+    must_stop = local_stop;
+#endif
   }
 
   auto end_time = std::chrono::high_resolution_clock::now();

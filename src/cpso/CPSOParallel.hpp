@@ -13,18 +13,21 @@ private:
   int num_subswarms;
   int particles_per_swarm;
   int shuffle_freq;
+  int stagnation_patience;
   double w_max, w_min, c1, c2;
   std::vector<NetworkType> subswarm_topologies;
 
 public:
   CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                NetworkType topology, int shuffle_freq = 50,
-               double w_start = 0.9, double w_end = 0.4,
-               double coeff1 = 1.49618, double coeff2 = 1.49618);
+               int stagnation_patience = 50, double w_start = 0.9,
+               double w_end = 0.4, double coeff1 = 1.49618,
+               double coeff2 = 1.49618);
 
   CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                const std::vector<NetworkType> &topologies,
-               int shuffle_freq = 50, double w_start = 0.9, double w_end = 0.4,
+               int shuffle_freq = 50, int stagnation_patience = 50,
+               double w_start = 0.9, double w_end = 0.4,
                double coeff1 = 1.49618, double coeff2 = 1.49618);
 
   OutputObject optimize(const TestFunction &f,
