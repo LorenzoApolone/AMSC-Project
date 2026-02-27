@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <limits>
-#include <vector>
 
 /**
  * @class StoppingCriteriaManager
@@ -10,56 +9,34 @@
  */
 class StoppingCriteriaManager {
 private:
-  int max_fevals;
+  int max_iters;
   int max_stagnation_iters;
 
   double stagnation_tolerance;
 
   double diversity_tolerance;
 
-  int current_fevals;
+  int current_iters;
   int current_stagnation_iters;
   double last_best_fitness;
 
 public:
-  StoppingCriteriaManager(int max_fevals_limit, int stagnation_iters_limit = 50,
+  StoppingCriteriaManager(int max_iters_limit, int stagnation_iters_limit = 50,
                           double stagnation_tol = 1e-6,
                           double diversity_tol = 1e-4)
-      : max_fevals(max_fevals_limit),
+      : max_iters(max_iters_limit),
         max_stagnation_iters(stagnation_iters_limit),
         stagnation_tolerance(stagnation_tol),
-        diversity_tolerance(diversity_tol), current_fevals(0),
+        diversity_tolerance(diversity_tol), current_iters(0),
         current_stagnation_iters(0),
         last_best_fitness(std::numeric_limits<double>::infinity()) {}
 
   /**
-   * @brief Increments the function evaluations (FEvals) counter
+   * @brief Base evaluations for stopping criteria (fevals and stagnation).
    */
-  void add_evaluations(int num_evals) { current_fevals += num_evals; }
-
-  int get_current_fevals() const { return current_fevals; }
-
-  int get_max_fevals() const { return max_fevals; }
-
-  /**
-   * @brief Evaluates whether the algorithm should stop.
-   *
-   * @param current_best_fitness The current global fitness (Context Vector
-   * or gBest).
-   * @param swarm_positions The current positions of the particles in the swarm
-   * (to calculate the diversity). In Parallel/Serial CPSO, this can be
-   * the active portion of the dimensions.
-   * @param target_pos The position of the gBest or Context Vector associated
-   * with the fitness.
-   * @return true if at least one of the stopping criteria is reached, false
-   * otherwise.
-   */
-  bool should_stop(double current_best_fitness,
-                   const std::vector<std::vector<double>> &swarm_positions,
-                   const std::vector<double> &target_pos) {
-
-    // Maximum Function Evaluations
-    if (current_fevals >= max_fevals) {
+  bool should_stop_base(double current_best_fitness) {
+    // Maximum Iterations
+    if (current_iters >= max_iters) {
       return true;
     }
 
@@ -79,27 +56,37 @@ public:
       return true;
     }
 
-    // Swarm Diversity / Convergence
-    // Calculation of the average distance of the particles from the target_pos
-    if (!swarm_positions.empty() && !target_pos.empty()) {
-      double total_distance = 0.0;
-      int num_particles = swarm_positions.size();
-      int dims = std::min(swarm_positions[0].size(),
-                          target_pos.size()); // Prevent out-of-bounds
+    return false;
+  }
 
-      for (const auto &pos : swarm_positions) {
-        double dist_sq = 0.0;
-        for (int j = 0; j < dims; ++j) {
-          double diff = pos[j] - target_pos[j];
-          dist_sq += diff * diff;
-        }
-        total_distance += std::sqrt(dist_sq);
-      }
+  /**
+   * @brief Increments the iterations counter by 1
+   */
+  void increment_iterations() { current_iters++; }
 
-      double avg_distance = total_distance / num_particles;
-      if (avg_distance < diversity_tolerance) {
-        return true;
-      }
+  int get_current_iters() const { return current_iters; }
+
+  int get_max_iters() const { return max_iters; }
+
+  /**
+   * @brief Evaluates whether the algorithm should stop using an explicitly
+   * calculated average distance.
+   *
+   * @param current_best_fitness The current global fitness.
+   * @param explicit_avg_distance The explicitly calculated average distance of
+   * the swarm particles.
+   * @return true if at least one of the stopping criteria is reached, false
+   * otherwise.
+   */
+  bool should_stop(double current_best_fitness, double explicit_avg_distance) {
+
+    if (should_stop_base(current_best_fitness)) {
+      return true;
+    }
+
+    if (explicit_avg_distance >= 0.0 &&
+        explicit_avg_distance < diversity_tolerance) {
+      return true;
     }
 
     return false;

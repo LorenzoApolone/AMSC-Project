@@ -805,7 +805,7 @@ public:
 
 /**
  * @class ModifiedXinSheYang5
- * @brief Modified Xin-She Yang #5: f(x) = 1e4·(1 + (Σ sin^2 x_i − e^{Σ
+ * @brief Modified Xin-She Yang #5: f(x) = 1e4·(1 + (Σ sin^2 x_i − e^{−Σ
  * x_i^2})·e^{−Σ sin^2(√|x_i|)}).
  * @note Mixes sinusoidal and exponential terms; many local minima.
  */
@@ -830,7 +830,7 @@ public:
       sum_sin2_sqrtabs += std::pow(std::sin(std::sqrt(std::fabs(xi))), 2.0);
     }
 
-    double inner = sum_sin2 - std::exp(sum_sq);
+    double inner = sum_sin2 - std::exp(-sum_sq);
     return 1.0e4 * (1.0 + inner * std::exp(-sum_sin2_sqrtabs));
   }
 };
@@ -839,7 +839,8 @@ public:
  * @class Levy
  * @brief Lévy function: multimodal with many local minima.
  *        Using the common definition with w_i = 1 + (x_i - 1)/4:
- *        f(x) = sin^2(pi w_1) + Σ_{i=1..D-1} (w_i - 1)^2 [1 + 10 sin^2(pi w_i + 1)]
+ *        f(x) = sin^2(pi w_1) + Σ_{i=1..D-1} (w_i - 1)^2 [1 + 10 sin^2(pi w_i +
+ * 1)]
  *              + (w_D - 1)^2 [1 + sin^2(2 pi w_D)].
  * @note Global minimum at x* = (1,...,1) with f(x*) = 0.
  */
@@ -882,7 +883,8 @@ private:
 /**
  * @class Michalewicz
  * @brief Michalewicz function:
- *        f(x) = - Σ_{i=1..D} sin(x_i) * [ sin( (i x_i^2)/pi ) ]^{2m}, with m=10.
+ *        f(x) = - Σ_{i=1..D} sin(x_i) * [ sin( (i x_i^2)/pi ) ]^{2m}, with
+ * m=10.
  * @note Highly multimodal. Often defined on [0, pi]^D.
  */
 class Michalewicz : public TestFunction {
@@ -916,13 +918,15 @@ private:
  * @class Bohachevsky
  * @brief Bohachevsky function (pairwise form over consecutive coordinates):
  *        f(x) = Σ_{i=1..D-1} [ x_i^2 + 2 x_{i+1}^2
- *                             - 0.3 cos(3 pi x_i) - 0.4 cos(4 pi x_{i+1}) + 0.7 ].
+ *                             - 0.3 cos(3 pi x_i) - 0.4 cos(4 pi x_{i+1}) + 0.7
+ * ].
  * @note Global minimum at x* = 0 with f(x*) = 0.
  */
 class Bohachevsky : public TestFunction {
 public:
   Bohachevsky(unsigned int dim)
-      : TestFunction(dim, "Bohachevsky", std::pair<double, double>{-100.0, 100.0},
+      : TestFunction(dim, "Bohachevsky",
+                     std::pair<double, double>{-100.0, 100.0},
                      std::vector<double>(dim, 0.0)) {}
 
   double value(const std::vector<double> &x) const override {
@@ -973,10 +977,8 @@ public:
       const double x3 = x[i + 2];
       const double x4 = x[i + 3];
 
-      sum += std::pow(x1 + 10.0 * x2, 2.0) +
-             5.0 * std::pow(x3 - x4, 2.0) +
-             std::pow(x2 - 2.0 * x3, 4.0) +
-             10.0 * std::pow(x1 - x4, 4.0);
+      sum += std::pow(x1 + 10.0 * x2, 2.0) + 5.0 * std::pow(x3 - x4, 2.0) +
+             std::pow(x2 - 2.0 * x3, 4.0) + 10.0 * std::pow(x1 - x4, 4.0);
     }
     return sum;
   }
@@ -986,20 +988,19 @@ public:
  * @class DixonPrice
  * @brief Dixon-Price function:
  *        f(x) = (x_1 - 1)^2 + Σ_{i=2..D} i * (2 x_i^2 - x_{i-1})^2.
- * @note Global minimum at x* with x_1=1, x_i = 2^{-(2^i-2)/2^i} (varies with i),
- *       and f(x*) = 0 for the standard definition.
+ * @note Global minimum at x* with x_1=1, x_i = 2^{-(2^i-2)/2^i} (varies with
+ * i), and f(x*) = 0 for the standard definition.
  */
 class DixonPrice : public TestFunction {
 public:
   DixonPrice(unsigned int dim)
-      : TestFunction(dim,
-                     "DixonPrice",
-                     std::pair<double, double>{-10.0, 10.0},
-                     [] (unsigned int d) {
-                        std::vector<double> v(d, 0.0);
-                        if (d > 0) v[0] = 1.0;  // first coordinate = 1
-                        return v;
-                      }(dim)) {}
+      : TestFunction(dim, "DixonPrice", std::pair<double, double>{-10.0, 10.0},
+                     [](unsigned int d) {
+                       std::vector<double> v(d, 0.0);
+                       if (d > 0)
+                         v[0] = 1.0; // first coordinate = 1
+                       return v;
+                     }(dim)) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -1016,7 +1017,6 @@ public:
   }
 };
 
-
 /**
  * @class StyblinskiTang
  * @brief Styblinski-Tang function:
@@ -1027,7 +1027,8 @@ public:
 class StyblinskiTang : public TestFunction {
 public:
   StyblinskiTang(unsigned int dim)
-      : TestFunction(dim, "StyblinskiTang", std::pair<double, double>{-5.0, 5.0},
+      : TestFunction(dim, "StyblinskiTang",
+                     std::pair<double, double>{-5.0, 5.0},
                      std::vector<double>(dim, -2.903534)) {}
 
   double value(const std::vector<double> &x) const override {

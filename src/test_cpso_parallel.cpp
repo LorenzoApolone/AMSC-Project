@@ -16,7 +16,8 @@ int main(int argc, char **argv) {
   if (argc < 4) {
     if (rank == 0) {
       std::cerr << "Usage: " << argv[0]
-                << " <dim> <k_subswarms> <particles_per_swarm> [max_fevals]\n";
+                << " <dim> <k_subswarms> <particles_per_swarm> [max_iters] "
+                   "[shuffle_freq] [stagnation_patience]\n";
     }
     MPI_Finalize();
     return 1;
@@ -25,7 +26,9 @@ int main(int argc, char **argv) {
   unsigned int dim = std::stoi(argv[1]);
   int k_subswarms = std::stoi(argv[2]);
   int particles_per_swarm = std::stoi(argv[3]);
-  int max_fevals = argc > 4 ? std::stoi(argv[4]) : 20000;
+  int max_iters = argc > 4 ? std::stoi(argv[4]) : 1000;
+  int shuffle_freq = argc > 5 ? std::stoi(argv[5]) : 50;
+  int stagnation_patience = argc > 6 ? std::stoi(argv[6]) : 50;
 
   std::vector<std::string> test_names = {"Sphere",
                                          "Ellipsoid",
@@ -141,7 +144,9 @@ int main(int argc, char **argv) {
   if (rank == 0) {
     std::cout << "Running MPI tests with dim=" << dim << ", k=" << k_subswarms
               << ", particles/swarm=" << particles_per_swarm
-              << ", max_fevals=" << max_fevals << "\n\n";
+              << ", max_iters=" << max_iters
+              << ", shuffle_freq=" << shuffle_freq
+              << ", stagnation_patience=" << stagnation_patience << "\n\n";
   }
 
   for (const auto &name : test_names) {
@@ -155,8 +160,10 @@ int main(int argc, char **argv) {
                                            NetworkType::SMALL_WORLD,
                                            NetworkType::FULLY_CONNECTED};
 
-    StoppingCriteriaManager stop2(max_fevals, 100, 1e-8);
-    CPSOParallel cpso_p(k_subswarms, particles_per_swarm, topologies);
+    int scaled_stagnation = std::max(100, max_iters / 4);
+    StoppingCriteriaManager stop2(max_iters, scaled_stagnation, 1e-8);
+    CPSOParallel cpso_p(k_subswarms, particles_per_swarm, topologies,
+                        shuffle_freq, stagnation_patience);
 
     MPI_Barrier(MPI_COMM_WORLD);
     double t_start = MPI_Wtime();
@@ -166,8 +173,7 @@ int main(int argc, char **argv) {
 
     if (rank == 0) {
       std::cout << "[CPSO-P MPI] Best Fitness: " << out_p.f_val
-                << " | FEvals: " << stop2.get_current_fevals()
-                << " | Iters: " << out_p.iterations
+                << " | Iterations: " << stop2.get_current_iters()
                 << " | MPI Time: " << (t_end - t_start) << "s\n\n";
     }
   }
