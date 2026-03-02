@@ -5,6 +5,6 @@
 #include <vector>
 
 OutputObject pso_serial(const TestFunction& f, int d,  StoppingCriteriaManager& stop, int n_points);
-OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &stop, int n_points, bool &converged);
+OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &stop, int n_points);
 
 #endif

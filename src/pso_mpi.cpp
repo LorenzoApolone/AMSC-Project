@@ -41,7 +41,7 @@ struct PSOHyperparameters {
  * @return OutputObject containing results and metrics
  */
 OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &stop,
-                     int n_points, bool &converged) {
+                     int n_points) {
 
   // --- MPI Setup ---
   int rank, size;
@@ -207,8 +207,7 @@ OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &sto
       /// @brief Check tolerance using patience
       if (stop.should_stop(gbest_val, avg_distance)) {
         stop_signal = 1;
-        if (iter < stop.get_max_iters())
-          converged = true;
+        
       }
     }
     MPI_Bcast(&stop_signal, 1, MPI_INT, 0, MPI_COMM_WORLD);

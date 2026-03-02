@@ -50,6 +50,7 @@ void OutputObject::terminal_info(){
     std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" << std::endl;
 }
 
+
 int get_max_test_number(const std::filesystem::path& dir) {
     int max_num = -1;
     const std::string prefix = "test_";

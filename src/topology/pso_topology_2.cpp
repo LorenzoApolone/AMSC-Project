@@ -28,7 +28,7 @@ OutputObject pso_small_timerv(const TestFunction &f,
                        int d,
                         StoppingCriteriaManager &stop,
                        int n_points,
-                       const std::vector<std::vector<int>> &adjacency_list, bool &converged, double &t_allgatherv_tot) {
+                       const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot) {
 
   // --- MPI Setup ---
   int rank, size;
@@ -252,8 +252,7 @@ OutputObject pso_small_timerv(const TestFunction &f,
       history.push_back(err);
       if (stop.should_stop(gbest_val, avg_distance)) {
          stop_signal = 1;
-         if (iter < stop.get_max_iters())
-           converged = true;
+         
         
       }
     }
