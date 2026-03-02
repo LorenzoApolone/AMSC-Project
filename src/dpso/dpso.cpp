@@ -1,6 +1,7 @@
 #include "particle.hpp"
 #include "methods_dpso.hpp"
 #include "interfaces.hpp"
+#include "interfaces/StoppingCriteriaManager.hpp"
 #include <mpi.h>
 #include <random>
 #include <limits>
@@ -121,14 +122,14 @@ void regroup_particles(std::vector<Particle>& local_swarm, int dim, int rank, in
     }
 }
 
-OutputObject pso_mpi(const TestFunction& f, 
-                     unsigned int dim, 
-                     const StopCriterion& stop, 
-                     unsigned int n_points_total) {
+OutputObject dpso(const TestFunction& f, 
+                 unsigned int dim, 
+                 unsigned int n_points_total, 
+                 int max_iter) {
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    // Divide total particles by number of ranks
+    StoppingCriteriaManager stop_manager(max_iter, 50, 1e-6, 1e-4);
     unsigned int n_points_per_rank = n_points_total / size;
     if (rank == 0 && n_points_total % size != 0) {
         std::cerr << "Warning: total particles (" << n_points_total << ") not divisible by number of ranks (" << size << ")." << std::endl;
@@ -141,7 +142,7 @@ OutputObject pso_mpi(const TestFunction& f,
     if (n_points_per_rank < sub_swarm_size && rank == 0) {
         std::cerr << "Error: Particles per rank (" << n_points_per_rank 
                   << ") less than sub-swarm size (" << sub_swarm_size << ")." << std::endl;
-        return OutputObject(f.get_name(), dim, n_points_per_rank * size, {}, f.get_true_solution(), 0.0, {}, size, 0.0, 0, stop);
+        return OutputObject(f.get_name(), dim, n_points_per_rank * size, {}, f.get_true_solution(), 0.0, {}, size, 0.0, 0, stop_manager);
     }
     if (n_points_per_rank % sub_swarm_size != 0 && rank == 0) {
         std::cerr << "Warning: Particles per rank (" << n_points_per_rank 
@@ -151,13 +152,11 @@ OutputObject pso_mpi(const TestFunction& f,
     std::vector<double> lb(dim, domain.first);
     std::vector<double> ub(dim, domain.second);
     std::vector<double> v_max(dim);
-    
     if (lb[0] > ub[0]) {
         for(unsigned int d=0; d<dim; ++d) {
             lb[d] = -ub[d];
         }
     }
-    
     for(unsigned int d=0; d<dim; ++d) {
         v_max[d] = 0.2 * (ub[d] - lb[d]);
     }
@@ -167,27 +166,25 @@ OutputObject pso_mpi(const TestFunction& f,
         Particle p(dim);
         for (unsigned int d = 0; d < dim; ++d) {
             p.position[d] = random_double(lb[d], ub[d], rank);
-            p.velocity[d] = random_double(-v_max[d], v_max[d], rank); // Ensure velocity is initialized
-            p.best_position[d] = p.position[d]; // Ensure best_position is initialized
+            p.velocity[d] = random_double(-v_max[d], v_max[d], rank);
+            p.best_position[d] = p.position[d];
         }
         p.current_value = f.value(p.position);
         p.best_value = p.current_value;
         swarm.push_back(p);
     }
     OutputObject results(f.get_name(), dim, n_points_per_rank * size,
-                         {}, f.get_true_solution(), 0.0, {}, size, 0.0, 0, stop);
+                         {}, f.get_true_solution(), 0.0, {}, size, 0.0, 0, stop_manager);
     results.x_best.resize(dim);
     double global_best_val = std::numeric_limits<double>::max();
     double start_time = MPI_Wtime();
     int iter = 0;
-    int max_iter = stop.get_max_iter();
-    while (!stop.should_stop(iter, global_best_val)) {
+    while (true) {
         if (iter > 0 && iter % regrouping_period == 0) {
              regroup_particles(swarm, dim, rank, size);
         }
         int num_sub_swarms = swarm.size() / sub_swarm_size;
         int remainder = swarm.size() % sub_swarm_size;
-        // Rimosso #pragma omp parallel for
         for (int s = 0; s < num_sub_swarms; ++s) {
             int start = s * sub_swarm_size;
             int end = start + sub_swarm_size;
@@ -200,7 +197,7 @@ OutputObject pso_mpi(const TestFunction& f,
                     lbest_idx = i;
                 }
             }
-            if (lbest_idx == -1) continue; // skip if no valid lbest
+            if (lbest_idx == -1) continue; 
             std::vector<double> lbest_pos = swarm[lbest_idx].best_position;
             for (int i = start; i < end; ++i) {
                 Particle& p = swarm[i];
@@ -271,18 +268,53 @@ OutputObject pso_mpi(const TestFunction& f,
                 }
             }
         }
-        double local_min_val = std::numeric_limits<double>::max();
-        for(const auto& p : swarm) {
-            if (p.best_value < local_min_val) local_min_val = p.best_value;
+        //
+        struct {
+            double val;
+            int rank;
+        } local_min_data, global_min_data;
+
+        local_min_data.val = std::numeric_limits<double>::max();
+        local_min_data.rank = rank;
+        int local_best_idx = -1;
+
+        for(int i = 0; i < (int)swarm.size(); ++i) {
+            if (swarm[i].best_value < local_min_data.val) {
+                local_min_data.val = swarm[i].best_value;
+                local_best_idx = i;
+            }
         }
-        double current_global_min;
-        MPI_Allreduce(&local_min_val, &current_global_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+        MPI_Allreduce(&local_min_data, &global_min_data, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD);
+        
+        double current_global_min = global_min_data.val;
+        int best_rank = global_min_data.rank;
+
+        std::vector<double> global_best_position(dim);
+        if (rank == best_rank && local_best_idx != -1) {
+            global_best_position = swarm[local_best_idx].best_position;
+        }
+        MPI_Bcast(global_best_position.data(), dim, MPI_DOUBLE, best_rank, MPI_COMM_WORLD);
+        //
+        double local_sum_dist = 0.0;
+        for(const auto& p : swarm) {
+            local_sum_dist += euclidean_dist(p.position, global_best_position);
+        }
+        double local_avg_dist = swarm.size() > 0 ? local_sum_dist / swarm.size() : 0.0;
+        double global_avg_dist = 0.0;
+        MPI_Allreduce(&local_avg_dist, &global_avg_dist, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        global_avg_dist /= size;
         if (rank == 0) {
             results.conv_history.push_back(current_global_min);
             global_best_val = current_global_min;
         }
         MPI_Bcast(&global_best_val, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        
+        stop_manager.increment_iterations();
         iter++;
+        // Stopping check
+        if (stop_manager.should_stop(global_best_val, global_avg_dist)) {
+            break;
+        }
     }
     struct { double val; int rank; } loc_data, glob_data;
     loc_data.val = std::numeric_limits<double>::max();

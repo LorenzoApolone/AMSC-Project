@@ -3,9 +3,7 @@ functions.o: functions.cpp interfaces.hpp \
 interfaces.o: interfaces.cpp interfaces.hpp \
  interfaces/StoppingCriteriaManager.hpp
 main_parallel.o: main_parallel.cpp functions.cpp interfaces.hpp \
- interfaces/StoppingCriteriaManager.hpp methods.hpp
-pso_mpi.o: pso_mpi.cpp interfaces.hpp \
- interfaces/StoppingCriteriaManager.hpp
+
 pso_serial.o: pso_serial.cpp interfaces.hpp \
  interfaces/StoppingCriteriaManager.hpp
 test_cpso.o: test_cpso.cpp cpso/CPSOSerial.hpp cpso/../interfaces.hpp \
