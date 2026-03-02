@@ -9,7 +9,6 @@
 #include <iostream>
 #include <numeric>
 
-// Rimuovo il costruttore ridondante, uso quello di Particle.hpp
 
 double random_double(double min, double max, int rank) {
     static std::mt19937 gen(rank * 10000 + 12345); // Rimosso omp_get_thread_num e thread_local
@@ -125,10 +124,15 @@ void regroup_particles(std::vector<Particle>& local_swarm, int dim, int rank, in
 OutputObject pso_mpi(const TestFunction& f, 
                      unsigned int dim, 
                      const StopCriterion& stop, 
-                     unsigned int n_points_per_rank) {
+                     unsigned int n_points_total) {
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+    // Divide total particles by number of ranks
+    unsigned int n_points_per_rank = n_points_total / size;
+    if (rank == 0 && n_points_total % size != 0) {
+        std::cerr << "Warning: total particles (" << n_points_total << ") not divisible by number of ranks (" << size << ")." << std::endl;
+    }
     const double w = 0.729; 
     const double c1 = 1.49445;
     const double c2 = 1.49445;
