@@ -25,7 +25,8 @@ using namespace std;
  * - Execution time
  * - Number of iterations performed
  *
- * Call it after a PSO run to get a quick overview of results. not suggested for massive testing, in this case use output_to_file() 
+ * Call it after a PSO run to get a quick 
+ * overview of results. not suggested for massive testing, in this case use output_to_file() 
  */
 
 static std::string sanitize_filename(std::string s)
@@ -93,6 +94,7 @@ int get_max_test_number(const std::filesystem::path& dir) {
  * ```
  *
  */
+
 void OutputObject::output_to_file(){
     // Creating and open a text file (and folders, if needed)
     std::filesystem::path save_dir =
@@ -112,8 +114,8 @@ void OutputObject::output_to_file(){
     MyFile << "max_iter tol it_n delta_x final_t\n";
 
     for (size_t i = 0; i < conv_history.size(); i++){
-        MyFile << stopcriterion.get_max_iter() << " "
-        << stopcriterion.get_tolerance() << " "
+        MyFile << stopcriterion.get_max_iters() << " "
+        
         << i << " "
         << conv_history[i] << " "
         << execution_time << "\n";
@@ -125,6 +127,8 @@ void OutputObject::output_to_file(){
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+rifai, hai tolto .get_tollerance
 
 NON USARE ASSOLUTAMENTE PRIMA DI AVER CHIESTO A LORENZO 
 
@@ -162,8 +166,7 @@ void OutputObject::append_summary_csv_by_method(const std::string& method_name, 
         out << "# dim=" << d << "\n";
         out << "# n_points=" << n_points << "\n";
         out << "# n_cores=" << n_cores << "\n";
-        out << "# max_iter=" << stopcriterion.get_max_iter() << "\n";
-        out << "# tol=" << stopcriterion.get_tolerance() << "\n";
+        out << "# max_iter=" << stopcriterion.get_max_iters() << "\n";
         out << "# rep=" << rep << "\n\n";
 
         out << "function,converged,iters,final_err,final_fitness,time_s\n";
@@ -174,11 +177,10 @@ void OutputObject::append_summary_csv_by_method(const std::string& method_name, 
                                         : std::numeric_limits<double>::quiet_NaN());
 
   
-    const int converged_flag =
-        (std::isfinite(final_err) && final_err < stopcriterion.get_tolerance()) ? 1 : 0;
+    
 
     out << function_name << ","
-        << converged_flag << ","
+        
         << iters << ","
         << final_err << ","
         << f_val << ","

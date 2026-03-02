@@ -29,6 +29,7 @@
 #include "functions.cpp"
 #include "interfaces.hpp"
 #include "methods.hpp"
+#include "interfactes/StoppingCriteriaManager.hpp"
 #include <array>
 #include <cmath>
 #include <functional>
@@ -51,7 +52,9 @@ int main(int argc, char *argv[]) {
   unsigned int max_iter = std::atoi(argv[3]);
   double delta_x = std::atof(argv[4]);
 
-  StopCriterion stop_criterion(max_iter, delta_x);
+  int iterations_stagnation = 200; // number of iterations for stagnation control
+  double stagnation_tol = 1e-6; // delta x for
+  double diversity_tol = 1e-4; // diversity tolerance for stopping criteria
 
   // Factory Definition
   std::unordered_map<std::string,
@@ -185,6 +188,8 @@ int main(int argc, char *argv[]) {
   // Run the solver
   for (const auto &name : function_names) {
     auto f_ptr = factory[name](dim);
+    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
+
     OutputObject result = pso_serial(*f_ptr, dim, stop_criterion, n_points);
     result.terminal_info();
     // result.output_to_file();

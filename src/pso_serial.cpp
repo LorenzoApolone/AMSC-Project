@@ -19,6 +19,7 @@
  */
 
 #include "interfaces.hpp"
+#include "interfaces/StoppingCriteriaManager.hpp"
 #include <vector>
 #include <random>
 #include <chrono>
@@ -53,7 +54,7 @@ struct PSOHyperparameters {
  * @return OutputObject containing optimization results, convergence history, etc.
  */
 
-OutputObject pso_serial(const TestFunction& f, int d, const StopCriterion& stop, int n_points) {
+OutputObject pso_serial(const TestFunction& f, int d, const StoppingCriteriaManager& stop, int n_points) {
     // ------------------------------
     // Initialization phase
     // ------------------------------
@@ -80,7 +81,7 @@ OutputObject pso_serial(const TestFunction& f, int d, const StopCriterion& stop,
 
     // Best value history
     std::vector<double> history;
-    history.reserve(stop.get_max_iter());
+    history.reserve(stop.get_max_iters());
 
     // ------------------------------
     // Random initialization
@@ -109,7 +110,7 @@ OutputObject pso_serial(const TestFunction& f, int d, const StopCriterion& stop,
 
     int iter = 0;
     bool must_stop = false;
-    int max_iter_limit = stop.get_max_iter();
+    int max_iter_limit = stop.get_max_iters();
 
     while (!must_stop) {
         // Dynamic inertia weight calculation (linearly decreases)

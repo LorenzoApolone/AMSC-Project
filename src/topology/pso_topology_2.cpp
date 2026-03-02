@@ -1,5 +1,6 @@
 
 #include "../interfaces.hpp"
+#include "../interfaces/StoppingCriteriaManager.hpp"
 #include "create_network.hpp"
 #include "pso_topology.hpp"
 #include <algorithm>
@@ -25,7 +26,7 @@ struct PSOHyperparameters {
  double t_allgatherv_pos = 0.0;
 OutputObject pso_small_timerv(const TestFunction &f,
                        int d,
-                       const StopCriterion &stop,
+                        StoppingCriteriaManager &stop,
                        int n_points,
                        const std::vector<std::vector<int>> &adjacency_list, bool &converged, double &t_allgatherv_tot) {
 
@@ -122,7 +123,7 @@ OutputObject pso_small_timerv(const TestFunction &f,
   // --- Main Loop ---
   int iter = 0;
   bool must_stop = false;
-  int max_iter_limit = stop.get_max_iter();
+  int max_iter_limit = stop.get_max_iters();
   int counter =0;
   while (!must_stop) {
     counter++;
@@ -172,7 +173,11 @@ OutputObject pso_small_timerv(const TestFunction &f,
       for (int j = 0; j < d; ++j) {
         double r1 = dis_01(gen);
         double r2 = dis_01(gen);
-
+//
+//
+//qui mi passo solo le best position , per il nuovo SC mi serve la corrente
+//
+//
         double lbest_j = all_pbest_pos[best_gid * d + j];
 
         vel[i][j] =
@@ -223,14 +228,31 @@ OutputObject pso_small_timerv(const TestFunction &f,
     }
     MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank, MPI_COMM_WORLD);
 
+    double local_sum_dist = 0.0;
+
+    for (int i = 0; i < local_n; ++i) {
+      double dist_sq = 0.0;
+      for (int j = 0; j < d; ++j) {
+        double diff = pos[i][j] - gbest_pos[j];   
+        dist_sq += diff * diff;
+      }
+      local_sum_dist += std::sqrt(dist_sq);
+    }
+
+    double global_sum_dist = 0.0;
+    MPI_Allreduce(&local_sum_dist, &global_sum_dist, 1,
+                  MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+    double avg_distance = global_sum_dist / static_cast<double>(n_points);
+
     // 4) Stopping criterion (rank 0 decides)
     int stop_signal = 0;
     if (rank == 0) {
       double err = f.error(gbest_pos);
       history.push_back(err);
-      if (stop.should_stop(iter, err)){
+      if (stop.should_stop(gbest_val, avg_distance)) {
          stop_signal = 1;
-         if (iter < stop.get_max_iter())
+         if (iter < stop.get_max_iters())
            converged = true;
         
       }

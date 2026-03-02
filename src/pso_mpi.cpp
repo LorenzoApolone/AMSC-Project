@@ -4,6 +4,7 @@
  */
 
 #include "interfaces.hpp"
+#include "interfaces/StoppingCriteriaManager.hpp"
 #include <algorithm>
 #include <limits>
 #include <mpi.h>
@@ -39,7 +40,7 @@ struct PSOHyperparameters {
  * @param n_points Total number of particles in the swarm
  * @return OutputObject containing results and metrics
  */
-OutputObject pso_mpi(const TestFunction &f, int d, const StopCriterion &stop,
+OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &stop,
                      int n_points, bool &converged) {
 
   // --- MPI Setup ---
@@ -116,7 +117,7 @@ OutputObject pso_mpi(const TestFunction &f, int d, const StopCriterion &stop,
   bool must_stop = false;
 
   /// @brief We use max_iter to calculate the inertia fraction
-  int max_iter_limit = stop.get_max_iter();
+  int max_iter_limit = stop.get_max_iters();
 
   while (!must_stop) {
 
@@ -181,7 +182,22 @@ OutputObject pso_mpi(const TestFunction &f, int d, const StopCriterion &stop,
       MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank,
                 MPI_COMM_WORLD);
     }
+    double local_sum_dist = 0.0;
 
+    for (int i = 0; i < local_n; ++i) {
+      double dist_sq = 0.0;
+      for (int j = 0; j < d; ++j) {
+        double diff = pos[i][j] - gbest_pos[j];   
+        dist_sq += diff * diff;
+      }
+      local_sum_dist += std::sqrt(dist_sq);
+    }
+
+    double global_sum_dist = 0.0;
+    MPI_Allreduce(&local_sum_dist, &global_sum_dist, 1,
+                  MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+    double avg_distance = global_sum_dist / static_cast<double>(n_points);
     // Check Stopping Criterion (Rank 0 decides)
     int stop_signal = 0;
     if (rank == 0) {
@@ -189,9 +205,9 @@ OutputObject pso_mpi(const TestFunction &f, int d, const StopCriterion &stop,
       history.push_back(current_normalized_error);
       
       /// @brief Check tolerance using patience
-      if (stop.should_stop(iter, current_normalized_error)) {
+      if (stop.should_stop(gbest_val, avg_distance)) {
         stop_signal = 1;
-        if (iter < stop.get_max_iter())
+        if (iter < stop.get_max_iters())
           converged = true;
       }
     }

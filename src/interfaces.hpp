@@ -5,7 +5,7 @@
 
 #ifndef INTERFACES_HPP
 #define INTERFACES_HPP
-
+#include "interfaces/StoppingCriteriaManager.hpp"
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -73,30 +73,7 @@ public:
   }
 };
 
-/**
- * @class StopCriterion
- * @brief Logic for stopping the algorithm based on iterations or tolerance
- */
-class StopCriterion
-{
-  int max_iterations;
-  double tol;
 
-public:
-  StopCriterion(int max_iter, double tolerance)
-      : max_iterations(max_iter), tol(tolerance) {}
-
-  /// @brief Checks if stopping condition is met
-  bool should_stop(int current_iter, double current_error_metric) const
-  {
-    if (current_iter >= max_iterations) return true;
-    if (abs(current_error_metric) < tol) return true;
-    return false;
-  }
-
-  int get_max_iter() const { return max_iterations; }
-  double get_tolerance() const { return tol; }
-};
 
 /**
  * @class OutputObject
@@ -121,7 +98,7 @@ public:
   int n_cores;                      ///< MPI cores used
   double execution_time;            ///< Execution time (in seconds)
   int iterations;                   ///< Total iterations
-  const StopCriterion &stopcriterion;
+  const StoppingCriteriaManager &stopcriterion;
 
   OutputObject(string function_name_,
                int d_,
@@ -133,7 +110,7 @@ public:
                int n_cores_,
                double execution_time_,
                int iterations_,
-               const StopCriterion &stopcriterion_)
+               StoppingCriteriaManager &stopcriterion_)
       : function_name(function_name_),
         d(d_),
         n_points(n_points_),

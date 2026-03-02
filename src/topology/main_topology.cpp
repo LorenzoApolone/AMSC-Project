@@ -3,6 +3,7 @@
 #include "pso_topology.hpp"
 #include "../methods.hpp"
 #include "../functions.cpp" 
+#include "../interfaces/StoppingCriteriaManager.hpp"
 #include <mpi.h>
 #include <array>
 #include <cmath>
@@ -76,6 +77,7 @@ int main(int argc, char **argv)
   unsigned int max_iter= std::atoi(argv[3]);
   double delta_x       = std::atof(argv[4]);
   double p             = 0.05; // rewiring probability for small-world network
+
   int m = 3; // for scale-free network, number of edges of each new node
   int number_of_converged_small = 0;
   int number_of_converged_scale = 0;
@@ -83,10 +85,12 @@ int main(int argc, char **argv)
   int number_of_converged_classic = 0;
   int number_of_converged_complete = 0;
   int number_of_functions = 0;
-
+  int iterations_stagnation = 200; // number of iterations for stagnation control
   int number_of_converged_small_v1 = 0;
   int number_of_converged_scale_v1 = 0;
   int number_of_converged_random_v1 = 0;
+  double stagnation_tol = 1e-6; // delta x for
+  double diversity_tol = 1e-4; // diversity tolerance for stopping criteria
   double p_rewiring = 0.05; // rewiring probability for small-world network
   double p_random = 0.03; // edge probability for random network
   std::vector<std::string> functions_converged_small;
@@ -94,7 +98,6 @@ int main(int argc, char **argv)
   std::vector<std::string> functions_converged_random;
   std::vector<std::string> functions_converged_classic;
   std::vector<std::string> functions_converged_complete;
-  StopCriterion stop(max_iter, delta_x);
 
   // Factory Definition 
   std::unordered_map<std::string,
@@ -169,6 +172,8 @@ int main(int argc, char **argv)
       create_network(static_cast<int>(n_points), p_rewiring, adjacency_list);
       number_of_functions++;
     }
+    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
+
     bcast_adjacency_list(adjacency_list, static_cast<int>(n_points), rank);
     OutputObject result = pso_small_timerv(*f_ptr, dim, stop, n_points, adjacency_list, converged, t_allgatherv_small);
     if (rank == 0) {
@@ -202,6 +207,8 @@ int main(int argc, char **argv)
     if (rank == 0) {
       create_scale_free_network(static_cast<int>(n_points), m, adjacency_list2);
     }
+    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
+
     bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
     OutputObject result = pso_small_timerv(*f_ptr1, dim, stop, n_points, adjacency_list2, converged, t_allgatherv_scale);
     if (rank == 0) {
@@ -234,6 +241,7 @@ int main(int argc, char **argv)
     if (rank == 0) {
       create_random_network(static_cast<int>(n_points), p_random, adjacency_list2);
     }
+    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
     bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
     OutputObject result = pso_small_timerv(*f_ptr2, dim, stop, n_points, adjacency_list2, converged, t_allgatherv_random);
@@ -266,6 +274,8 @@ MPI_Barrier(MPI_COMM_WORLD);
   {
     bool converged = false;
     auto f_ptr = factory[name](dim);
+    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
+
     OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points, converged);
     if (rank == 0)
     {

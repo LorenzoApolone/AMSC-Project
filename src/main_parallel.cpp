@@ -1,4 +1,5 @@
 #include "functions.cpp"
+#include "interfaces/StoppingCriteriaManager.hpp"
 #include "methods.hpp"
 #include <array>
 #include <cmath>
@@ -29,6 +30,9 @@ int main(int argc, char **argv)
   int size;
   int number_of_converged = 0;
   int number_of_functions = 0;
+   int iterations_stagnation = 200;
+  double stagnation_tol = 1e-6; // delta x for
+  double diversity_tol = 1e-4; // diversity tolerance for stopping criteria
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 
@@ -197,7 +201,6 @@ int main(int argc, char **argv)
                                              "DixonPrice",
                                              "StyblinskiTang"};
 
-  StopCriterion stop(max_iter, delta_x);
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -212,6 +215,8 @@ int main(int argc, char **argv)
     number_of_functions++;
     bool converged = false;
     auto f_ptr = factory[name](dim);
+    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
+
     OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points, converged);
     if (rank == 0)
     {
