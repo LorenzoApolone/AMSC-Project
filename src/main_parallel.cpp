@@ -30,13 +30,13 @@ int main(int argc, char **argv)
   int size;
   int stopped_by_maxiter_and_incorrect = 0;   
   int stopped_by_maxiter_and_correct = 0;   
-
   int incorrect_when_early_stop = 0;  
+  int correct_when_early_stop = 0;
   int correct_total = 0;
   int number_of_functions = 0;
-  int iterations_stagnation = 200;
-  double stagnation_tol = 1e-6; // delta x for
-  double diversity_tol = 1e-4; // diversity tolerance for stopping criteria
+  int iterations_stagnation = 800;
+  double stagnation_tol = 1e-9; // delta x for
+  double diversity_tol = 1e-7; // diversity tolerance for stopping criteria
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 
@@ -243,6 +243,9 @@ int main(int argc, char **argv)
       if (!is_correct && !bool_stopped_by_maxiter) {
           incorrect_when_early_stop++;
       }
+      if (is_correct && !bool_stopped_by_maxiter) {
+          correct_when_early_stop++;
+      }
   //    result.terminal_info();
   //    result.output_to_file();
       
@@ -259,6 +262,7 @@ int main(int argc, char **argv)
     std::cout << "Stopped by max iter and incorrect: " << stopped_by_maxiter_and_incorrect << std::endl;
     std::cout << "Stopped by max iter and correct: " << stopped_by_maxiter_and_correct << std::endl;
     std::cout << "Incorrect when early stop: " << incorrect_when_early_stop << std::endl;
+    std::cout << "Correct when early stop: " << correct_when_early_stop << std::endl;
     std::cout << "Correct total: " << correct_total << std::endl;
   }
   //------------------------------------------- end of the new part-------------------------------------------------------

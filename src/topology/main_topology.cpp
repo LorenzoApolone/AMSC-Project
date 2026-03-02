@@ -175,16 +175,32 @@ int main(int argc, char **argv)
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
     bcast_adjacency_list(adjacency_list, static_cast<int>(n_points), rank);
-    OutputObject result = pso_small_timerv(*f_ptr, dim, stop, n_points, adjacency_list, converged, t_allgatherv_small);
+    OutputObject result = pso_small_timerv(*f_ptr, dim, stop, n_points, adjacency_list,  t_allgatherv_small);
     if (rank == 0) {
-      result.append_summary_csv_by_method("small_world", 1);
-  //    result.terminal_info();
-  //  result.output_to_file();     
-      if(converged == true){
-        functions_converged_small.push_back(name);
-        number_of_converged_small++;
+      const double final_fitness = result.get_best_fitness();
+      const double f_star = f_ptr->value(f_ptr->get_true_solution());
+
+      const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
+      if (is_correct) {
+          correct_total++;
       }
 
+      const bool bool_stopped_by_maxiter = (result.iterations >= (int)max_iter);
+
+      if (bool_stopped_by_maxiter && !is_correct) {
+          stopped_by_maxiter_and_incorrect++;   
+      }
+      if (bool_stopped_by_maxiter && is_correct) {
+          stopped_by_maxiter_and_correct++;   
+      }
+      if (!is_correct && !bool_stopped_by_maxiter) {
+          incorrect_when_early_stop++;
+      }
+
+  //    result.append_summary_csv_by_method("small_world", 1);
+  //    result.terminal_info();
+  //  result.output_to_file();     
+      
     }
       
   }
@@ -210,15 +226,30 @@ int main(int argc, char **argv)
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
     bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
-    OutputObject result = pso_small_timerv(*f_ptr1, dim, stop, n_points, adjacency_list2, converged, t_allgatherv_scale);
+    OutputObject result = pso_small_timerv(*f_ptr1, dim, stop, n_points, adjacency_list2, t_allgatherv_scale);
     if (rank == 0) {
-      result.append_summary_csv_by_method("scale_free", 1);
+   //   result.append_summary_csv_by_method("scale_free", 1);
 
  //   result.terminal_info();
  //   result.output_to_file();
-      if(converged == true){
-        number_of_converged_scale++;
-        functions_converged_scale.push_back(name);
+      const double final_fitness = result.get_best_fitness();
+      const double f_star = f_ptr->value(f_ptr->get_true_solution());
+
+      const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
+      if (is_correct) {
+          correct_total++;
+      }
+
+      const bool bool_stopped_by_maxiter = (result.iterations >= (int)max_iter);
+
+      if (bool_stopped_by_maxiter && !is_correct) {
+          stopped_by_maxiter_and_incorrect++;   
+      }
+      if (bool_stopped_by_maxiter && is_correct) {
+          stopped_by_maxiter_and_correct++;   
+      }
+      if (!is_correct && !bool_stopped_by_maxiter) {
+          incorrect_when_early_stop++;
       }
     }    
   }
@@ -244,16 +275,33 @@ int main(int argc, char **argv)
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
     bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
-    OutputObject result = pso_small_timerv(*f_ptr2, dim, stop, n_points, adjacency_list2, converged, t_allgatherv_random);
+    OutputObject result = pso_small_timerv(*f_ptr2, dim, stop, n_points, adjacency_list2, t_allgatherv_random);
     if(rank == 0){
-      result.append_summary_csv_by_method("random", 1);
+      const double final_fitness = result.get_best_fitness();
+      const double f_star = f_ptr->value(f_ptr->get_true_solution());
+
+      const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
+      if (is_correct) {
+          correct_total++;
+      }
+
+      const bool bool_stopped_by_maxiter = (result.iterations >= (int)max_iter);
+
+      if (bool_stopped_by_maxiter && !is_correct) {
+          stopped_by_maxiter_and_incorrect++;   
+      }
+      if (bool_stopped_by_maxiter && is_correct) {
+          stopped_by_maxiter_and_correct++;   
+      }
+      if (!is_correct && !bool_stopped_by_maxiter) {
+          incorrect_when_early_stop++;
+      }
+   //   result.append_summary_csv_by_method("random", 1);
     }
    //   result.terminal_info();
      // result.output_to_file();
       
-    if (rank == 0 && converged) {
-      number_of_converged_random++;
-      functions_converged_random.push_back(name);
+    
     }
   }
 
@@ -279,8 +327,27 @@ MPI_Barrier(MPI_COMM_WORLD);
     OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points);
     if (rank == 0)
     {
-            result.append_summary_csv_by_method("classic", 1);
+      const double final_fitness = result.get_best_fitness();
+      const double f_star = f_ptr->value(f_ptr->get_true_solution());
 
+      const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
+      if (is_correct) {
+          correct_total++;
+      }
+
+      const bool bool_stopped_by_maxiter = (result.iterations >= (int)max_iter);
+
+      if (bool_stopped_by_maxiter && !is_correct) {
+          stopped_by_maxiter_and_incorrect++;   
+      }
+      if (bool_stopped_by_maxiter && is_correct) {
+          stopped_by_maxiter_and_correct++;   
+      }
+      if (!is_correct && !bool_stopped_by_maxiter) {
+          incorrect_when_early_stop++;
+      }
+
+            
  //     result.terminal_info();
  //     result.output_to_file();
       if (converged){
