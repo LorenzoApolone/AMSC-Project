@@ -20,14 +20,14 @@ int main(int argc, char** argv) {
 
     if (argc < 5) {
         if (rank == 0) {
-            std::cout << "Usage: " << argv[0] << " <dim> <particles_per_rank> <max_iter> <delta_x>\n";
+            std::cout << "Usage: " << argv[0] << " <dim> <total_particles> <max_iter> <delta_x>\n";
         }
         MPI_Finalize();
         return 1;
     }
 
     unsigned int dim = std::atoi(argv[1]);
-    unsigned int particles_per_rank = std::atoi(argv[2]);
+    unsigned int total_particles = std::atoi(argv[2]);
     int base_iter = std::atoi(argv[3]);
     double delta_x = std::atof(argv[4]);
 
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
     double t_start = MPI_Wtime();
 
     int iters = base_iter;
-    unsigned int ppr = particles_per_rank;
+    unsigned int ppr = total_particles;
     for (const auto& name : function_names) {
         bool converged = false;
         auto f_ptr = factory[name](dim);
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
         if (rank == 0) {
             std::cout << std::left << std::setw(22) << name
                       << std::right << std::setw(6)  << dim
-                      << std::setw(8)  << ppr * size
+                      << std::setw(8)  << ppr // total particles
                       << std::setw(8)  << iters
                       << "   " << std::scientific << std::setprecision(4) << std::setw(13) << fval
                       << "   " << std::setw(13) << err
