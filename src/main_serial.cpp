@@ -29,7 +29,7 @@
 #include "functions.cpp"
 #include "interfaces.hpp"
 #include "methods.hpp"
-#include "interfactes/StoppingCriteriaManager.hpp"
+#include "interfaces/StoppingCriteriaManager.hpp"
 #include <array>
 #include <cmath>
 #include <functional>
