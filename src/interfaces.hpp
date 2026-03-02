@@ -51,7 +51,7 @@ public:
 
   /// @return Known true solution vector x*
   const vector<double> &get_true_solution() const { return true_solution; };
-
+  
   /**
    * @brief Calculates normalized RMSE error between x and true solution
    */
@@ -125,6 +125,9 @@ public:
 
   void terminal_info();
   void output_to_file();
-void append_summary_csv_by_method(const std::string& method_name, int rep) const;};
+void append_summary_csv_by_method(const std::string& method_name, int rep) const;
+double get_best_fitness() const { return f_val; }
+const std::vector<double>& get_best_position() const { return x_best; }
+};
 
 #endif

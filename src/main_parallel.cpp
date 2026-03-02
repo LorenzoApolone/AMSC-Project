@@ -28,9 +28,11 @@ int main(int argc, char **argv)
   unsigned int max_iter = atoi(argv[3]);
   double delta_x = atof(argv[4]);
   int size;
-  int number_of_converged = 0;
+  int stopped_by_maxiter = 0;   
+  int incorrect_when_early_stop = 0;  
+  int correct_total = 0;
   int number_of_functions = 0;
-   int iterations_stagnation = 200;
+  int iterations_stagnation = 200;
   double stagnation_tol = 1e-6; // delta x for
   double diversity_tol = 1e-4; // diversity tolerance for stopping criteria
   MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -213,17 +215,32 @@ int main(int argc, char **argv)
   for (const auto &name : function_names)
   {
     number_of_functions++;
-    bool converged = false;
+    
     auto f_ptr = factory[name](dim);
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
-    OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points, converged);
+    OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points);
     if (rank == 0)
     {
+      const double final_fitness = result.get_best_fitness();
+      const double f_star = f_ptr->value(f_ptr->get_true_solution());
+
+      const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
+      if (is_correct) {
+          correct_total++;
+      }
+
+      const bool bool_stopped_by_maxiter = (result.iterations >= (int)max_iter);
+
+      if (bool_stopped_by_maxiter) {
+          stopped_by_maxiter++;   
+      }
+      if (!is_correct && !bool_stopped_by_maxiter) {
+          incorrect_when_early_stop++;
+      }
   //    result.terminal_info();
   //    result.output_to_file();
-      if (converged)
-        number_of_converged++;
+      
     }
   }
 
@@ -232,8 +249,11 @@ int main(int argc, char **argv)
   double t_end = MPI_Wtime();
 
   if (rank == 0) {
+    std::cout << "Number of functions: " << number_of_functions << std::endl;
     std::cout << "Total time: " << (t_end - t_start) << " s\n";
-    std::cout << "Convergence rate: " << number_of_converged << "/" << number_of_functions << std::endl;
+    std::cout << "Stopped by max iter: " << stopped_by_maxiter << std::endl;
+    std::cout << "Incorrect when early stop: " << incorrect_when_early_stop << std::endl;
+    std::cout << "Correct total: " << correct_total << std::endl;
   }
   //------------------------------------------- end of the new part-------------------------------------------------------
   

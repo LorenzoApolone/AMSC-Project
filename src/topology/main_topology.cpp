@@ -276,7 +276,7 @@ MPI_Barrier(MPI_COMM_WORLD);
     auto f_ptr = factory[name](dim);
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
-    OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points, converged);
+    OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points);
     if (rank == 0)
     {
             result.append_summary_csv_by_method("classic", 1);
