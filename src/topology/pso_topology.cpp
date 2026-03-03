@@ -1,7 +1,6 @@
-// file con all gather e senza timer 
-
 
 #include "../interfaces.hpp"
+#include "../interfaces/StoppingCriteriaManager.hpp"
 #include "create_network.hpp"
 #include "pso_topology.hpp"
 #include <algorithm>
@@ -23,12 +22,13 @@ struct PSOHyperparameters {
 };
 
 
-
-OutputObject pso_normal(const TestFunction &f,
+ double t_allgatherv_val = 0.0;
+ double t_allgatherv_pos = 0.0;
+OutputObject pso_topology(const TestFunction &f,
                        int d,
-                       const StopCriterion &stop,
+                      StoppingCriteriaManager &stop,
                        int n_points,
-                       const std::vector<std::vector<int>> &adjacency_list, bool &converged) {
+                       const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot) {
 
   // --- MPI Setup ---
   int rank, size;
@@ -123,7 +123,7 @@ OutputObject pso_normal(const TestFunction &f,
   // --- Main Loop ---
   int iter = 0;
   bool must_stop = false;
-  int max_iter_limit = stop.get_max_iter();
+  int max_iter_limit = stop.get_max_iters();
   int counter =0;
   while (!must_stop) {
     counter++;
@@ -139,15 +139,20 @@ OutputObject pso_normal(const TestFunction &f,
       for (int j = 0; j < d; ++j)
         local_pbest_pos_flat[i * d + j] = pbest_pos[i][j];
     
+    double t0 = MPI_Wtime();
     MPI_Allgatherv(pbest_val.data(), local_n, MPI_DOUBLE,
                    all_pbest_val.data(), counts.data(), displs.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
-   
+    double t1 = MPI_Wtime();
+    t_allgatherv_val = (t1 - t0);
 
+    double t2 = MPI_Wtime();
     MPI_Allgatherv(local_pbest_pos_flat.data(), local_n * d, MPI_DOUBLE,
                    all_pbest_pos.data(), counts_d.data(), displs_d.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
-   
+    double t3 = MPI_Wtime();
+    t_allgatherv_pos = (t3 - t2);
+    t_allgatherv_tot += (t_allgatherv_val + t_allgatherv_pos);
     // 2) For each local particle, compute lbest from adjacency_list using all_pbest_
     for (int i = 0; i < local_n; ++i) {
       int gid = displs[rank] + i; // global id of this particle
@@ -168,7 +173,11 @@ OutputObject pso_normal(const TestFunction &f,
       for (int j = 0; j < d; ++j) {
         double r1 = dis_01(gen);
         double r2 = dis_01(gen);
-
+//
+//
+//qui mi passo solo le best position , per il nuovo SC mi serve la corrente
+//
+//
         double lbest_j = all_pbest_pos[best_gid * d + j];
 
         vel[i][j] =
@@ -219,15 +228,31 @@ OutputObject pso_normal(const TestFunction &f,
     }
     MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank, MPI_COMM_WORLD);
 
+    double local_sum_dist = 0.0;
+
+    for (int i = 0; i < local_n; ++i) {
+      double dist_sq = 0.0;
+      for (int j = 0; j < d; ++j) {
+        double diff = pos[i][j] - gbest_pos[j];   
+        dist_sq += diff * diff;
+      }
+      local_sum_dist += std::sqrt(dist_sq);
+    }
+
+    double global_sum_dist = 0.0;
+    MPI_Allreduce(&local_sum_dist, &global_sum_dist, 1,
+                  MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+    double avg_distance = global_sum_dist / static_cast<double>(n_points);
+
     // 4) Stopping criterion (rank 0 decides)
     int stop_signal = 0;
     if (rank == 0) {
       double err = f.error(gbest_pos);
       history.push_back(err);
-      if (stop.should_stop(iter, err)){
+      if (stop.should_stop(gbest_val, avg_distance)) {
          stop_signal = 1;
-         if (iter < stop.get_max_iter())
-           converged = true;
+         
         
       }
     }

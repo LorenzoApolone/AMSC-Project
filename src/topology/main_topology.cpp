@@ -51,8 +51,6 @@ static void bcast_adjacency_list(std::vector<std::vector<int>>& adjacency_list,
 }
 
 
-
-
 int main(int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
@@ -76,8 +74,6 @@ int main(int argc, char **argv)
   unsigned int n_points= std::atoi(argv[2]);
   unsigned int max_iter= std::atoi(argv[3]);
   double delta_x       = std::atof(argv[4]);
-  double p             = 0.05; // rewiring probability for small-world network
-
   int m = 3; // for scale-free network, number of edges of each new node
   int number_of_converged_small = 0;
   int number_of_converged_scale = 0;
@@ -85,24 +81,24 @@ int main(int argc, char **argv)
   int number_of_converged_classic = 0;
   int number_of_converged_complete = 0;
   int number_of_functions = 0;
-  int iterations_stagnation = 200; // number of iterations for stagnation control
-  int number_of_converged_small_v1 = 0;
-  int number_of_converged_scale_v1 = 0;
-  int number_of_converged_random_v1 = 0;
-  double stagnation_tol = 1e-6; // delta x for
-  double diversity_tol = 1e-4; // diversity tolerance for stopping criteria
+  int stopped_by_maxiter_and_incorrect = 0;
+  int stopped_by_maxiter_and_correct = 0;
+  int incorrect_when_early_stop= 0;
+  int correct_when_early_stop = 0;
+  int correct_total = 0;
+  int iterations_stagnation = 40000; // number of iterations for stagnation control
+  double stagnation_tol = 1e-8; // delta x for
+  double diversity_tol = 1e-6; // diversity tolerance for stopping criteria
   double p_rewiring = 0.05; // rewiring probability for small-world network
-  double p_random = 0.03; // edge probability for random network
+  double p_random = 0.015; // edge probability for random network
   std::vector<std::string> functions_converged_small;
   std::vector<std::string> functions_converged_scale;
   std::vector<std::string> functions_converged_random;
   std::vector<std::string> functions_converged_classic;
   std::vector<std::string> functions_converged_complete;
-
   // Factory Definition 
   std::unordered_map<std::string,
                      std::function<std::unique_ptr<TestFunction>(unsigned int)>> factory;
-
   factory["Sphere"] = [](unsigned int dim){ return std::make_unique<Sphere>(dim); };
   factory["Ellipsoid"] = [](unsigned int dim){ return std::make_unique<Ellipsoid>(dim); };
   factory["SumOfDiffPowers"] = [](unsigned int dim){ return std::make_unique<SumOfDiffPowers>(dim); };
@@ -138,7 +134,7 @@ int main(int argc, char **argv)
   factory["Powell"] = [](unsigned int dim){ return std::make_unique<Powell>(dim); };
   factory["DixonPrice"] = [](unsigned int dim){ return std::make_unique<DixonPrice>(dim); };
   factory["StyblinskiTang"] = [](unsigned int dim){ return std::make_unique<StyblinskiTang>(dim); };
-  /* funzioni che convergono difficilmente 
+  /* difficult function for convergence 
   std::vector<std::string> function_names = {
    "DropWave","Alpine1",
     "HGBat","ExpSchafferF6","Schwefel",
@@ -159,7 +155,7 @@ int main(int argc, char **argv)
 //--------------------------------------------------SMALL WORLD-----------------------------------------------------------------
   
     
-  MPI_Barrier(MPI_COMM_WORLD);  //  timer MPI evaluate to delete it on the final version
+  MPI_Barrier(MPI_COMM_WORLD);  
   double t_start_small = MPI_Wtime();
   double t_allgatherv_small = 0.0;
   for (const auto& name : function_names) {
@@ -168,14 +164,13 @@ int main(int argc, char **argv)
     std::vector<std::vector<int>> adjacency_list;
   
     if (rank == 0) {
-     // create_small_world_network(static_cast<int>(n_points), m, adjacency_list);
       create_network(static_cast<int>(n_points), p_rewiring, adjacency_list);
       number_of_functions++;
     }
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
     bcast_adjacency_list(adjacency_list, static_cast<int>(n_points), rank);
-    OutputObject result = pso_small_timerv(*f_ptr, dim, stop, n_points, adjacency_list,  t_allgatherv_small);
+    OutputObject result = pso_topology(*f_ptr, dim, stop, n_points, adjacency_list,  t_allgatherv_small);
     if (rank == 0) {
       const double final_fitness = result.get_best_fitness();
       const double f_star = f_ptr->value(f_ptr->get_true_solution());
@@ -191,20 +186,35 @@ int main(int argc, char **argv)
           stopped_by_maxiter_and_incorrect++;   
       }
       if (bool_stopped_by_maxiter && is_correct) {
-          stopped_by_maxiter_and_correct++;   
+          stopped_by_maxiter_and_correct++; 
+          number_of_converged_small++;  
+          functions_converged_small.push_back(name);
       }
       if (!is_correct && !bool_stopped_by_maxiter) {
           incorrect_when_early_stop++;
+      }
+      if (is_correct && !bool_stopped_by_maxiter) {
+          correct_when_early_stop++;
+          number_of_converged_small++;
+          functions_converged_small.push_back(name);
       }
 
   //    result.append_summary_csv_by_method("small_world", 1);
   //    result.terminal_info();
   //  result.output_to_file();     
+    std::cout << "Finished function " << name << " with small world topology." << std::endl;
       
     }
-      
   }
 
+  if (rank == 0) {
+    std::cout << "Small world: "  << std::endl;
+    std::cout << "Stopped by max iter and incorrect: " << stopped_by_maxiter_and_incorrect << std::endl;
+    std::cout << "Stopped by max iter and correct: " << stopped_by_maxiter_and_correct << std::endl;
+    std::cout << "Incorrect when early stop: " << incorrect_when_early_stop << std::endl;
+    std::cout << "Correct when early stop: " << correct_when_early_stop << std::endl;
+    std::cout << "Correct total: " << correct_total << std::endl;
+  }
   MPI_Barrier(MPI_COMM_WORLD);
   double t_end_small = MPI_Wtime();
 
@@ -215,6 +225,12 @@ int main(int argc, char **argv)
   MPI_Barrier(MPI_COMM_WORLD);
   double t_start_scale = MPI_Wtime();
   double t_allgatherv_scale = 0.0;
+  
+  stopped_by_maxiter_and_incorrect = 0;
+  stopped_by_maxiter_and_correct = 0;
+  incorrect_when_early_stop= 0;
+  correct_when_early_stop = 0;
+  correct_total = 0;
   for (const auto& name : function_names) {
     bool converged = false;
     auto f_ptr1 = factory[name](dim);
@@ -226,14 +242,13 @@ int main(int argc, char **argv)
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
     bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
-    OutputObject result = pso_small_timerv(*f_ptr1, dim, stop, n_points, adjacency_list2, t_allgatherv_scale);
+    OutputObject result = pso_topology(*f_ptr1, dim, stop, n_points, adjacency_list2, t_allgatherv_scale);
     if (rank == 0) {
-   //   result.append_summary_csv_by_method("scale_free", 1);
-
- //   result.terminal_info();
- //   result.output_to_file();
+      //   result.append_summary_csv_by_method("scale_free", 1);
+      //   result.terminal_info();
+      //   result.output_to_file();
       const double final_fitness = result.get_best_fitness();
-      const double f_star = f_ptr->value(f_ptr->get_true_solution());
+      const double f_star = f_ptr1->value(f_ptr1->get_true_solution());
 
       const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
       if (is_correct) {
@@ -246,14 +261,31 @@ int main(int argc, char **argv)
           stopped_by_maxiter_and_incorrect++;   
       }
       if (bool_stopped_by_maxiter && is_correct) {
-          stopped_by_maxiter_and_correct++;   
+          stopped_by_maxiter_and_correct++; 
+          number_of_converged_scale++;
+          functions_converged_scale.push_back(name);  
       }
       if (!is_correct && !bool_stopped_by_maxiter) {
           incorrect_when_early_stop++;
       }
+      if (is_correct && !bool_stopped_by_maxiter) {
+          correct_when_early_stop++;
+          number_of_converged_scale++;
+          functions_converged_scale.push_back(name);
+      }
+    std::cout << "Finished function " << name << " with scale free topology." << std::endl;
+
     }    
   }
 
+   if (rank == 0) {
+    std::cout << "Scale free: "  << std::endl;
+    std::cout << "Stopped by max iter and incorrect: " << stopped_by_maxiter_and_incorrect << std::endl;
+    std::cout << "Stopped by max iter and correct: " << stopped_by_maxiter_and_correct << std::endl;
+    std::cout << "Incorrect when early stop: " << incorrect_when_early_stop << std::endl;
+    std::cout << "Correct when early stop: " << correct_when_early_stop << std::endl;
+    std::cout << "Correct total: " << correct_total << std::endl;
+  }
   MPI_Barrier(MPI_COMM_WORLD);
   double t_end_scale = MPI_Wtime();
 
@@ -263,7 +295,11 @@ int main(int argc, char **argv)
   MPI_Barrier(MPI_COMM_WORLD);
   double t_start_random = MPI_Wtime();
   double t_allgatherv_random = 0.0;
-
+  stopped_by_maxiter_and_incorrect = 0;
+  stopped_by_maxiter_and_correct = 0;
+  incorrect_when_early_stop= 0;
+  correct_when_early_stop = 0;
+  correct_total = 0;
   for (const auto& name : function_names) {
     bool converged = false;
     auto f_ptr2 = factory[name](dim);
@@ -275,10 +311,10 @@ int main(int argc, char **argv)
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
     bcast_adjacency_list(adjacency_list2, static_cast<int>(n_points), rank);
-    OutputObject result = pso_small_timerv(*f_ptr2, dim, stop, n_points, adjacency_list2, t_allgatherv_random);
+    OutputObject result = pso_topology(*f_ptr2, dim, stop, n_points, adjacency_list2, t_allgatherv_random);
     if(rank == 0){
       const double final_fitness = result.get_best_fitness();
-      const double f_star = f_ptr->value(f_ptr->get_true_solution());
+      const double f_star = f_ptr2->value(f_ptr2->get_true_solution());
 
       const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
       if (is_correct) {
@@ -291,33 +327,49 @@ int main(int argc, char **argv)
           stopped_by_maxiter_and_incorrect++;   
       }
       if (bool_stopped_by_maxiter && is_correct) {
-          stopped_by_maxiter_and_correct++;   
+          stopped_by_maxiter_and_correct++; 
+          number_of_converged_random++;
+          functions_converged_random.push_back(name);  
       }
       if (!is_correct && !bool_stopped_by_maxiter) {
           incorrect_when_early_stop++;
       }
-   //   result.append_summary_csv_by_method("random", 1);
-    }
-   //   result.terminal_info();
-     // result.output_to_file();
-      
-    
+      if (is_correct && !bool_stopped_by_maxiter) {
+          correct_when_early_stop++;
+          number_of_converged_random++;
+          functions_converged_random.push_back(name);
+      }
+      std::cout << "Finished function " << name << " with random topology." << std::endl;
+
     }
   }
-
+  // result.append_summary_csv_by_method("random", 1);
+  // result.terminal_info();
+  // result.output_to_file();
+   
   MPI_Barrier(MPI_COMM_WORLD);
   double t_end_random = MPI_Wtime();
-
+if (rank == 0) {
+    std::cout << "Random: "  << std::endl;
+    std::cout << "Stopped by max iter and incorrect: " << stopped_by_maxiter_and_incorrect << std::endl;
+    std::cout << "Stopped by max iter and correct: " << stopped_by_maxiter_and_correct << std::endl;
+    std::cout << "Incorrect when early stop: " << incorrect_when_early_stop << std::endl;
+    std::cout << "Correct when early stop: " << correct_when_early_stop << std::endl;
+    std::cout << "Correct total: " << correct_total << std::endl;
+  }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++Timer Version+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 
  MPI_Barrier(MPI_COMM_WORLD);
 
 
 MPI_Barrier(MPI_COMM_WORLD);
   double t_start_classic = MPI_Wtime();
-
+  stopped_by_maxiter_and_incorrect = 0;
+  stopped_by_maxiter_and_correct = 0;
+  incorrect_when_early_stop= 0;
+  correct_when_early_stop = 0;
+  correct_total = 0;
   for (const auto &name : function_names)
   {
     bool converged = false;
@@ -341,56 +393,36 @@ MPI_Barrier(MPI_COMM_WORLD);
           stopped_by_maxiter_and_incorrect++;   
       }
       if (bool_stopped_by_maxiter && is_correct) {
-          stopped_by_maxiter_and_correct++;   
+          stopped_by_maxiter_and_correct++; 
+          number_of_converged_classic++;
+          functions_converged_classic.push_back(name);  
       }
       if (!is_correct && !bool_stopped_by_maxiter) {
           incorrect_when_early_stop++;
       }
-
+      if (is_correct && !bool_stopped_by_maxiter) {
+          correct_when_early_stop++;
+          number_of_converged_classic++;
+          functions_converged_classic.push_back(name);
+      }
             
  //     result.terminal_info();
- //     result.output_to_file();
-      if (converged){
-        number_of_converged_classic++;
-        functions_converged_classic.push_back(name);
-      }
+ //     result.output_to_file();  
+    std::cout << "Finished function " << name << " with classic topology." << std::endl;    
     }
+    
   }
-
+   if (rank == 0) {
+    std::cout << "Classic: "  << std::endl;
+    std::cout << "Stopped by max iter and incorrect: " << stopped_by_maxiter_and_incorrect << std::endl;
+    std::cout << "Stopped by max iter and correct: " << stopped_by_maxiter_and_correct << std::endl;
+    std::cout << "Incorrect when early stop: " << incorrect_when_early_stop << std::endl;
+    std::cout << "Correct when early stop: " << correct_when_early_stop << std::endl;
+    std::cout << "Correct total: " << correct_total << std::endl;
+  }
   MPI_Barrier(MPI_COMM_WORLD);
   double t_end_classic = MPI_Wtime();
 
-
-//-----------------------------------------------------COMPLETE VERSION------------------------------------------------------------------------------------------------
-/*
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  double t_start_complete = MPI_Wtime();
-
-  for (const auto& name : function_names) {
-    bool converged = false;
-    auto f_ptr3 = factory[name](dim);
-    std::vector<std::vector<int>> adjacency_list3;
-  
-    if (rank == 0) {
-      create_fully_connected_network(static_cast<int>(n_points), adjacency_list3);
-    }
-    bcast_adjacency_list(adjacency_list3, static_cast<int>(n_points), rank);
-    OutputObject result = pso_normal(*f_ptr3, dim, stop, n_points, adjacency_list3, converged);
-    if (rank == 0) {
- //     result.terminal_info();
-  //  result.output_to_file();
-      if(converged == true){
-        number_of_converged_complete++;
-        functions_converged_complete.push_back(name);
-      }
-    }
-      
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  double t_end_complete = MPI_Wtime();
-*/
 
 if (rank == 0) {
 
@@ -465,14 +497,9 @@ if (rank == 0) {
 
   std::cout << "Total time random network timer version: " << t_allgatherv_random << "/" << (t_end_random - t_start_random) << " s\n";
   std::cout << "Convergence rate random network: " << number_of_converged_random << "/" << number_of_functions << std::endl << std::endl;
-   
-  
-  
- 
     
 //    uniqueness(all);
 }
-
   MPI_Finalize();
   return 0;
 }

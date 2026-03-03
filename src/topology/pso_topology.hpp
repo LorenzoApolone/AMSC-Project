@@ -5,16 +5,9 @@
 #include <vector>
 
 
-/*
 
-OutputObject pso_normal(const TestFunction &f,
-                       int d,
-                       const StopCriterion &stop,
-                       int n_points,
-                       const std::vector<std::vector<int>> &adjacency_list, bool &converged);
-*/
-OutputObject pso_small_timerv(const TestFunction &f,
+OutputObject pso_topology(const TestFunction &f,
                        int d,
                         StoppingCriteriaManager &stop,
                        int n_points,
-                       const std::vector<std::vector<int>> &adjacency_list, bool &converged, double &t_allgatherv_tot);
+                       const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot);
