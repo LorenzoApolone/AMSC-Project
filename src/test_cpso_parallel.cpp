@@ -172,9 +172,24 @@ int main(int argc, char **argv) {
     double t_end = MPI_Wtime();
 
     if (rank == 0) {
+      double true_min = f2->value(f2->get_true_solution());
+      double fitness_error = std::abs(out_p.f_val - true_min);
+      double tol = 1e-4; // threshold for convergence
+
+      std::string conv_status;
+      if (fitness_error < tol) {
+          conv_status = "True Convergence";
+      } else if (stop2.get_current_iters() < stop2.get_max_iters()) {
+          conv_status = "False Convergence (Stagnation)";
+      } else {
+          conv_status = "No Convergence (Max Iterations)";
+      }
+
       std::cout << "[CPSO-P MPI] Best Fitness: " << out_p.f_val
-                << " | Iterations: " << stop2.get_current_iters()
-                << " | MPI Time: " << (t_end - t_start) << "s\n\n";
+                << " | Error: " << fitness_error
+                << " | Iters: " << stop2.get_current_iters()
+                << " | Time: " << (t_end - t_start) << "s\n"
+                << "             Status: " << conv_status << "\n\n";
     }
   }
 

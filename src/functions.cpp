@@ -96,7 +96,7 @@ public:
   QuinticFunction(unsigned int dim)
       : TestFunction(dim, "QuinticFunction",
                      std::pair<double, double>{-20.0, 20.0},
-                     std::vector<double>(dim, 0.0)) {};
+                     std::vector<double>(dim, -1.0)) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = 0.0;
@@ -165,10 +165,8 @@ public:
       }
     }
 
-    for (size_t i = 0; i < dim; i++) {
-      for (size_t j = 0; j < kmax; j++) {
-        sum -= dim * pow(a, j) * cos(M_PI * pow(b, j));
-      }
+    for (size_t j = 0; j < kmax; j++) {
+      sum -= dim * pow(a, j) * cos(M_PI * pow(b, j));
     }
 
     return sum;
@@ -491,7 +489,7 @@ public:
       const double xi = x[i];
       const double xip = x[i + 1];
 
-      const double si = std::sqrt(xi * xi + xip * xip);
+      const double si = xi * xi + xip * xip;
       const double sqrt_si = std::sqrt(si);
       const double s15 = std::pow(si, 0.2);
 
@@ -541,7 +539,7 @@ private:
 /**
  * @class RotatedHyper
  * @brief Rotated hyper-ellipsoid (monotone weights): f(x) = Σ_{i=1..D}
- * (D+2−i)·x_i^2.
+ * (D - i + 1)·x_i^2.
  * @note Equivalent to a weighted quadratic; global minimum at x* = 0.
  */
 class RotatedHyper : public TestFunction {
@@ -557,7 +555,7 @@ public:
     double sum = 0.0;
 
     for (unsigned int i = 0; i < dim; ++i) {
-      sum += (dim + 2 - i) * std::pow(x[i], 2);
+      sum += (dim - i) * std::pow(x[i], 2);
     }
 
     return sum;
@@ -891,7 +889,16 @@ class Michalewicz : public TestFunction {
 public:
   Michalewicz(unsigned int dim)
       : TestFunction(dim, "Michalewicz", std::pair<double, double>{0.0, PI()},
-                     std::vector<double>(dim, 0.0)) {}
+                     [](unsigned int d) {
+                       if (d == 2)
+                         return std::vector<double>{2.2029055, 1.5707963};
+                       else if (d == 5)
+                         return std::vector<double>{2.2029, 1.5707, 1.2849, 1.9230, 1.7204};
+                       else if (d == 10)
+                         return std::vector<double>{2.2029, 1.5707, 1.2849, 1.9230, 1.7204,
+                                                    1.5707, 1.4544, 1.7560, 1.6557, 1.5707};
+                       return std::vector<double>(d, 0.0);
+                     }(dim)) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -997,8 +1004,10 @@ public:
       : TestFunction(dim, "DixonPrice", std::pair<double, double>{-10.0, 10.0},
                      [](unsigned int d) {
                        std::vector<double> v(d, 0.0);
-                       if (d > 0)
-                         v[0] = 1.0; // first coordinate = 1
+                       for (unsigned int i = 0; i < d; ++i) {
+                         double math_i = static_cast<double>(i + 1);
+                         v[i] = std::pow(2.0, -(std::pow(2.0, math_i) - 2.0) / std::pow(2.0, math_i));
+                       }
                        return v;
                      }(dim)) {}
 
