@@ -277,12 +277,10 @@ OutputObject CPSOParallel::optimize(const TestFunction &f,
   auto end_time = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = end_time - start_time;
 
-  StopCriterion dummy_stop(iter, 0.0);
-
   OutputObject out(f.get_name(), total_dim, particles_per_swarm * num_subswarms,
                    context.get_full_vector(), f.get_true_solution(),
                    context.get_best_fitness(), history, 1, elapsed.count(),
-                   iter, dummy_stop);
+                   iter, stop_manager);
 
   return out;
 }
