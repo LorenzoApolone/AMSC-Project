@@ -76,11 +76,15 @@ void SubSwarm::update_active_dims(const std::vector<int> &new_dims,
 
     for (size_t d = 0; d < active_dims.size(); ++d) {
       
-      // The particles will starts where the were left previously, and not from the random initialization
-      p.position[d] = context_vec[active_dims[d]];
-      p.best_position[d] = p.position[d];
+      // The particles will start around the global best, but we provide a wider spread to maintain diversity
+      p.position[d] = context_vec[active_dims[d]] + dist_vel(gen) * 5.0;
+      
+      // Keep within bounds
+      if (p.position[d] < bounds_lower) p.position[d] = bounds_lower;
+      if (p.position[d] > bounds_upper) p.position[d] = bounds_upper;
 
-      p.velocity[d] += dist_vel(gen);
+      p.best_position[d] = p.position[d];
+      p.velocity[d] = dist_vel(gen);
     }
   }
 }
@@ -101,11 +105,15 @@ void SubSwarm::inject_velocities(std::mt19937 &gen) {
       }
     }
 
-    // If the particle is not the global best, we inject random velocities
+    // If the particle is not the global best, we inject random velocities and clear cognitive memory
     if (!is_gbest) {
       for (size_t d = 0; d < active_dims.size(); ++d) {
-        p.velocity[d] = dist_vel(gen);
+        p.velocity[d] = dist_vel(gen) * 2.0; // double the original range for explosive escape
+        
+        //Reset the personal memory so cognitive component (c1) doesn't pull it back instantly
+        p.best_position[d] = p.position[d]; 
       }
+      p.best_value = p.current_value; // Reset personal best fitness
     }
   }
 }
