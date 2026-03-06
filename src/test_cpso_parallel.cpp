@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
 
     std::vector<NetworkType> topologies = {NetworkType::SCALE_FREE,
                                            NetworkType::SMALL_WORLD,
-                                           NetworkType::FULLY_CONNECTED};
+                                           NetworkType::RANDOM};
 
     int scaled_stagnation = std::max(100, max_iters / 4);
     StoppingCriteriaManager stop2(max_iters, scaled_stagnation, 1e-8);
