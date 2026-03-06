@@ -120,7 +120,7 @@ OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &sto
   int max_iter_limit = stop.get_max_iters();
 
   while (!must_stop) {
-
+    stop.increment_iterations();
     /// @brief We calculatee dynamic inertia weight (which is linearlly decreasing)
     double current_w =
         PSOHyperparameters::W_MAX -

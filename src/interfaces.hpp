@@ -128,6 +128,8 @@ public:
 void append_summary_csv_by_method(const std::string& method_name, int rep) const;
 double get_best_fitness() const { return f_val; }
 const std::vector<double>& get_best_position() const { return x_best; }
+int get_iterations() const { return iterations; }
 };
+
 
 #endif
