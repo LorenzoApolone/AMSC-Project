@@ -10,10 +10,11 @@
 
 /**
  * @class CPSOBase
- * @brief Abstract base class managing the mathematical state and generic routines of the CPSO algorithm
+ * @brief Abstract base class for the CPSO algorithm
  */
 class CPSOBase {
 protected:
+
   // Number of sub-swarms
   int num_subswarms;
 
@@ -35,7 +36,7 @@ protected:
   // Network topologies
   std::vector<NetworkType> subswarm_topologies;
 
-  // Helper method to uniformly compute the average distance (every 10 iter for performance)
+  // Method to compute the average distance between particles in the swarm
   void compute_avg_distance(int iter, const std::vector<SubSwarm>& swarms, 
                             const std::vector<double>& current_gbest_pos, 
                             double& last_avg_distance, 
@@ -43,6 +44,7 @@ protected:
                             bool use_mpi);
 
 public:
+
   CPSOBase(int k_subswarms, int num_particles_per_swarm,
            NetworkType topology, int shuffle_freq,
            int stagnation_patience, double w_start,
@@ -56,13 +58,13 @@ public:
   virtual ~CPSOBase() = default;
 
   /**
-   * @brief Executes the optimization process. This encapsulates initialization, metrics, and stopping mechanism.
+   * @brief Executes the optimization process
    */
   OutputObject optimize(const TestFunction &f, StoppingCriteriaManager &stop_manager);
 
 protected:
   /**
-   * @brief Pure virtual logic overridable by Parallel (MPI-based) or Serial implementations
+   * @brief Run method overridable by Parallel or Serial implementations
    */
   virtual OutputObject run_optimization_loop(const TestFunction &f, StoppingCriteriaManager &stop_manager,
                                              std::vector<SubSwarm>& swarms, std::vector<std::mt19937>& gens,

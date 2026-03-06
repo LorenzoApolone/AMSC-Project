@@ -6,7 +6,7 @@
 #include <mpi.h>
 #endif
 
-// Base Construct (Uniform Topology)
+// Constructor for uniform topology
 CPSOBase::CPSOBase(int k_subswarms, int num_particles_per_swarm,
                    NetworkType topology, int shuffle_freq,
                    int stagnation_patience, double w_start,
@@ -17,7 +17,7 @@ CPSOBase::CPSOBase(int k_subswarms, int num_particles_per_swarm,
   subswarm_topologies.assign(k_subswarms, topology);
 }
 
-// Base Construct (Specific Topologies Array)
+// Constructor for different types of topologies
 CPSOBase::CPSOBase(int k_subswarms, int num_particles_per_swarm,
                    const std::vector<NetworkType> &topologies,
                    int shuffle_freq, int stagnation_patience,
@@ -26,17 +26,20 @@ CPSOBase::CPSOBase(int k_subswarms, int num_particles_per_swarm,
       shuffle_freq(shuffle_freq), stagnation_patience(stagnation_patience),
       w_max(w_start), w_min(w_end), c1(coeff1), c2(coeff2) {
   subswarm_topologies = topologies;
+  // Padding for the remaining topologies with SCALE_FREE
   while (subswarm_topologies.size() < static_cast<size_t>(k_subswarms)) {
     subswarm_topologies.push_back(topologies.empty() ? NetworkType::SCALE_FREE
                                                      : topologies.front());
   }
 }
 
-// Optimized Average Distance Calculator
+// Method that computes the average distance between particles and the global best position
 void CPSOBase::compute_avg_distance(int iter, const std::vector<SubSwarm>& swarms, 
                                     const std::vector<double>& current_gbest_pos, 
                                     double& last_avg_distance, 
                                     int local_start_idx, int local_end_idx, bool use_mpi) {
+
+  // Compute average distance on the first iter, and then every 10 iterations
   if (iter == 1 || iter % 10 == 0) {
     std::vector<double> local_dist_sq(particles_per_swarm, 0.0);
     for (int p = 0; p < particles_per_swarm; ++p) {
@@ -51,6 +54,8 @@ void CPSOBase::compute_avg_distance(int iter, const std::vector<SubSwarm>& swarm
     }
 
     std::vector<double> global_dist_sq(particles_per_swarm, 0.0);
+    
+    // Use MPI in the parallel case, otherwise it uses the local distances
     if (use_mpi) {
 #ifdef MPI_VERSION
       MPI_Allreduce(local_dist_sq.data(), global_dist_sq.data(),
@@ -68,24 +73,27 @@ void CPSOBase::compute_avg_distance(int iter, const std::vector<SubSwarm>& swarm
   }
 }
 
+// Optimization loop
 OutputObject CPSOBase::optimize(const TestFunction &f, StoppingCriteriaManager &stop_manager) {
   auto start_time = std::chrono::high_resolution_clock::now();
 
+  // Generating random number generators for each subswarm
   std::vector<std::mt19937> gens(num_subswarms);
   for (int i = 0; i < num_subswarms; ++i) {
     gens[i] = std::mt19937(1337 + i);
   }
-
   std::mt19937 global_gen(1337);
+
+  // Domain Decomposition depending on how many subswarm we have
   int total_dim = f.dim;
   auto bounds = f.get_domain();
-
   int dims_per_swarm = total_dim / num_subswarms;
   int remainder = total_dim % num_subswarms;
 
   std::vector<SubSwarm> swarms;
   swarms.reserve(num_subswarms);
 
+  // Creating the subswarms with the active dimensions and the topology
   int current_dim_start = 0;
   for (int i = 0; i < num_subswarms; ++i) {
     int swarm_dims = dims_per_swarm + (i < remainder ? 1 : 0);
@@ -95,6 +103,7 @@ OutputObject CPSOBase::optimize(const TestFunction &f, StoppingCriteriaManager &
     }
     current_dim_start += swarm_dims;
 
+    // Creating the adjacency list for the current subswarm topology
     std::vector<std::vector<int>> sub_adj_list;
     switch (subswarm_topologies[i]) {
     case NetworkType::SMALL_WORLD:
@@ -114,10 +123,11 @@ OutputObject CPSOBase::optimize(const TestFunction &f, StoppingCriteriaManager &
     swarms.emplace_back(particles_per_swarm, active_dims, bounds.first, bounds.second, sub_adj_list);
   }
 
+  // Creating the Global Context Vector
   ContextVector context(total_dim);
   std::vector<double> init_vec(total_dim);
   
-  // Set default mid-point for safety
+  // Set the initial global best position to the mid-point of the domain
   context.set_full_vector(std::vector<double>(total_dim, bounds.first + (bounds.second - bounds.first) / 2.0),
                           std::numeric_limits<double>::infinity());
 
