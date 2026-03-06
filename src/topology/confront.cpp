@@ -1,3 +1,4 @@
+// confront.cpp
 #include <vector>
 #include <string>
 #include <iostream>
@@ -5,7 +6,12 @@
 #include <array>
 #include <algorithm>
 
-// this function checks if there is functions that converges only in one topology. 
+
+/**
+ * @file confront.cpp
+ * @brief Implementation of utilities to compare convergence across PSO topologies.
+ */
+
 void uniqueness(const std::array<std::vector<std::string>, 5>& vectors){
 
     // enum declared in hpp file  carefull to use the correct index to access the vectors
@@ -77,7 +83,6 @@ void uniqueness(const std::array<std::vector<std::string>, 5>& vectors){
         }
     }
 }
-
 
 int not_converged(const std::array<std::vector<std::string>, 5>& vectors){
 

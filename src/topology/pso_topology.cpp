@@ -1,7 +1,6 @@
 
 #include "../interfaces.hpp"
 #include "../interfaces/StoppingCriteriaManager.hpp"
-#include "create_network.hpp"
 #include "pso_topology.hpp"
 #include <algorithm>
 #include <limits>
@@ -10,6 +9,7 @@
 #include <vector>
 #include <iostream>
 
+// Struct containing a serie of parameter needed for the PSO
 struct PSOHyperparameters {
   static constexpr double C1 = 1.49618;
   static constexpr double C2 = 1.49618;
@@ -22,19 +22,19 @@ struct PSOHyperparameters {
 };
 
 
- double t_allgatherv_val = 0.0;
- double t_allgatherv_pos = 0.0;
+
 OutputObject pso_topology(const TestFunction &f,
                        int d,
                       StoppingCriteriaManager &stop,
                        int n_points,
                        const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot) {
 
-  // --- MPI Setup ---
+  // MPI Setup
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+  //  Chronometer start
   double start_time = MPI_Wtime();
 
   // Particle Distribution
@@ -53,13 +53,14 @@ OutputObject pso_topology(const TestFunction &f,
   for (int r = 1; r < size; ++r)
     displs[r] = displs[r - 1] + counts[r - 1];
 
-  // --- Data Structures ---
+  // Data Structures
   std::vector<std::vector<double>> pos(local_n, std::vector<double>(d));
   std::vector<std::vector<double>> vel(local_n, std::vector<double>(d));
   std::vector<std::vector<double>> pbest_pos = pos;
   std::vector<double> pbest_val(local_n, std::numeric_limits<double>::max());
 
-  // Global best (used for stopping + output)
+  // Global best (even if lbest logic is used on this code, the global best need to be 
+  // monitored for the stopping criterion
   std::vector<double> gbest_pos(d);
   double gbest_val = std::numeric_limits<double>::max();
 
@@ -75,109 +76,119 @@ OutputObject pso_topology(const TestFunction &f,
   std::mt19937 gen(rank + 42);
   std::uniform_real_distribution<> dis(LB, UB);
   std::uniform_real_distribution<> dis_01(0.0, 1.0);
+  std::uniform_real_distribution<> vel_dis(-1.0, 1.0);
+  double range = UB - LB;
 
-  // --- Initialization ---
+  // Distribute particels randomly in the domain, inizialize velocities and pbest
   for (int i = 0; i < local_n; ++i) {
     for (int j = 0; j < d; ++j) {
       pos[i][j] = dis(gen);
-      vel[i][j] = (dis(gen) - dis(gen)) * PSOHyperparameters::V_INIT_FACTOR;
+      vel[i][j] = vel_dis(gen) * range * PSOHyperparameters::V_INIT_FACTOR;
       pbest_pos[i][j] = pos[i][j];
     }
-
     double fitness = f.value(pos[i]);
     pbest_val[i] = fitness;
-
     if (fitness < gbest_val) {
       gbest_val = fitness;
       gbest_pos = pos[i];
     }
   }
 
-  // --- Initial Sync of gbest (optional, just to have something consistent) ---
+  // Struct to return results
   struct {
     double val;
     int rank;
   } loc_data, glob_data;
 
+  // Find and share global best among all ranks
   loc_data.val = gbest_val;
   loc_data.rank = rank;
-
   MPI_Allreduce(&loc_data, &glob_data, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD);
   gbest_val = glob_data.val;
   MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank, MPI_COMM_WORLD);
 
-  // --- Buffers for Allgatherv of pbests (needed for lbest) ---
+  // Buffers for Allgatherv of pbests (needed for lbest) ---
   std::vector<double> all_pbest_val(n_points);
   std::vector<double> all_pbest_pos(n_points * d);
-
   std::vector<double> local_pbest_pos_flat(local_n * d);
-
   std::vector<int> counts_d(size), displs_d(size);
+
   for (int r = 0; r < size; ++r) {
     counts_d[r] = counts[r] * d;
     displs_d[r] = displs[r] * d;
   }
   // end of initialization
 
+  // -----------------------------
+  // Main Loop 
+  // -----------------------------
 
-  // --- Main Loop ---
   int iter = 0;
   bool must_stop = false;
   int max_iter_limit = stop.get_max_iters();
-  int counter =0;
+
+  // Main loop that stop when at least one of the stopping criterion is met 
   while (!must_stop) {
-    counter++;
+
+    // incrementing iteration counter of the stopping criteria
+    if (rank == 0){
+          stop.increment_iterations();
+
+    }
+
+    // Compute inertia weight for the current iteration
     double current_w =
         PSOHyperparameters::W_MAX -
         ((PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) * (double)iter /
          (double)max_iter_limit);
 
     // 1) Update particles locally (pos/vel) using the previous neighborhood knowledge
-  
-    // ---- current pbest (val + pos) to all ranks ----
     for (int i = 0; i < local_n; ++i)
       for (int j = 0; j < d; ++j)
         local_pbest_pos_flat[i * d + j] = pbest_pos[i][j];
     
-    double t0 = MPI_Wtime();
+    double t_start = MPI_Wtime();
     MPI_Allgatherv(pbest_val.data(), local_n, MPI_DOUBLE,
                    all_pbest_val.data(), counts.data(), displs.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
-    double t1 = MPI_Wtime();
-    t_allgatherv_val = (t1 - t0);
-
-    double t2 = MPI_Wtime();
+    
     MPI_Allgatherv(local_pbest_pos_flat.data(), local_n * d, MPI_DOUBLE,
                    all_pbest_pos.data(), counts_d.data(), displs_d.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
-    double t3 = MPI_Wtime();
-    t_allgatherv_pos = (t3 - t2);
-    t_allgatherv_tot += (t_allgatherv_val + t_allgatherv_pos);
+    double t_end = MPI_Wtime();
+    // Accumulate Allgatherv time, useful to monitor this bottleneck 
+    t_allgatherv_tot += (t_end - t_start);
+
+
     // 2) For each local particle, compute lbest from adjacency_list using all_pbest_
     for (int i = 0; i < local_n; ++i) {
       int gid = displs[rank] + i; // global id of this particle
 
+    if (gid < 0 || gid >= n_points) {
+        std::cerr << "Invalid gid: " << gid << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
       // Find best among {gid} U neighbors(gid)
       int best_gid = gid;
       double best_val = all_pbest_val[gid];
 
       // include neighbors
       for (int neigh : adjacency_list[gid]) {
+        if (neigh < 0 || neigh >= n_points) {
+            std::cerr << "Invalid neighbor id: " << neigh
+                      << " for particle " << gid << std::endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
         if (all_pbest_val[neigh] < best_val) {
           best_val = all_pbest_val[neigh];
           best_gid = neigh;
         }
       }
 
-      // Update vel/pos using lbest (best_gid)
+      // Update vel/pos using lbest 
       for (int j = 0; j < d; ++j) {
         double r1 = dis_01(gen);
         double r2 = dis_01(gen);
-//
-//
-//qui mi passo solo le best position , per il nuovo SC mi serve la corrente
-//
-//
         double lbest_j = all_pbest_pos[best_gid * d + j];
 
         vel[i][j] =
@@ -201,14 +212,14 @@ OutputObject pso_topology(const TestFunction &f,
       }
     }
 
-    // 3) Compute global best for stopping/output (rank 0 uses gathered arrays)
+    // 3) Compute global best for stopping/output 
     
     loc_data.val = std::numeric_limits<double>::max();
     loc_data.rank = rank;
 
     // local best among this rank's pbests
     double local_best_val = std::numeric_limits<double>::max();
-    int local_best_idx = 0;
+    int local_best_idx = -1;
     for (int i = 0; i < local_n; ++i) {
       if (pbest_val[i] < local_best_val) {
         local_best_val = pbest_val[i];
@@ -222,12 +233,13 @@ OutputObject pso_topology(const TestFunction &f,
     MPI_Allreduce(&loc_data, &glob_data, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD);
 
     // broadcast gbest position from winner rank
-    if (rank == glob_data.rank) {
-      gbest_val = local_best_val;
+    gbest_val = glob_data.val;
+
+    if (rank == glob_data.rank && local_best_idx >= 0) {
       gbest_pos = pbest_pos[local_best_idx];
     }
-    MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank, MPI_COMM_WORLD);
 
+    MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank, MPI_COMM_WORLD);
     double local_sum_dist = 0.0;
 
     for (int i = 0; i < local_n; ++i) {
@@ -245,7 +257,7 @@ OutputObject pso_topology(const TestFunction &f,
 
     double avg_distance = global_sum_dist / static_cast<double>(n_points);
 
-    // 4) Stopping criterion (rank 0 decides)
+    // 4) Stopping criterion, the check is done only on rank 0.
     int stop_signal = 0;
     if (rank == 0) {
       double err = f.error(gbest_pos);
@@ -256,11 +268,16 @@ OutputObject pso_topology(const TestFunction &f,
         
       }
     }
+    // Broadcast stop signal to all ranks
     MPI_Bcast(&stop_signal, 1, MPI_INT, 0, MPI_COMM_WORLD);
     must_stop = (stop_signal != 0);
 
     iter++;
   }
+
+  //------------------------------
+  // End of main loop
+  //------------------------------
 
   double end_time = MPI_Wtime();
 

@@ -80,17 +80,16 @@ int main(int argc, char **argv)
   int number_of_converged_random = 0;
   int number_of_converged_classic = 0;
   int number_of_converged_complete = 0;
-  int number_of_functions = 0;
   int stopped_by_maxiter_and_incorrect = 0;
   int stopped_by_maxiter_and_correct = 0;
   int incorrect_when_early_stop= 0;
   int correct_when_early_stop = 0;
   int correct_total = 0;
-  int iterations_stagnation = 40000; // number of iterations for stagnation control
-  double stagnation_tol = 1e-8; // delta x for
-  double diversity_tol = 1e-6; // diversity tolerance for stopping criteria
+  int iterations_stagnation = max_iter/2.2; // number of iterations for stagnation control
+  double stagnation_tol = 1e-10; // delta x for
+  double diversity_tol = 1e-8; // diversity tolerance for stopping criteria
   double p_rewiring = 0.05; // rewiring probability for small-world network
-  double p_random = 0.015; // edge probability for random network
+  double p_random = 0.022; // edge probability for random network
   std::vector<std::string> functions_converged_small;
   std::vector<std::string> functions_converged_scale;
   std::vector<std::string> functions_converged_random;
@@ -151,7 +150,7 @@ int main(int argc, char **argv)
     "ModifiedRidge","Zakharov","ModifiedXinSheYang3","ModifiedXinSheYang5", 
     "Levy","Michalewicz","Bohachevsky","Powell","DixonPrice","StyblinskiTang"
   };
-
+const int number_of_functions = (int)function_names.size();
 //--------------------------------------------------SMALL WORLD-----------------------------------------------------------------
   
     
@@ -159,13 +158,11 @@ int main(int argc, char **argv)
   double t_start_small = MPI_Wtime();
   double t_allgatherv_small = 0.0;
   for (const auto& name : function_names) {
-    bool converged = false;
     auto f_ptr = factory[name](dim);
     std::vector<std::vector<int>> adjacency_list;
   
     if (rank == 0) {
       create_network(static_cast<int>(n_points), p_rewiring, adjacency_list);
-      number_of_functions++;
     }
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
@@ -202,7 +199,6 @@ int main(int argc, char **argv)
   //    result.append_summary_csv_by_method("small_world", 1);
   //    result.terminal_info();
   //  result.output_to_file();     
-    std::cout << "Finished function " << name << " with small world topology." << std::endl;
       
     }
   }
@@ -232,7 +228,6 @@ int main(int argc, char **argv)
   correct_when_early_stop = 0;
   correct_total = 0;
   for (const auto& name : function_names) {
-    bool converged = false;
     auto f_ptr1 = factory[name](dim);
     std::vector<std::vector<int>> adjacency_list2;
   
@@ -273,8 +268,6 @@ int main(int argc, char **argv)
           number_of_converged_scale++;
           functions_converged_scale.push_back(name);
       }
-    std::cout << "Finished function " << name << " with scale free topology." << std::endl;
-
     }    
   }
 
@@ -301,7 +294,6 @@ int main(int argc, char **argv)
   correct_when_early_stop = 0;
   correct_total = 0;
   for (const auto& name : function_names) {
-    bool converged = false;
     auto f_ptr2 = factory[name](dim);
     std::vector<std::vector<int>> adjacency_list2;
 
@@ -315,16 +307,18 @@ int main(int argc, char **argv)
     if(rank == 0){
       const double final_fitness = result.get_best_fitness();
       const double f_star = f_ptr2->value(f_ptr2->get_true_solution());
+      const double err = std::abs(final_fitness - f_star);
 
-      const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
+      const bool is_correct = (err <= delta_x);
       if (is_correct) {
           correct_total++;
       }
-
+      
       const bool bool_stopped_by_maxiter = (result.iterations >= (int)max_iter);
 
       if (bool_stopped_by_maxiter && !is_correct) {
-          stopped_by_maxiter_and_incorrect++;   
+          stopped_by_maxiter_and_incorrect++; 
+         
       }
       if (bool_stopped_by_maxiter && is_correct) {
           stopped_by_maxiter_and_correct++; 
@@ -339,8 +333,6 @@ int main(int argc, char **argv)
           number_of_converged_random++;
           functions_converged_random.push_back(name);
       }
-      std::cout << "Finished function " << name << " with random topology." << std::endl;
-
     }
   }
   // result.append_summary_csv_by_method("random", 1);
@@ -372,7 +364,6 @@ MPI_Barrier(MPI_COMM_WORLD);
   correct_total = 0;
   for (const auto &name : function_names)
   {
-    bool converged = false;
     auto f_ptr = factory[name](dim);
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
@@ -404,11 +395,9 @@ MPI_Barrier(MPI_COMM_WORLD);
           correct_when_early_stop++;
           number_of_converged_classic++;
           functions_converged_classic.push_back(name);
-      }
-            
+      }            
  //     result.terminal_info();
  //     result.output_to_file();  
-    std::cout << "Finished function " << name << " with classic topology." << std::endl;    
     }
     
   }
