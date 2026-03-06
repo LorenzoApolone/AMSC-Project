@@ -4,14 +4,14 @@
 
 /**
  * @class CPSOParallel
- * @brief Manages the execution of the parallel CPSO algorithm inheriting from CPSOBase
+ * @brief Manages the execution of the parallel CPSO algorithm
  */
 class CPSOParallel : public CPSOBase {
 
 public:
 
   /**
-   * @brief Constructs a CPSOParallel optimizer with a uniform network topology for all sub-swarms
+   * @brief Constructs a CPSOParallel with an uniform topology
    */
   CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                NetworkType topology, int shuffle_freq = 50,
@@ -20,7 +20,7 @@ public:
                double coeff2 = 1.49618);
 
   /**
-   * @brief Constructs a CPSOParallel optimizer with specific network topologies for each sub-swarm
+   * @brief Constructs a CPSOParallel optimizer with heterogeneous topologies
    */
   CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                const std::vector<NetworkType> &topologies,

@@ -10,7 +10,7 @@
 #include <mpi.h>
 #endif
 
-// Constructor of the CPSOParallel class with uniform network topology for all sub-swarms.
+// Constructor for uniform topology
 CPSOParallel::CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                            NetworkType topology, int shuffle_freq,
                            int stagnation_patience, double w_start,
@@ -18,7 +18,8 @@ CPSOParallel::CPSOParallel(int k_subswarms, int num_particles_per_swarm,
     : CPSOBase(k_subswarms, num_particles_per_swarm, topology, 
                shuffle_freq, stagnation_patience, w_start, w_end, c1, c2) {}
 
-// Constructor of the CPSOParallel class with specific network topologies for each sub-swarm.
+
+// Constructor for different types of topologies
 CPSOParallel::CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                            const std::vector<NetworkType> &topologies,
                            int shuffle_freq, int stagnation_patience,
@@ -39,7 +40,7 @@ OutputObject CPSOParallel::run_optimization_loop(const TestFunction &f, Stopping
 
   int total_dim = f.dim;
   
-  // Distribute the sub-swarms evenly across the available MPI processes
+  // Distribute the sub-swarms across the available MPI processes
   std::vector<int> swarms_per_proc(mpi_size, num_subswarms / mpi_size);
   for (int i = 0; i < num_subswarms % mpi_size; ++i) {
     swarms_per_proc[i]++;
@@ -52,10 +53,10 @@ OutputObject CPSOParallel::run_optimization_loop(const TestFunction &f, Stopping
   }
   int local_end_idx = local_start_idx + swarms_per_proc[mpi_rank];
 
-  // Broadcast the initial vector and its fitness to all processes
   std::vector<double> init_vec = context.get_full_vector();
   double init_fitness = context.get_best_fitness();
   
+  // Rank 0 initializes the vector and fitness
   if (mpi_rank == 0) {
       std::uniform_real_distribution<double> dist_pos(f.get_domain().first, f.get_domain().second);
       for (int i = 0; i < total_dim; ++i)
@@ -63,6 +64,7 @@ OutputObject CPSOParallel::run_optimization_loop(const TestFunction &f, Stopping
       init_fitness = f.value(init_vec);
   }
 
+  // Broadcast the initial vector and its fitness to all processes
 #ifdef MPI_VERSION
   MPI_Bcast(init_vec.data(), total_dim, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast(&init_fitness, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -96,28 +98,34 @@ OutputObject CPSOParallel::run_optimization_loop(const TestFunction &f, Stopping
     // Periodically shuffle the dimensions among the sub-swarms
     if (iter > 1 && iter % shuffle_freq == 0) {
 #ifdef MPI_VERSION
-      // Sincronizza tutti i processi prima del rimescolamento per evitare deadlock o desincronizzazioni
+      // Synchronize all processes before shuffling
       MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
+      // Rank 0 creates a permutation of the dimensions
       std::vector<int> permutation(total_dim);
       if (mpi_rank == 0) {
         std::iota(permutation.begin(), permutation.end(), 0);
         std::shuffle(permutation.begin(), permutation.end(), global_gen);
       }
 #ifdef MPI_VERSION
+      // Send the permutation to all the MPI ranks
       MPI_Bcast(permutation.data(), total_dim, MPI_INT, 0, MPI_COMM_WORLD);
 #endif
 
+      // Update the active dimensions for each sub-swarm
       int current_dim_start = 0;
       for (int i = 0; i < num_subswarms; ++i) {
         int swarm_dims = dims_per_swarm + (i < remainder ? 1 : 0);
         std::vector<int> new_active_dims(swarm_dims);
+
+        // Fill the new active dimensions
         for (int d = 0; d < swarm_dims; ++d) {
           new_active_dims[d] = permutation[current_dim_start + d];
         }
         current_dim_start += swarm_dims;
 
+        // Update the active dimensions for the current sub-swarm
         swarms[i].update_active_dims(new_active_dims, context, gens[i]);
       }
     }
@@ -130,7 +138,7 @@ OutputObject CPSOParallel::run_optimization_loop(const TestFunction &f, Stopping
     if (progress_ratio > 1.0)
       progress_ratio = 1.0;
 
-    // Calculate the current inertia weight (linear decay)
+    // Calculate the current inertia weight
     double current_w = w_max - (w_max - w_min) * progress_ratio;
 
     // Update velocities, positions, and evaluate fitness for each local sub-swarm
@@ -209,11 +217,12 @@ OutputObject CPSOParallel::run_optimization_loop(const TestFunction &f, Stopping
     double current_normalized_error = f.error(current_gbest_pos);
     history.push_back(current_normalized_error);
 
-    // Usa la funzione astratta della classe base per la media della distanza
+    // Compute average distance between particles and global best position
     compute_avg_distance(iter, swarms, current_gbest_pos, last_avg_distance, local_start_idx, local_end_idx, true);
 
     bool local_stop = stop_manager.should_stop(current_best_fitness, last_avg_distance);
 
+    // Synchronize the stop condition across all processes
 #ifdef MPI_VERSION
     int local_stop_int = local_stop ? 1 : 0;
     int global_stop_int = 0;
