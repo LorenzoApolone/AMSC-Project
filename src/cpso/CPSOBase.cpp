@@ -115,9 +115,6 @@ OutputObject CPSOBase::optimize(const TestFunction &f, StoppingCriteriaManager &
     case NetworkType::RANDOM:
       create_random_network(particles_per_swarm, 0.5, sub_adj_list);
       break;
-    case NetworkType::FULLY_CONNECTED:
-      create_fully_connected_network(particles_per_swarm, sub_adj_list);
-      break;
     }
 
     swarms.emplace_back(particles_per_swarm, active_dims, bounds.first, bounds.second, sub_adj_list);
