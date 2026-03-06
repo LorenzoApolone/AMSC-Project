@@ -57,6 +57,21 @@ $(EXEC_PARALLEL): main_parallel.o pso_mpi.o functions.o interfaces.o dpso/dpso.o
 main_dpso: dpso/main_dpso.o dpso/dpso.o functions.o interfaces.o
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
 
+main_dpso_serial: dpso/main_dpso_serial.o dpso/dpso_serial.o functions_serial.o interfaces_serial.o
+	g++ $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
+
+dpso/main_dpso_serial.o: dpso/main_dpso_serial.cpp
+	g++ $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+dpso/dpso_serial.o: dpso/dpso_serial.cpp
+	g++ $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+interfaces_serial.o: interfaces.cpp
+	g++ $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+functions_serial.o: functions.cpp
+	g++ $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
@@ -65,10 +80,10 @@ dpso/%.o: dpso/%.cpp
 
 clean:
 	$(RM) $(DEPEND)
-	$(RM) *.o
+	$(RM) *.o dpso/*.o
 
 distclean: clean
-	$(RM) $(EXEC_SERIAL) $(EXEC_PARALLEL) $(EXEC_DPSO)
+	$(RM) $(EXEC_SERIAL) $(EXEC_PARALLEL) $(EXEC_DPSO) main_dpso_serial
 	$(RM) *.csv *.out *.bak *~ run_parameters.json
 
 $(DEPEND): $(wildcard *.cpp)
