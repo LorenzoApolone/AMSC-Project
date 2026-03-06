@@ -9,6 +9,11 @@
 #include <vector>
 #include <iostream>
 
+/**
+ * @brief Parallel PSO with neighborhood topology and MPI communication.
+ *
+ */
+
 // Struct containing a serie of parameter needed for the PSO
 struct PSOHyperparameters {
   static constexpr double C1 = 1.49618;
@@ -20,8 +25,6 @@ struct PSOHyperparameters {
   static constexpr double V_INIT_FACTOR = 0.1;
   
 };
-
-
 
 OutputObject pso_topology(const TestFunction &f,
                        int d,
