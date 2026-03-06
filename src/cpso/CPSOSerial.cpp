@@ -1,7 +1,12 @@
+/**
+ * @file CPSOSerial.cpp
+ * @brief Implementation of the CPSOSerial class methods
+ */
 #include "CPSOSerial.hpp"
 #include <algorithm>
 #include <numeric>
 
+// Constructor of the CPSOSerial class with uniform network topology for all sub-swarms
 CPSOSerial::CPSOSerial(int k_subswarms, int num_particles_per_swarm,
                        NetworkType topology, int shuffle_freq,
                        int stagnation_patience, double w_start, double w_end,
@@ -9,12 +14,14 @@ CPSOSerial::CPSOSerial(int k_subswarms, int num_particles_per_swarm,
     : CPSOBase(k_subswarms, num_particles_per_swarm, topology, shuffle_freq,
                stagnation_patience, w_start, w_end, c1, c2) {}
 
+// Constructor of the CPSOSerial class with specific network topologies for each sub-swarm
 CPSOSerial::CPSOSerial(int k_subswarms, int num_particles_per_swarm,
                        const std::vector<NetworkType> &topologies,
                        int shuffle_freq, int stagnation_patience, double w_start, double w_end,
                        double c1, double c2)
     : CPSOBase(k_subswarms, num_particles_per_swarm, topologies, shuffle_freq,
                stagnation_patience, w_start, w_end, c1, c2) {}
+
 
 OutputObject CPSOSerial::run_optimization_loop(
     const TestFunction &f, StoppingCriteriaManager &stop_manager,
@@ -33,7 +40,7 @@ OutputObject CPSOSerial::run_optimization_loop(
   int stagnation_counter = 0;
   double previous_best_fitness = context.get_best_fitness();
 
-  // Initialize the sub-swarms mathematically evaluating the context
+  // Initialize the sub-swarms within the particles
   for (int i = 0; i < num_subswarms; ++i) {
     swarms[i].initialize(gens[i], context, f);
     context.update(swarms[i].get_gbest_pos(), swarms[i].get_active_dims(),
@@ -44,7 +51,6 @@ OutputObject CPSOSerial::run_optimization_loop(
     iter++;
     stop_manager.increment_iterations();
 
-    // MISSING BUG FIX 1: Add Stagnation & Inject Velocities (from CPSOBase traits)
     // Periodically shuffle the dimensions among the sub-swarms
     if (iter > 1 && iter % shuffle_freq == 0) {
       std::vector<int> permutation(total_dim);
@@ -70,12 +76,14 @@ OutputObject CPSOSerial::run_optimization_loop(
     if (progress_ratio > 1.0)
       progress_ratio = 1.0;
 
+    // Update the inertia weight
     double current_w = w_max - (w_max - w_min) * progress_ratio;
     for (int i = 0; i < num_subswarms; ++i) {
       swarms[i].update_velocities_and_positions(current_w, c1, c2, gens[i]);
       swarms[i].evaluate_and_update(context, f);
     }
 
+    // Update the global best
     for (auto &swarm : swarms) {
       if (swarm.get_gbest_val() < context.get_best_fitness()) {
         context.update(swarm.get_gbest_pos(), swarm.get_active_dims(),
@@ -83,17 +91,19 @@ OutputObject CPSOSerial::run_optimization_loop(
       }
     }
 
+    // Update the context vector
     double new_true_fitness = f.value(context.get_full_vector());
     context.set_full_vector(
         context.get_full_vector(),
         std::min(context.get_best_fitness(), new_true_fitness));
 
+    // Update the history
     double current_best_fitness = context.get_best_fitness();
     const std::vector<double> &current_gbest_pos = context.get_full_vector();
     double current_normalized_error = f.error(current_gbest_pos);
     history.push_back(current_normalized_error);
 
-    // MISSING BUG FIX 2: Added Stagnation loop
+    // Update stagnation counter
     if (previous_best_fitness - current_best_fitness < 1e-6) {
       stagnation_counter++;
     } else {
@@ -101,6 +111,7 @@ OutputObject CPSOSerial::run_optimization_loop(
       previous_best_fitness = current_best_fitness;
     }
 
+    // Inject velocities if stagnation is detected
     if (stagnation_counter >= stagnation_patience) {
       for (int i = 0; i < num_subswarms; ++i) {
         swarms[i].inject_velocities(gens[i]);
@@ -108,7 +119,7 @@ OutputObject CPSOSerial::run_optimization_loop(
       stagnation_counter = 0;
     }
 
-    // Evaluate the distance avoiding duplications using the CPSOBase template routine
+    // Evaluate the distance
     compute_avg_distance(iter, swarms, current_gbest_pos, last_avg_distance, 0, num_subswarms, false);
 
     if (stop_manager.should_stop(current_best_fitness, last_avg_distance)) {
@@ -116,7 +127,6 @@ OutputObject CPSOSerial::run_optimization_loop(
     }
   }
 
-  // CPSOBase optimize() driver handles Elapsed time tracking
   OutputObject out(f.get_name(), total_dim, particles_per_swarm * num_subswarms,
                    context.get_full_vector(), f.get_true_solution(),
                    context.get_best_fitness(), history, 1, 0.0,

@@ -1,3 +1,7 @@
+/**
+ * @file CPSOParallel.hpp
+ * @brief Defines the CPSOParallel class using an MPI parallelized architecture
+ */
 #pragma once
 
 #include "CPSOBase.hpp"
@@ -12,6 +16,16 @@ public:
 
   /**
    * @brief Constructs a CPSOParallel with an uniform topology
+   * 
+   * @param k_subswarms Number of sub-swarms the problem is divided into
+   * @param num_particles_per_swarm Number of particles residing in each sub-swarm
+   * @param topology The network topology uniformly applied to all sub-swarms
+   * @param shuffle_freq The iteration frequency at which dimensions are randomly re-assigned
+   * @param stagnation_patience Number of iterations without global improvement before velocities are injected
+   * @param w_start Initial inertia weight maximum value for the particles
+   * @param w_end Final inertia weight minimum value for the particles
+   * @param coeff1 Cognitive learning factor
+   * @param coeff2 Social learning factor
    */
   CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                NetworkType topology, int shuffle_freq = 50,
@@ -21,6 +35,16 @@ public:
 
   /**
    * @brief Constructs a CPSOParallel optimizer with heterogeneous topologies
+   * 
+   * @param k_subswarms Number of sub-swarms the problem is divided into
+   * @param num_particles_per_swarm Number of particles residing in each sub-swarm
+   * @param topologies Vector containing the network topologies for each sub-swarm
+   * @param shuffle_freq The iteration frequency at which dimensions are randomly re-assigned
+   * @param stagnation_patience Number of iterations without global improvement before velocities are injected
+   * @param w_start Initial inertia weight maximum value for the particles
+   * @param w_end Final inertia weight minimum value for the particles
+   * @param coeff1 Cognitive learning factor
+   * @param coeff2 Social learning factor
    */
   CPSOParallel(int k_subswarms, int num_particles_per_swarm,
                const std::vector<NetworkType> &topologies,
