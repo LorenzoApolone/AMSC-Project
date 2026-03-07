@@ -390,7 +390,79 @@ static ExperimentStats run_classic_experiment(
 }
 
 /**
- * @brief Main entry point of the benchmark program.
+ * @brief Runs the serial topology-based PSO experiment on all functions.
+ *
+ *
+ * @param[in] mode Topology type to use.
+ * @param[in] dim Dimension of the optimization problem.
+ * @param[in] n_points Number of particles in the swarm.
+ * @param[in] max_iter Maximum number of iterations.
+ * @param[in] delta_x Acceptance tolerance used to determine convergence.
+ * @param[in] iterations_stagnation Maximum number of stagnation iterations.
+ * @param[in] stagnation_tol Tolerance used for stagnation-based stopping.
+ * @param[in] diversity_tol Tolerance used for diversity-based stopping.
+ * @param[in] p_rewiring Rewiring probability for small-world topology.
+ * @param[in] p_random Edge probability for random topology.
+ * @param[in] m Number of edges added by each new node in the scale-free topology.
+ * @param[in] function_names List of benchmark-function names.
+ * @param[in] factory Factory used to instantiate benchmark functions.
+ *
+ * @return Statistics collected over the serial topology-based experiment.
+ */
+static ExperimentStats run_serial_topology_experiment(
+    TopologyMode mode,
+    unsigned int dim,
+    unsigned int n_points,
+    unsigned int max_iter,
+    double delta_x,
+    int iterations_stagnation,
+    double stagnation_tol,
+    double diversity_tol,
+    double p_rewiring,
+    double p_random,
+    int m,
+    const std::vector<std::string>& function_names,
+    const FunctionFactory& factory)
+{
+    double t_start = MPI_Wtime();
+
+    ExperimentStats stats;
+
+    for (const auto& name : function_names) {
+        auto function = factory.at(name)(dim);
+        std::vector<std::vector<int>> adjacency_list;
+
+        switch (mode) {
+            case TopologyMode::SMALL_WORLD:
+                create_network(static_cast<int>(n_points), p_rewiring, adjacency_list);
+                break;
+            case TopologyMode::SCALE_FREE:
+                create_scale_free_network(static_cast<int>(n_points), m, adjacency_list);
+                break;
+            case TopologyMode::RANDOM:
+                create_random_network(static_cast<int>(n_points), p_random, adjacency_list);
+                break;
+        }
+
+        StoppingCriteriaManager stop(max_iter,
+                                     iterations_stagnation,
+                                     stagnation_tol,
+                                     diversity_tol);
+
+        OutputObject result = pso_serial_topology(*function,
+                                                  dim,
+                                                  stop,
+                                                  n_points,
+                                                  adjacency_list);
+
+        update_experiment_stats(name, result, *function, delta_x, max_iter, stats);
+    }
+
+    stats.total_time = MPI_Wtime() - t_start;
+    return stats;
+}
+/**
+ * @brief Main of the benchmark program.
  *
  * The program expects the following command-line arguments:
  * @param argc Number of command-line arguments.
@@ -496,6 +568,60 @@ int main(int argc, char **argv)
       factory
   );
 
+  ExperimentStats serial_small_stats;
+  ExperimentStats serial_scale_stats;
+  ExperimentStats serial_random_stats;
+
+  if (rank == 0) {
+    serial_small_stats = run_serial_topology_experiment(
+        TopologyMode::SMALL_WORLD,
+        dim,
+        n_points,
+        max_iter,
+        delta_x,
+        iterations_stagnation,
+        stagnation_tol,
+        diversity_tol,
+        p_rewiring,
+        p_random,
+        m,
+        function_names,
+        factory
+    );
+
+    serial_scale_stats = run_serial_topology_experiment(
+        TopologyMode::SCALE_FREE,
+        dim,
+        n_points,
+        max_iter,
+        delta_x,
+        iterations_stagnation,
+        stagnation_tol,
+        diversity_tol,
+        p_rewiring,
+        p_random,
+        m,
+        function_names,
+        factory
+    );
+
+    serial_random_stats = run_serial_topology_experiment(
+        TopologyMode::RANDOM,
+        dim,
+        n_points,
+        max_iter,
+        delta_x,
+        iterations_stagnation,
+        stagnation_tol,
+        diversity_tol,
+        p_rewiring,
+        p_random,
+        m,
+        function_names,
+        factory
+    );
+  }
+
   if (rank == 0) {
 
     std::array<std::vector<std::string>, 5> all = {
@@ -510,6 +636,9 @@ int main(int argc, char **argv)
     print_experiment_stats("Scale free", scale_stats);
     print_experiment_stats("Random", random_stats);
     print_experiment_stats("Classic", classic_stats);
+    print_experiment_stats("Serial small world", serial_small_stats);
+    print_experiment_stats("Serial scale free", serial_scale_stats);
+    print_experiment_stats("Serial random", serial_random_stats);
 
     int n = not_converged(all);
 
@@ -555,7 +684,15 @@ int main(int argc, char **argv)
 
     std::cout << "Total time random network timer version: " << random_stats.total_time << " s\n";
     std::cout << "Convergence rate random network: " << random_stats.number_of_converged << "/" << number_of_functions << std::endl << std::endl;
-      
+    
+    std::cout << "Total time serial small-world topology: " << serial_small_stats.total_time << " s\n";
+    std::cout << "Convergence rate serial small-world topology: " << serial_small_stats.number_of_converged << "/" << number_of_functions << std::endl;
+
+    std::cout << "Total time serial scale-free topology: " << serial_scale_stats.total_time << " s\n";
+    std::cout << "Convergence rate serial scale-free topology: " << serial_scale_stats.number_of_converged << "/" << number_of_functions << std::endl;
+
+    std::cout << "Total time serial random topology: " << serial_random_stats.total_time << " s\n";
+    std::cout << "Convergence rate serial random topology: " << serial_random_stats.number_of_converged << "/" << number_of_functions << std::endl;
 
 }
   MPI_Finalize();
