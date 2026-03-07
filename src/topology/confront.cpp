@@ -5,6 +5,7 @@
 #include "confront.hpp"
 #include <array>
 #include <algorithm>
+#include <unordered_set>
 
 
 /**
@@ -20,17 +21,21 @@ void uniqueness(const std::array<std::vector<std::string>, 5>& vectors){
     const auto& random = vectors[static_cast<std::size_t>(Topology::Random)];
     const auto& classic = vectors[static_cast<std::size_t>(Topology::Classic)];
     const auto& functions_names = vectors[static_cast<std::size_t>(Topology::FunctionsNames)];
-    
+
+    std::unordered_set<std::string> small_set(small.begin(), small.end());
+    std::unordered_set<std::string> scale_set(scale.begin(), scale.end());
+    std::unordered_set<std::string> random_set(random.begin(), random.end());
+    std::unordered_set<std::string> classic_set(classic.begin(), classic.end());
 
     bool is_found_small = false;
     bool is_found_scale = false;
     bool is_found_random = false;
     bool is_found_classic = false;
-    // 'find' search an element in a vector, if the element is found than != to vector.end() otherwise it is not found 
+
     for (const auto& name : small) {
-        if (std::find(scale.begin(), scale.end(), name) == scale.end() &&
-            std::find(random.begin(), random.end(), name) == random.end() &&
-            std::find(classic.begin(), classic.end(), name) == classic.end()) {
+        if (scale_set.find(name) == scale_set.end() &&
+            random_set.find(name) == random_set.end() &&
+            classic_set.find(name) == classic_set.end()) {
             std::cout << "Function " << name << " converged only in small-world topology.\n";
             is_found_small = true;
         }
@@ -40,9 +45,9 @@ void uniqueness(const std::array<std::vector<std::string>, 5>& vectors){
     }   
 
     for (const auto& name : scale) {
-        if (std::find(small.begin(), small.end(), name) == small.end() &&
-            std::find(random.begin(), random.end(), name) == random.end() &&
-            std::find(classic.begin(), classic.end(), name) == classic.end()) {
+        if (small_set.find(name) == small_set.end() &&
+            random_set.find(name) == random_set.end() &&
+            classic_set.find(name) == classic_set.end()) {
             std::cout << "Function " << name << " converged only in scale-free topology.\n";
             is_found_scale = true;
         }
@@ -51,9 +56,9 @@ void uniqueness(const std::array<std::vector<std::string>, 5>& vectors){
         std::cout << "No function converged only in scale-free topology.\n";
     } 
     for (const auto& name : random) {
-        if (std::find(small.begin(), small.end(), name) == small.end() &&
-            std::find(scale.begin(), scale.end(), name) == scale.end() &&
-            std::find(classic.begin(), classic.end(), name) == classic.end()) {
+        if (small_set.find(name) == small_set.end() &&
+            scale_set.find(name) == scale_set.end() &&
+            classic_set.find(name) == classic_set.end()) {
             std::cout << "Function " << name << " converged only in random topology.\n";
             is_found_random = true;
         }
@@ -63,9 +68,9 @@ void uniqueness(const std::array<std::vector<std::string>, 5>& vectors){
     }
 
     for (const auto& name : classic) {
-        if (std::find(small.begin(), small.end(), name) == small.end() &&
-            std::find(scale.begin(), scale.end(), name) == scale.end() &&
-            std::find(random.begin(), random.end(), name) == random.end()) {
+        if (small_set.find(name) == small_set.end() &&
+            scale_set.find(name) == scale_set.end() &&
+            random_set.find(name) == random_set.end()) {
             std::cout << "Function " << name << " converged only in classic topology.\n";
             is_found_classic = true;
         }
@@ -74,14 +79,6 @@ void uniqueness(const std::array<std::vector<std::string>, 5>& vectors){
         std::cout << "No function converged only in classic topology.\n";
     }
 
-    for (const auto& name : functions_names) {
-        if (std::find(small.begin(), small.end(), name) == small.end() &&
-            std::find(scale.begin(), scale.end(), name) == scale.end() &&
-            std::find(random.begin(), random.end(), name) == random.end() &&
-            std::find(classic.begin(), classic.end(), name) == classic.end()) {
-            std::cout << "Function " << name << " did not converge in any topology.\n";
-        }
-    }
 }
 
 int not_converged(const std::array<std::vector<std::string>, 5>& vectors){
@@ -92,12 +89,17 @@ int not_converged(const std::array<std::vector<std::string>, 5>& vectors){
     const auto& classic = vectors[static_cast<std::size_t>(Topology::Classic)];
     const auto& functions_names = vectors[static_cast<std::size_t>(Topology::FunctionsNames)];
 
+    std::unordered_set<std::string> small_set(small.begin(), small.end());
+    std::unordered_set<std::string> scale_set(scale.begin(), scale.end());
+    std::unordered_set<std::string> random_set(random.begin(), random.end());
+    std::unordered_set<std::string> classic_set(classic.begin(), classic.end());
+
     int count = 0;
     for (const auto& name : functions_names) {
-        if (std::find(small.begin(), small.end(), name) == small.end() &&
-            std::find(scale.begin(), scale.end(), name) == scale.end() &&
-            std::find(random.begin(), random.end(), name) == random.end() &&
-            std::find(classic.begin(), classic.end(), name) == classic.end()) {
+        if (small_set.find(name) == small_set.end() &&
+            scale_set.find(name) == scale_set.end() &&
+            random_set.find(name) == random_set.end() &&
+            classic_set.find(name) == classic_set.end()) {
             std::cout << "Function " << name << " did not converge in any topology.\n";
             count++;
         }
