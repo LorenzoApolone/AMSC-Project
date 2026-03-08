@@ -26,7 +26,7 @@
  * - C++17 (or later) for <memory>, std::make_unique, etc.
  */
 
-#include "functions.cpp"
+#include "functions.hpp"
 #include "interfaces.hpp"
 #include "methods.hpp"
 #include "interfaces/StoppingCriteriaManager.hpp"

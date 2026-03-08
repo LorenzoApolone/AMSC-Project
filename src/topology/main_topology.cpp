@@ -27,7 +27,7 @@
 #include "confront.hpp"
 #include "pso_topology.hpp"
 #include "../methods.hpp"
-#include "../functions.cpp" 
+#include "../functions.hpp" 
 #include "../interfaces/StoppingCriteriaManager.hpp"
 #include <mpi.h>
 #include <array>

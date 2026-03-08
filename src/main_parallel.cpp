@@ -1,4 +1,4 @@
-#include "functions.cpp"
+#include "functions.hpp"
 #include "interfaces/StoppingCriteriaManager.hpp"
 #include "methods.hpp"
 #include <array>
