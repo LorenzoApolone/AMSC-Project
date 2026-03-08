@@ -50,3 +50,5 @@ test_cpso_parallel
 *:Zone.Identifier*.DS_Store
 .DS_Store
 .DS_Store
+src/main_dpso
+src/main_dpso_serial
