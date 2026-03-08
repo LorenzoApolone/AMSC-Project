@@ -131,7 +131,7 @@ int main(int argc, char **argv)
   ExperimentStats serial_small_stats;
   ExperimentStats serial_scale_stats;
   ExperimentStats serial_random_stats;
-
+/*
   if (rank == 0) {
     serial_small_stats = run_serial_topology_experiment(
         TopologyMode::SMALL_WORLD,
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
         factory
     );
   }
-
+*/
   if (rank == 0) {
 
     std::array<std::vector<std::string>, 5> all = {
@@ -196,10 +196,11 @@ int main(int argc, char **argv)
     print_experiment_stats("Scale free", scale_stats);
     print_experiment_stats("Random", random_stats);
     print_experiment_stats("Classic", classic_stats);
+    /*
     print_experiment_stats("Serial small world", serial_small_stats);
     print_experiment_stats("Serial scale free", serial_scale_stats);
     print_experiment_stats("Serial random", serial_random_stats);
-
+    */
     int n = not_converged(all);
 
   //uniform output format for benchmarking
@@ -244,7 +245,7 @@ int main(int argc, char **argv)
 
     std::cout << "Total time random network timer version: " << random_stats.t_allgatherv << "/"  << random_stats.total_time << " s\n";
     std::cout << "Convergence rate random network: " << random_stats.number_of_converged << "/" << number_of_functions << std::endl << std::endl;
-    
+    /*
     std::cout << "Total time serial small-world topology: " << serial_small_stats.total_time << " s\n";
     std::cout << "Convergence rate serial small-world topology: " << serial_small_stats.number_of_converged << "/" << number_of_functions << std::endl;
 
@@ -253,7 +254,7 @@ int main(int argc, char **argv)
 
     std::cout << "Total time serial random topology: " << serial_random_stats.total_time << " s\n";
     std::cout << "Convergence rate serial random topology: " << serial_random_stats.number_of_converged << "/" << number_of_functions << std::endl;
-
+    */
 }
   MPI_Finalize();
   return 0;
