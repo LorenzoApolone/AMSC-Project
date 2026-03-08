@@ -56,14 +56,13 @@ OutputObject pso_topology(const TestFunction &f,
   for (int r = 1; r < size; ++r)
     displs[r] = displs[r - 1] + counts[r - 1];
 
-  // Data Structures
-  std::vector<std::vector<double>> pos(local_n, std::vector<double>(d));
-  std::vector<std::vector<double>> vel(local_n, std::vector<double>(d));
-  std::vector<std::vector<double>> pbest_pos = pos;
+  
+  std::vector<double> pos(local_n * d);
+  std::vector<double> vel(local_n * d);
+  std::vector<double> pbest_pos = pos;
   std::vector<double> pbest_val(local_n, std::numeric_limits<double>::max());
 
-  // Global best (even if lbest logic is used on this code, the global best need to be 
-  // monitored for the stopping criterion
+  // Global best used for the stopping criterion
   std::vector<double> gbest_pos(d);
   double gbest_val = std::numeric_limits<double>::max();
 
@@ -82,18 +81,21 @@ OutputObject pso_topology(const TestFunction &f,
   std::uniform_real_distribution<> vel_dis(-1.0, 1.0);
   double range = UB - LB;
 
-  // Distribute particels randomly in the domain, inizialize velocities and pbest
+  // Distribute particles randomly in the domain, initialize velocities and pbest
   for (int i = 0; i < local_n; ++i) {
+    std::vector<double> current_pos(d);
     for (int j = 0; j < d; ++j) {
-      pos[i][j] = dis(gen);
-      vel[i][j] = vel_dis(gen) * range * PSOHyperparameters::V_INIT_FACTOR;
-      pbest_pos[i][j] = pos[i][j];
+      int idx = i * d + j;
+      pos[idx] = dis(gen);
+      vel[idx] = vel_dis(gen) * range * PSOHyperparameters::V_INIT_FACTOR;
+      pbest_pos[idx] = pos[idx];
+      current_pos[j] = pos[idx];
     }
-    double fitness = f.value(pos[i]);
+    double fitness = f.value(current_pos);
     pbest_val[i] = fitness;
     if (fitness < gbest_val) {
       gbest_val = fitness;
-      gbest_pos = pos[i];
+      gbest_pos = current_pos;
     }
   }
 
@@ -113,7 +115,6 @@ OutputObject pso_topology(const TestFunction &f,
   // Buffers for Allgatherv of pbests (needed for lbest) ---
   std::vector<double> all_pbest_val(n_points);
   std::vector<double> all_pbest_pos(n_points * d);
-  std::vector<double> local_pbest_pos_flat(local_n * d);
   std::vector<int> counts_d(size), displs_d(size);
 
   for (int r = 0; r < size; ++r) {
@@ -146,16 +147,13 @@ OutputObject pso_topology(const TestFunction &f,
          (double)max_iter_limit);
 
     // 1) Update particles locally (pos/vel) using the previous neighborhood knowledge
-    for (int i = 0; i < local_n; ++i)
-      for (int j = 0; j < d; ++j)
-        local_pbest_pos_flat[i * d + j] = pbest_pos[i][j];
-    
+
     double t_start = MPI_Wtime();
     MPI_Allgatherv(pbest_val.data(), local_n, MPI_DOUBLE,
                    all_pbest_val.data(), counts.data(), displs.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
     
-    MPI_Allgatherv(local_pbest_pos_flat.data(), local_n * d, MPI_DOUBLE,
+    MPI_Allgatherv(pbest_pos.data(), local_n * d, MPI_DOUBLE,
                    all_pbest_pos.data(), counts_d.data(), displs_d.data(), MPI_DOUBLE,
                    MPI_COMM_WORLD);
     double t_end = MPI_Wtime();
@@ -193,25 +191,32 @@ OutputObject pso_topology(const TestFunction &f,
         double r1 = dis_01(gen);
         double r2 = dis_01(gen);
         double lbest_j = all_pbest_pos[best_gid * d + j];
+        int idx = i * d + j;
 
-        vel[i][j] =
-            current_w * vel[i][j] +
-            PSOHyperparameters::C1 * r1 * (pbest_pos[i][j] - pos[i][j]) +
-            PSOHyperparameters::C2 * r2 * (lbest_j - pos[i][j]);
+        vel[idx] =
+            current_w * vel[idx] +
+            PSOHyperparameters::C1 * r1 * (pbest_pos[idx] - pos[idx]) +
+            PSOHyperparameters::C2 * r2 * (lbest_j - pos[idx]);
 
-        pos[i][j] += vel[i][j];
+        pos[idx] += vel[idx];
 
         // clamp
-        if (pos[i][j] < LB) pos[i][j] = LB;
-        if (pos[i][j] > UB) pos[i][j] = UB;
+        if (pos[idx] < LB) pos[idx] = LB;
+        if (pos[idx] > UB) pos[idx] = UB;
       }
 
       // Evaluate and update pbest locally
-      double current_fit = f.value(pos[i]);
+      std::vector<double> current_pos(d);
+      for (int j = 0; j < d; ++j) {
+        current_pos[j] = pos[i * d + j];
+      }
+      double current_fit = f.value(current_pos);
 
       if (current_fit < pbest_val[i]) {
         pbest_val[i] = current_fit;
-        pbest_pos[i] = pos[i];
+        for (int j = 0; j < d; ++j) {
+          pbest_pos[i * d + j] = pos[i * d + j];
+        }
       }
     }
 
@@ -239,7 +244,9 @@ OutputObject pso_topology(const TestFunction &f,
     gbest_val = glob_data.val;
 
     if (rank == glob_data.rank && local_best_idx >= 0) {
-      gbest_pos = pbest_pos[local_best_idx];
+      for (int j = 0; j < d; ++j) {
+        gbest_pos[j] = pbest_pos[local_best_idx * d + j];
+      }
     }
 
     MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank, MPI_COMM_WORLD);
@@ -248,7 +255,7 @@ OutputObject pso_topology(const TestFunction &f,
     for (int i = 0; i < local_n; ++i) {
       double dist_sq = 0.0;
       for (int j = 0; j < d; ++j) {
-        double diff = pos[i][j] - gbest_pos[j];   
+        double diff = pos[i * d + j] - gbest_pos[j];   
         dist_sq += diff * diff;
       }
       local_sum_dist += std::sqrt(dist_sq);
