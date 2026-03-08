@@ -9,7 +9,7 @@
 #include <functional>
 #include <chrono>
 #include "dpso/methods_dpso.hpp"
-#include "functions.cpp"
+#include "functions.hpp"
 
 int main(int argc, char** argv) {
     if (argc < 4) {
