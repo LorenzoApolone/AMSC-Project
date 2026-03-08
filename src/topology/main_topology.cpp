@@ -676,13 +676,13 @@ int main(int argc, char **argv)
     std::cout << "Total time classic PSO: " << classic_stats.total_time << " s\n";
     std::cout << "Convergence rate classic PSO: " << classic_stats.number_of_converged << "/" << number_of_functions  << std::endl;
 
-    std::cout << "Total time small-world network timer version: "  << small_stats.total_time << " s\n";
+    std::cout << "Total time small-world network timer version: " << small_stats.t_allgatherv << "/"  << small_stats.total_time << " s\n";
     std::cout << "Convergence rate small-world network: " << small_stats.number_of_converged << "/" << number_of_functions << std::endl;
 
-    std::cout << "Total time scale-free network timer version: " << scale_stats.total_time <<  " s\n";
+    std::cout << "Total time scale-free network timer version: " << scale_stats.t_allgatherv << "/"  << scale_stats.total_time << " s\n";
     std::cout << "Convergence rate scale-free network: " << scale_stats.number_of_converged << "/" << number_of_functions << std::endl;
 
-    std::cout << "Total time random network timer version: " << random_stats.total_time << " s\n";
+    std::cout << "Total time random network timer version: " << random_stats.t_allgatherv << "/"  << random_stats.total_time << " s\n";
     std::cout << "Convergence rate random network: " << random_stats.number_of_converged << "/" << number_of_functions << std::endl << std::endl;
     
     std::cout << "Total time serial small-world topology: " << serial_small_stats.total_time << " s\n";
