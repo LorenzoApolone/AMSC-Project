@@ -55,7 +55,7 @@ OutputObject pso_serial_topology(const TestFunction &f,
   double range = UB - LB;
 
   // Random generators
-  std::mt19937 gen(rank + 42 + std::hash<std::string>{}(f.get_name()));
+  std::mt19937 gen( 42 + std::hash<std::string>{}(f.get_name()));
   std::uniform_real_distribution<> dis(LB, UB);
   std::uniform_real_distribution<> dis_01(0.0, 1.0);
   std::uniform_real_distribution<> vel_dis(-1.0, 1.0);
