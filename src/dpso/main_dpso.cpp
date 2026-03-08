@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <functional>
 #include "dpso/methods_dpso.hpp"
-#include "functions.cpp"
+#include "functions.hpp"
 
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
