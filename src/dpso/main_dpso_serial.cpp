@@ -10,9 +10,7 @@
 #include <chrono>
 #include "dpso/methods_dpso.hpp"
 #include "functions.cpp"
-mpirun -np 4 ./main_dpso 50 500 5000
-./main_dpso_serial 50 500 5000mpirun -np 4 ./main_dpso 50 500 5000
-./main_dpso_serial 50 500 5000
+
 int main(int argc, char** argv) {
     if (argc < 4) {
         std::cout << "Usage: " << argv[0] << " <dim> <total_particles> <max_iter> [convergence_tol]\n";
@@ -23,7 +21,6 @@ int main(int argc, char** argv) {
     unsigned int total_particles = std::atoi(argv[2]);
     int base_iter = std::atoi(argv[3]);
 
-    // Factory for all benchmark functions
     std::unordered_map<std::string, std::function<std::unique_ptr<TestFunction>(unsigned int)>> factory;
     factory["Sphere"] = [](unsigned int dim){ return std::make_unique<Sphere>(dim); };
     factory["Ellipsoid"] = [](unsigned int dim){ return std::make_unique<Ellipsoid>(dim); };
