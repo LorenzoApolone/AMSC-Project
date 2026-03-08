@@ -48,16 +48,16 @@ serial: $(EXEC_SERIAL)
 
 parallel: $(EXEC_PARALLEL)
 
-$(EXEC_SERIAL): main_serial.o pso_serial.o functions.o interfaces.o dpso/dpso.o
+$(EXEC_SERIAL): main_serial.o pso_serial.o interfaces.o dpso/dpso.o
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
 
-$(EXEC_PARALLEL): main_parallel.o pso_mpi.o functions.o interfaces.o dpso/dpso.o
+$(EXEC_PARALLEL): main_parallel.o pso_mpi.o interfaces.o dpso/dpso.o
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
 
-main_dpso: dpso/main_dpso.o dpso/dpso.o functions.o interfaces.o
+main_dpso: dpso/main_dpso.o dpso/dpso.o interfaces.o
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
 
-main_dpso_serial: dpso/main_dpso_serial.o dpso/dpso_serial.o functions_serial.o interfaces_serial.o
+main_dpso_serial: dpso/main_dpso_serial.o dpso/dpso_serial.o interfaces_serial.o
 	g++ $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
 
 dpso/main_dpso_serial.o: dpso/main_dpso_serial.cpp
@@ -67,9 +67,6 @@ dpso/dpso_serial.o: dpso/dpso_serial.cpp
 	g++ $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 interfaces_serial.o: interfaces.cpp
-	g++ $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-functions_serial.o: functions.cpp
 	g++ $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.o: %.cpp

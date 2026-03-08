@@ -22,9 +22,31 @@
 #include "interfaces.hpp"
 #include "interfaces/StoppingCriteriaManager.hpp"
 
+/**
+ * @brief Generates a random double within [min, max) using a fixed seed.
+ * 
+ * @param min Minimum bound.
+ * @param max Maximum bound.
+ * @return A random double.
+ */
 static double random_double_serial(double min, double max) {
     static std::mt19937 gen(12345);
     std::uniform_real_distribution<> dis(min, max);
+    return dis(gen);
+}
+
+/**
+ * @brief Generates a random integer within [min, max] using a fixed seed.
+ * 
+ * Avoids precision issues resulting from casting double variables.
+ * 
+ * @param min Minimum integer (inclusive).
+ * @param max Maximum integer (inclusive).
+ * @return A random integer.
+ */
+static int random_int_serial(int min, int max) {
+    static std::mt19937 gen(54321);
+    std::uniform_int_distribution<> dis(min, max);
     return dis(gen);
 }
 
@@ -64,15 +86,16 @@ static void apply_harmony_search_serial(std::vector<Particle>& swarm,
     double PAR = PAR_min + ((PAR_max - PAR_min) / max_iter) * current_iter;
 
     std::vector<double> new_harmony(dim);
+    double iter_ratio = (double)current_iter / max_iter;
+
     for (int d = 0; d < dim; ++d) {
         double bw_max = 0.05 * (upper_bound[d] - lower_bound[d]);
         double bw_min = 0.0001;
-        double bw = bw_max * std::exp((std::log(bw_min / bw_max) / max_iter) * current_iter);
+        // Optimization: minimize log calls by precomputing operands
+        double bw = bw_max * std::exp(std::log(bw_min / bw_max) * iter_ratio);
 
         if (random_double_serial(0.0, 1.0) < HMCR) {
-            int idx = start_idx + (int)random_double_serial(0, sub_swarm_size - 0.001);
-            if (idx < start_idx) idx = start_idx;
-            if (idx >= end_idx)  idx = end_idx - 1;
+            int idx = start_idx + random_int_serial(0, sub_swarm_size - 1);
             new_harmony[d] = swarm[idx].best_position[d];
             if (random_double_serial(0.0, 1.0) < PAR)
                 new_harmony[d] += random_double_serial(-1.0, 1.0) * bw;
@@ -95,8 +118,25 @@ static void apply_harmony_search_serial(std::vector<Particle>& swarm,
     }
 }
 
-// One lbest PSO + HS iteration on a sub-swarm [start, end).
-// Used for both complete sub-swarms and the possible remainder group.
+/**
+ * @brief Executes one local best (lbest) PSO + HS iteration on a sub-swarm.
+ * 
+ * Used for both complete sub-swarms and the possible remainder group.
+ * 
+ * @param swarm Reference to the entire swarm.
+ * @param start Start index of the sub-swarm.
+ * @param end End index of the sub-swarm (exclusive).
+ * @param dim Number of dimensions of the search space.
+ * @param lb Vector of lower bounds.
+ * @param ub Vector of upper bounds.
+ * @param v_max Vector of maximum velocities.
+ * @param w Inertia weight.
+ * @param c1 Cognitive coefficient.
+ * @param c2 Social coefficient.
+ * @param f The test function to optimize.
+ * @param iter Current iteration number.
+ * @param max_iter Maximum number of iterations.
+ */
 static void process_sub_swarm_serial(std::vector<Particle>& swarm,
                                      int start, int end,
                                      unsigned int dim,
@@ -119,7 +159,6 @@ static void process_sub_swarm_serial(std::vector<Particle>& swarm,
 
     for (int i = start; i < end; ++i) {
         Particle& p = swarm[i];
-        bool in_bounds = true;
         for (unsigned int d = 0; d < dim; ++d) {
             double r1 = random_double_serial(0.0, 1.0);
             double r2 = random_double_serial(0.0, 1.0);
@@ -127,16 +166,23 @@ static void process_sub_swarm_serial(std::vector<Particle>& swarm,
                           + c1 * r1 * (p.best_position[d] - p.position[d])
                           + c2 * r2 * (lbest_pos[d]        - p.position[d]);
             p.velocity[d] = std::max(-v_max[d], std::min(v_max[d], p.velocity[d]));
+            
             p.position[d] += p.velocity[d];
-            if (p.position[d] < lb[d] || p.position[d] > ub[d])
-                in_bounds = false;
-        }
-        if (in_bounds) {
-            p.current_value = f.value(p.position);
-            if (p.current_value < p.best_value) {
-                p.best_value    = p.current_value;
-                p.best_position = p.position;
+            
+            // Boundary treatment: Clamp to domain boundaries and zero velocity
+            if (p.position[d] < lb[d]) {
+                p.position[d] = lb[d];
+                p.velocity[d] = 0.0;
+            } else if (p.position[d] > ub[d]) {
+                p.position[d] = ub[d];
+                p.velocity[d] = 0.0;
             }
+        }
+        
+        p.current_value = f.value(p.position);
+        if (p.current_value < p.best_value) {
+            p.best_value    = p.current_value;
+            p.best_position = p.position;
         }
     }
     apply_harmony_search_serial(swarm, start, end, f, lb, ub, iter, max_iter);

@@ -22,14 +22,46 @@
 #include "interfaces.hpp"
 #include "interfaces/StoppingCriteriaManager.hpp"
 
-// Per-rank generator: different seed to ensure independent trajectories
-// across MPI processes during initialization and PSO updates.
+/**
+ * @brief Generates a random double within [min, max) using a rank-dependent seed.
+ * 
+ * Per-rank generator: different seed to ensure independent trajectories
+ * across MPI processes during initialization and PSO updates.
+ * 
+ * @param min Minimum bound.
+ * @param max Maximum bound.
+ * @param rank MPI rank of the process.
+ * @return A random double.
+ */
 double random_double(double min, double max, int rank) {
     static std::mt19937 gen(rank * 10000 + 12345);
     std::uniform_real_distribution<> dis(min, max);
     return dis(gen);
 }
 
+/**
+ * @brief Generates a random integer within [min, max] using a rank-dependent seed.
+ * 
+ * Avoids precision issues resulting from casting double variables.
+ * 
+ * @param min Minimum integer (inclusive).
+ * @param max Maximum integer (inclusive).
+ * @param rank MPI rank of the process.
+ * @return A random integer.
+ */
+int random_int(int min, int max, int rank) {
+    static std::mt19937 gen(rank * 10000 + 54321);
+    std::uniform_int_distribution<> dis(min, max);
+    return dis(gen);
+}
+
+/**
+ * @brief Computes the Euclidean distance between two vectors.
+ * 
+ * @param v1 First vector.
+ * @param v2 Second vector.
+ * @return The Euclidean distance.
+ */
 double euclidean_dist(const std::vector<double>& v1, const std::vector<double>& v2) {
     double sum = 0.0;
     for (size_t i = 0; i < v1.size(); ++i) {
@@ -67,15 +99,15 @@ void apply_harmony_search(std::vector<Particle>& swarm,
     double PAR = PAR_min + ((PAR_max - PAR_min) / max_iter) * current_iter;
 
     std::vector<double> new_harmony(dim);
+    double iter_ratio = (double)current_iter / max_iter;
+
     for (int d = 0; d < dim; ++d) {
         double bw_max = 0.05 * (upper_bound[d] - lower_bound[d]);
         double bw_min = 0.0001;
-        double bw = bw_max * std::exp((std::log(bw_min / bw_max) / max_iter) * current_iter);
+        double bw = bw_max * std::exp(std::log(bw_min / bw_max) * iter_ratio);
 
         if (random_double(0.0, 1.0, rank) < HMCR) {
-            int idx = start_idx + (int)random_double(0, sub_swarm_size - 0.001, rank);
-            if (idx < start_idx) idx = start_idx;
-            if (idx >= end_idx)  idx = end_idx - 1;
+            int idx = start_idx + random_int(0, sub_swarm_size - 1, rank);
             new_harmony[d] = swarm[idx].best_position[d];
             if (random_double(0.0, 1.0, rank) < PAR)
                 new_harmony[d] += random_double(-1.0, 1.0, rank) * bw;
@@ -98,8 +130,26 @@ void apply_harmony_search(std::vector<Particle>& swarm,
     }
 }
 
-// One lbest PSO + HS iteration on a sub-swarm [start, end).
-// Used for both complete sub-swarms and the possible remainder group.
+/**
+ * @brief Executes one local best (lbest) PSO + HS iteration on a sub-swarm.
+ * 
+ * Used for both complete sub-swarms and the possible remainder group.
+ * 
+ * @param swarm Reference to the rank's local swarm.
+ * @param start Start index of the sub-swarm.
+ * @param end End index of the sub-swarm (exclusive).
+ * @param dim Number of dimensions of the search space.
+ * @param lb Vector of lower bounds.
+ * @param ub Vector of upper bounds.
+ * @param v_max Vector of maximum velocities.
+ * @param w Inertia weight.
+ * @param c1 Cognitive coefficient.
+ * @param c2 Social coefficient.
+ * @param f The test function to optimize.
+ * @param rank MPI rank of the process.
+ * @param iter Current iteration number.
+ * @param max_iter Maximum number of iterations.
+ */
 static void process_sub_swarm(std::vector<Particle>& swarm,
                                int start, int end,
                                unsigned int dim,
@@ -123,7 +173,6 @@ static void process_sub_swarm(std::vector<Particle>& swarm,
 
     for (int i = start; i < end; ++i) {
         Particle& p = swarm[i];
-        bool in_bounds = true;
         for (unsigned int d = 0; d < dim; ++d) {
             double r1 = random_double(0.0, 1.0, rank);
             double r2 = random_double(0.0, 1.0, rank);
@@ -131,16 +180,23 @@ static void process_sub_swarm(std::vector<Particle>& swarm,
                           + c1 * r1 * (p.best_position[d] - p.position[d])
                           + c2 * r2 * (lbest_pos[d]        - p.position[d]);
             p.velocity[d] = std::max(-v_max[d], std::min(v_max[d], p.velocity[d]));
+            
             p.position[d] += p.velocity[d];
-            if (p.position[d] < lb[d] || p.position[d] > ub[d])
-                in_bounds = false;
-        }
-        if (in_bounds) {
-            p.current_value = f.value(p.position);
-            if (p.current_value < p.best_value) {
-                p.best_value    = p.current_value;
-                p.best_position = p.position;
+            
+            // Boundary treatment: Clamp to domain boundaries and zero velocity
+            if (p.position[d] < lb[d]) {
+                p.position[d] = lb[d];
+                p.velocity[d] = 0.0;
+            } else if (p.position[d] > ub[d]) {
+                p.position[d] = ub[d];
+                p.velocity[d] = 0.0;
             }
+        }
+        
+        p.current_value = f.value(p.position);
+        if (p.current_value < p.best_value) {
+            p.best_value    = p.current_value;
+            p.best_position = p.position;
         }
     }
     apply_harmony_search(swarm, start, end, f, rank, lb, ub, iter, max_iter);
@@ -156,7 +212,9 @@ void regroup_particles(std::vector<Particle>& local_swarm, int dim, int rank, in
     int local_n     = local_swarm.size();
     int p_data_size = 3 * dim + 2;
 
-    std::vector<double> send_buffer;
+    // Optimization: avoid memory reallocation inside optimization loop
+    static std::vector<double> send_buffer;
+    send_buffer.clear();
     send_buffer.reserve(local_n * p_data_size);
     for (const auto& p : local_swarm) {
         send_buffer.insert(send_buffer.end(), p.position.begin(),      p.position.end());
@@ -166,13 +224,15 @@ void regroup_particles(std::vector<Particle>& local_swarm, int dim, int rank, in
         send_buffer.push_back(p.current_value);
     }
 
-    std::vector<double> recv_buffer(local_n * size * p_data_size);
+    static std::vector<double> recv_buffer;
+    recv_buffer.resize(local_n * size * p_data_size);
     MPI_Allgather(send_buffer.data(), send_buffer.size(), MPI_DOUBLE,
                   recv_buffer.data(), send_buffer.size(), MPI_DOUBLE,
                   MPI_COMM_WORLD);
 
     static std::mt19937 g(19349663);
-    std::vector<int> indices(local_n * size);
+    static std::vector<int> indices;
+    indices.resize(local_n * size);
     std::iota(indices.begin(), indices.end(), 0);
     std::shuffle(indices.begin(), indices.end(), g);
 
@@ -214,9 +274,11 @@ OutputObject dpso(const TestFunction& f,
     const int regrouping_period = 5;
     const int sub_swarm_size    = 5;
 
-    if (n_points_per_rank < (unsigned int)sub_swarm_size && rank == 0) {
-        std::cerr << "Error: particles per rank (" << n_points_per_rank
-                  << ") less than sub-swarm size (" << sub_swarm_size << ").\n";
+    if (n_points_per_rank < (unsigned int)sub_swarm_size) {
+        if (rank == 0) {
+            std::cerr << "Error: particles per rank (" << n_points_per_rank
+                      << ") less than sub-swarm size (" << sub_swarm_size << ").\n";
+        }
         return OutputObject(f.get_name(), dim, n_points_per_rank * size, {},
                             f.get_true_solution(), 0.0, {}, size, 0.0, 0, stop_manager);
     }
