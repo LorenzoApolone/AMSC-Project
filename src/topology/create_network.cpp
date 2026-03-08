@@ -21,22 +21,31 @@ void create_network(int N, double p, std::vector<std::vector<int>> &adjacency_li
     std::uniform_real_distribution<> dis(0.0, 1.0);
     std::uniform_int_distribution<> node_dis(0, N - 1);
 
-    for (auto it = edges.begin(); it != edges.end(); ) {
+    std::vector<std::pair<int, int>> to_remove;
+    std::vector<std::pair<int, int>> to_add;
+
+    for (const auto& e : edges) {
         if (dis(gen) < p) {
-            int u = it->first;
-            int v = it->second;
+            int u = e.first;
+            int v = e.second;
             int new_v;
 
             do {
                 new_v = node_dis(gen);
             } while (new_v == u || new_v == v ||
-                     edges.count({std::min(u, new_v), std::max(u, new_v)}));
+                     edges.count({std::min(u, new_v), std::max(u, new_v)}) ||
+                     std::find(to_add.begin(), to_add.end(), std::make_pair(std::min(u, new_v), std::max(u, new_v))) != to_add.end());
 
-            it = edges.erase(it);
-            edges.insert({std::min(u, new_v), std::max(u, new_v)});
-        } else {
-            ++it;
+            to_remove.push_back(e);
+            to_add.push_back({std::min(u, new_v), std::max(u, new_v)});
         }
+    }
+
+    for (const auto& e : to_remove) {
+        edges.erase(e);
+    }
+    for (const auto& e : to_add) {
+        edges.insert(e);
     }
 
     for (const auto &e : edges) {
@@ -126,4 +135,4 @@ void create_random_network(int N, double p, std::vector<std::vector<int>>& adjac
             }
         }
     }
-}
+    }
