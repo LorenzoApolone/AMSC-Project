@@ -112,14 +112,69 @@ OutputObject pso_topology(const TestFunction &f,
   gbest_val = glob_data.val;
   MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank, MPI_COMM_WORLD);
 
-  // Buffers for Allgatherv of pbests (needed for lbest) ---
-  std::vector<double> all_pbest_val(n_points);
-  std::vector<double> all_pbest_pos(n_points * d);
-  std::vector<int> counts_d(size), displs_d(size);
-
+  std::vector<int> particle_owner(n_points);
   for (int r = 0; r < size; ++r) {
-    counts_d[r] = counts[r] * d;
-    displs_d[r] = displs[r] * d;
+    for (int i = 0; i < counts[r]; ++i) {
+      particle_owner[displs[r] + i] = r;
+    }
+  }
+
+  std::vector<std::vector<int>> export_particles(size);
+  for (int p = 0; p < n_points; ++p) {
+    if (particle_owner[p] == rank) continue;
+    for (int neigh : adjacency_list[p]) {
+      if (particle_owner[neigh] == rank) {
+        export_particles[particle_owner[p]].push_back(neigh - displs[rank]);
+      }
+    }
+  }
+  for (int r = 0; r < size; ++r) {
+    std::sort(export_particles[r].begin(), export_particles[r].end());
+    export_particles[r].erase(std::unique(export_particles[r].begin(), export_particles[r].end()), export_particles[r].end());
+  }
+
+  std::vector<std::vector<int>> import_particles(size);
+  for (int i = 0; i < local_n; ++i) {
+    int gid = displs[rank] + i;
+    for (int neigh : adjacency_list[gid]) {
+      int neigh_owner = particle_owner[neigh];
+      if (neigh_owner != rank) {
+        import_particles[neigh_owner].push_back(neigh);
+      }
+    }
+  }
+  for (int r = 0; r < size; ++r) {
+    std::sort(import_particles[r].begin(), import_particles[r].end());
+    import_particles[r].erase(std::unique(import_particles[r].begin(), import_particles[r].end()), import_particles[r].end());
+  }
+
+  std::vector<int> send_ranks, recv_ranks;
+  for (int r = 0; r < size; ++r) {
+    if (!export_particles[r].empty()) send_ranks.push_back(r);
+    if (!import_particles[r].empty()) recv_ranks.push_back(r);
+  }
+
+  std::vector<std::vector<double>> send_buffers(size);
+  std::vector<std::vector<double>> recv_buffers(size);
+  for (int r : send_ranks) {
+    send_buffers[r].resize(export_particles[r].size() * (1 + d));
+  }
+  for (int r : recv_ranks) {
+    recv_buffers[r].resize(import_particles[r].size() * (1 + d));
+  }
+
+  int total_ghosts = 0;
+  for (int r : recv_ranks) total_ghosts += import_particles[r].size();
+  
+  std::vector<double> ghost_val(total_ghosts, std::numeric_limits<double>::max());
+  std::vector<double> ghost_pos(total_ghosts * d);
+  std::vector<int> gid_to_ghost_idx(n_points, -1);
+  
+  int ghost_counter = 0;
+  for (int r : recv_ranks) {
+    for (int gid : import_particles[r]) {
+      gid_to_ghost_idx[gid] = ghost_counter++;
+    }
   }
   // end of initialization
 
@@ -149,15 +204,44 @@ OutputObject pso_topology(const TestFunction &f,
     // 1) Update particles locally (pos/vel) using the previous neighborhood knowledge
 
     double t_start = MPI_Wtime();
-    MPI_Allgatherv(pbest_val.data(), local_n, MPI_DOUBLE,
-                   all_pbest_val.data(), counts.data(), displs.data(), MPI_DOUBLE,
-                   MPI_COMM_WORLD);
-    
-    MPI_Allgatherv(pbest_pos.data(), local_n * d, MPI_DOUBLE,
-                   all_pbest_pos.data(), counts_d.data(), displs_d.data(), MPI_DOUBLE,
-                   MPI_COMM_WORLD);
+
+    std::vector<MPI_Request> requests;
+    requests.reserve(send_ranks.size() + recv_ranks.size());
+
+    for (int r : send_ranks) {
+      int idx = 0;
+      for (int local_i : export_particles[r]) {
+        send_buffers[r][idx++] = pbest_val[local_i];
+        for (int j = 0; j < d; ++j) {
+          send_buffers[r][idx++] = pbest_pos[local_i * d + j];
+        }
+      }
+      MPI_Request req;
+      MPI_Isend(send_buffers[r].data(), send_buffers[r].size(), MPI_DOUBLE, r, 0, MPI_COMM_WORLD, &req);
+      requests.push_back(req);
+    }
+
+    for (int r : recv_ranks) {
+      MPI_Request req;
+      MPI_Irecv(recv_buffers[r].data(), recv_buffers[r].size(), MPI_DOUBLE, r, 0, MPI_COMM_WORLD, &req);
+      requests.push_back(req);
+    }
+
+    MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
+
+    for (int r : recv_ranks) {
+      int buffer_idx = 0;
+      for (int gid : import_particles[r]) {
+        int gidx = gid_to_ghost_idx[gid];
+        ghost_val[gidx] = recv_buffers[r][buffer_idx++];
+        for (int j = 0; j < d; ++j) {
+          ghost_pos[gidx * d + j] = recv_buffers[r][buffer_idx++];
+        }
+      }
+    }
+
     double t_end = MPI_Wtime();
-    // Accumulate Allgatherv time, useful to monitor this bottleneck 
+    // Accumulate P2P time, useful to monitor this bottleneck 
     t_allgatherv_tot += (t_end - t_start);
 
 
@@ -169,28 +253,42 @@ OutputObject pso_topology(const TestFunction &f,
         std::cerr << "Invalid gid: " << gid << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-      // Find best among {gid} U neighbors(gid)
       int best_gid = gid;
-      double best_val = all_pbest_val[gid];
+      double best_val = pbest_val[i];
 
-      // include neighbors
       for (int neigh : adjacency_list[gid]) {
         if (neigh < 0 || neigh >= n_points) {
             std::cerr << "Invalid neighbor id: " << neigh
                       << " for particle " << gid << std::endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
-        if (all_pbest_val[neigh] < best_val) {
-          best_val = all_pbest_val[neigh];
+        
+        double neigh_val;
+        if (particle_owner[neigh] == rank) {
+          neigh_val = pbest_val[neigh - displs[rank]];
+        } else {
+          int gidx = gid_to_ghost_idx[neigh];
+          neigh_val = ghost_val[gidx];
+        }
+
+        if (neigh_val < best_val) {
+          best_val = neigh_val;
           best_gid = neigh;
         }
       }
 
-      // Update vel/pos using lbest 
       for (int j = 0; j < d; ++j) {
         double r1 = dis_01(gen);
         double r2 = dis_01(gen);
-        double lbest_j = all_pbest_pos[best_gid * d + j];
+        double lbest_j;
+        
+        if (particle_owner[best_gid] == rank) {
+          lbest_j = pbest_pos[(best_gid - displs[rank]) * d + j];
+        } else {
+          int gidx = gid_to_ghost_idx[best_gid];
+          lbest_j = ghost_pos[gidx * d + j];
+        }
+        
         int idx = i * d + j;
 
         vel[idx] =
