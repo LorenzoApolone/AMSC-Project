@@ -1,0 +1,150 @@
+# params.txt - Final Precision Fine-Tuning Multi-Function
+[GLOBAL]
+w 0.729
+c1 1.49445
+c2 1.49445
+regrouping_period 5
+sub_swarm_size 5
+hmcr 0.98
+par_min 0.01
+par_max 0.99
+
+[HappyCat]
+w 0.85
+c1 2.0
+c2 1.0
+regrouping_period 3
+sub_swarm_size 4
+hmcr 0.95
+par_min 0.05
+par_max 0.99
+
+[Rosenbrock]
+w 0.4
+c1 1.0
+c2 2.0
+regrouping_period 10
+sub_swarm_size 10
+hmcr 0.99
+par_min 0.0001
+par_max 0.3
+
+[QuinticFunction]
+w 0.8
+c1 1.5
+c2 1.5
+regrouping_period 5
+sub_swarm_size 4
+hmcr 0.90
+par_min 0.1
+par_max 1.0
+
+[Weierstrass]
+w 0.7
+c1 2.5
+c2 0.5
+regrouping_period 3
+sub_swarm_size 5
+hmcr 0.95
+par_min 0.05
+par_max 0.99
+
+[HGBat]
+w 0.6
+c1 1.2
+c2 2.0
+regrouping_period 10
+sub_swarm_size 10
+hmcr 0.98
+par_min 0.01
+par_max 0.95
+
+[ModifiedRidge]
+w 0.4
+c1 1.0
+c2 2.0
+regrouping_period 10
+sub_swarm_size 10
+hmcr 0.99
+par_min 0.0001
+par_max 0.3
+
+[Salomon]
+w 0.8
+c1 2.0
+c2 1.0
+regrouping_period 2
+sub_swarm_size 4
+hmcr 0.80
+par_min 0.2
+par_max 1.0
+
+[DixonPrice]
+w 0.4
+c1 1.0
+c2 2.0
+regrouping_period 10
+sub_swarm_size 10
+hmcr 0.99
+par_min 0.0001
+par_max 0.1
+
+[ExpSchafferF6]
+w 0.4
+c1 2.0
+c2 2.0
+regrouping_period 3
+sub_swarm_size 10
+hmcr 0.90
+par_min 0.01
+par_max 0.5
+
+[XinSheYang1]
+w 0.9
+c1 2.0
+c2 2.0
+regrouping_period 2
+sub_swarm_size 4
+hmcr 0.80
+par_min 0.1
+par_max 1.0
+
+[ModifiedXinSheYang3]
+w 0.9
+c1 2.0
+c2 2.0
+regrouping_period 2
+sub_swarm_size 4
+hmcr 0.80
+par_min 0.1
+par_max 1.0
+
+[ModifiedXinSheYang5]
+w 0.9
+c1 2.0
+c2 2.0
+regrouping_period 2
+sub_swarm_size 4
+hmcr 0.80
+par_min 0.1
+par_max 1.0
+
+[Powell]
+w 0.729
+c1 0.5
+c2 2.5
+regrouping_period 5
+sub_swarm_size 10
+hmcr 0.99
+par_min 0.001
+par_max 0.5
+
+[PermdbFunc]
+w 0.99
+c1 2.5
+c2 0.5
+regrouping_period 2
+sub_swarm_size 2
+hmcr 0.50
+par_min 0.5
+par_max 1.0
