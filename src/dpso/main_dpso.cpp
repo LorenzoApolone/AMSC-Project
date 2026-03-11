@@ -199,7 +199,8 @@ int main(int argc, char **argv) {
       current_params = all_params["GLOBAL"];
     }
 
-    OutputObject res = dpso(*f_ptr, dim, ppr, iters, current_params);
+    OutputObject res =
+        dpso(*f_ptr, dim, ppr, iters, current_params, true_convergence_tol);
     double fval = f_ptr->value(res.x_best);
     double err = f_ptr->error(res.x_best);
     bool true_converged = err < true_convergence_tol;

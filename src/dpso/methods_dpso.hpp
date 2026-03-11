@@ -29,7 +29,8 @@ struct DPSOParameters {
  */
 OutputObject dpso(const TestFunction &f, unsigned int dim,
                   unsigned int n_points_total, int max_iter,
-                  const DPSOParameters &params = DPSOParameters());
+                  const DPSOParameters &params = DPSOParameters(),
+                  double convergence_tol = 1e-4);
 
 /**
  * @brief Serial DMS-PSO-HS algorithm.
@@ -43,6 +44,7 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
  */
 OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
                          unsigned int n_points_total, int max_iter,
-                         const DPSOParameters &params = DPSOParameters());
+                         const DPSOParameters &params = DPSOParameters(),
+                         double convergence_tol = 1e-4);
 
 #endif
