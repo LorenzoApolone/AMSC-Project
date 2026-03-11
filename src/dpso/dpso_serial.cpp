@@ -23,11 +23,12 @@
 #include <vector>
 
 /**
- * @brief Generates a random double within [min, max) using a fixed seed.
+ * @brief Generates a random double within [min, max).
  *
  * @param min Minimum bound.
  * @param max Maximum bound.
- * @return A random double.
+ * @param gen PRNG instance.
+ * @return Random double.
  */
 static double random_double_serial(double min, double max, std::mt19937 &gen) {
   std::uniform_real_distribution<> dis(min, max);
@@ -35,46 +36,56 @@ static double random_double_serial(double min, double max, std::mt19937 &gen) {
 }
 
 /**
- * @brief Generates a random integer within [min, max] using a fixed seed.
- *
- * Avoids precision issues resulting from casting double variables.
+ * @brief Generates a random integer within [min, max].
  *
  * @param min Minimum integer (inclusive).
  * @param max Maximum integer (inclusive).
- * @return A random integer.
+ * @param gen PRNG instance.
+ * @return Random integer.
  */
 static int random_int_serial(int min, int max, std::mt19937 &gen) {
   std::uniform_int_distribution<> dis(min, max);
   return dis(gen);
 }
 
-static double euclidean_dist_serial(const std::vector<double> &v1,
-                                    const std::vector<double> &v2) {
+/**
+ * @brief Computes the squared Euclidean distance between two vectors.
+ *
+ * @param v1 First vector.
+ * @param v2 Second vector.
+ * @return The squared Euclidean distance.
+ */
+static double euclidean_dist_squared_serial(const std::vector<double> &v1,
+                                            const std::vector<double> &v2) {
   double sum = 0.0;
   for (size_t i = 0; i < v1.size(); ++i) {
     double diff = v1[i] - v2[i];
     sum += diff * diff;
   }
-  return std::sqrt(sum);
+  return sum;
 }
 
 /**
- * HS phase on a sub-swarm [start_idx, end_idx).
+ * @brief Applies Harmony Search to a sub-swarm.
  *
- * Generates a new harmony from the sub-swarm pbests with adaptive HMCR
- * and PAR (Eq. 20-21 of the paper). If the harmony beats the nearest
- * pbest (Euclidean distance), it replaces it.
- * PAR and bw increase/decrease linearly/exponentially with the iteration
- * to balance exploration in the early stages and intensification at the end.
+ * @param swarm Reference to the swarm.
+ * @param start_idx Start index of the sub-swarm.
+ * @param end_idx End index of the sub-swarm (exclusive).
+ * @param f The test function to optimize.
+ * @param gen PRNG instance.
+ * @param lower_bound Vector of lower bounds.
+ * @param upper_bound Vector of upper bounds.
+ * @param current_iter Current iteration number.
+ * @param max_iter Maximum number of iterations.
+ * @param params Algorithm parameters containing HS configurations.
+ * @param new_harmony Reusable buffer vector for the generated local harmony.
  */
-static void apply_harmony_search_serial(std::vector<Particle> &swarm,
-                                        int start_idx, int end_idx,
-                                        const TestFunction &f,
-                                        std::mt19937 &gen,
-                                        const std::vector<double> &lower_bound,
-                                        const std::vector<double> &upper_bound,
-                                        int current_iter, int max_iter,
-                                        const DPSOParameters &params) {
+static void apply_harmony_search_serial(
+    std::vector<Particle> &swarm, int start_idx, int end_idx,
+    const TestFunction &f, std::mt19937 &gen,
+    const std::vector<double> &lower_bound,
+    const std::vector<double> &upper_bound, int current_iter, int max_iter,
+    const DPSOParameters &params, std::vector<double> &new_harmony) {
   int dim = lower_bound.size();
   int sub_swarm_size = end_idx - start_idx;
   if (sub_swarm_size <= 0)
@@ -83,14 +94,13 @@ static void apply_harmony_search_serial(std::vector<Particle> &swarm,
   double PAR = params.par_min +
                ((params.par_max - params.par_min) / max_iter) * current_iter;
 
-  std::vector<double> new_harmony(dim);
   double iter_ratio = (double)current_iter / max_iter;
 
   for (int d = 0; d < dim; ++d) {
     double bw_max = 0.05 * (upper_bound[d] - lower_bound[d]);
     double bw_min = 0.0001;
-    // Optimization: minimize log calls by precomputing operands
-    double bw = bw_max * std::exp(std::log(bw_min / bw_max) * iter_ratio);
+    // Optimization: avoid slow exp/log combination, use std::pow directly
+    double bw = bw_max * std::pow(bw_min / bw_max, iter_ratio);
 
     if (random_double_serial(0.0, 1.0, gen) < params.hmcr) {
       int idx = start_idx + random_int_serial(0, sub_swarm_size - 1, gen);
@@ -109,9 +119,10 @@ static void apply_harmony_search_serial(std::vector<Particle> &swarm,
   int nearest_idx = -1;
   double min_dist = std::numeric_limits<double>::max();
   for (int i = start_idx; i < end_idx; ++i) {
-    double d = euclidean_dist_serial(new_harmony, swarm[i].best_position);
-    if (d < min_dist) {
-      min_dist = d;
+    double d_sq =
+        euclidean_dist_squared_serial(new_harmony, swarm[i].best_position);
+    if (d_sq < min_dist) {
+      min_dist = d_sq;
       nearest_idx = i;
     }
   }
@@ -124,27 +135,26 @@ static void apply_harmony_search_serial(std::vector<Particle> &swarm,
 /**
  * @brief Executes one local best (lbest) PSO + HS iteration on a sub-swarm.
  *
- * Used for both complete sub-swarms and the possible remainder group.
- *
- * @param swarm Reference to the entire swarm.
+ * @param swarm Reference to the swarm.
  * @param start Start index of the sub-swarm.
  * @param end End index of the sub-swarm (exclusive).
  * @param dim Number of dimensions of the search space.
  * @param lb Vector of lower bounds.
  * @param ub Vector of upper bounds.
  * @param v_max Vector of maximum velocities.
- * @param w Inertia weight.
- * @param c1 Cognitive coefficient.
- * @param c2 Social coefficient.
+ * @param params Algorithm parameters.
  * @param f The test function to optimize.
+ * @param gen PRNG instance.
  * @param iter Current iteration number.
  * @param max_iter Maximum number of iterations.
+ * @param hs_buffer Reusable buffer for harmony search.
  */
 static void process_sub_swarm_serial(
     std::vector<Particle> &swarm, int start, int end, unsigned int dim,
     const std::vector<double> &lb, const std::vector<double> &ub,
     const std::vector<double> &v_max, const DPSOParameters &params,
-    const TestFunction &f, std::mt19937 &gen, int iter, int max_iter) {
+    const TestFunction &f, std::mt19937 &gen, int iter, int max_iter,
+    std::vector<double> &hs_buffer) {
   int lbest_idx = -1;
   double lbest_val = std::numeric_limits<double>::max();
   for (int i = start; i < end; ++i) {
@@ -155,7 +165,7 @@ static void process_sub_swarm_serial(
   }
   if (lbest_idx == -1)
     return;
-  std::vector<double> lbest_pos = swarm[lbest_idx].best_position;
+  const std::vector<double> &lbest_pos = swarm[lbest_idx].best_position;
 
   for (int i = start; i < end; ++i) {
     Particle &p = swarm[i];
@@ -186,18 +196,36 @@ static void process_sub_swarm_serial(
     }
   }
   apply_harmony_search_serial(swarm, start, end, f, gen, lb, ub, iter, max_iter,
-                              params);
+                              params, hs_buffer);
 }
 
+/**
+ * @brief Shuffles the particles in the swarm to regroup sub-swarms.
+ *
+ * @param swarm Reference to the swarm.
+ * @param g PRNG instance.
+ */
 static void regroup_particles_serial(std::vector<Particle> &swarm,
                                      std::mt19937 &g) {
   std::shuffle(swarm.begin(), swarm.end(), g);
 }
 
+/**
+ * @brief Executes the Serial DMS-PSO-HS algorithm.
+ *
+ * @param f The test function to optimize.
+ * @param dim Number of dimensions of the search space.
+ * @param n_points_total Total number of particles in the swarm.
+ * @param max_iter Maximum number of iterations.
+ * @param params Algorithm parameters.
+ * @param convergence_tol The tolerance used by the stopping criteria manager.
+ * @return OutputObject containing the best position, value, and execution
+ * metrics.
+ */
 OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
                          unsigned int n_points_total, int max_iter,
-                         const DPSOParameters &params) {
-  StoppingCriteriaManager stop_manager(max_iter, 2000, 1e-8, 1e-3);
+                         const DPSOParameters &params, double convergence_tol) {
+  StoppingCriteriaManager stop_manager(max_iter, 2000, convergence_tol, 1e-3);
 
   if (n_points_total < (unsigned int)params.sub_swarm_size) {
     std::cerr << "Error: total particles (" << n_points_total
@@ -212,13 +240,16 @@ OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
   std::vector<double> lb(dim, domain.first);
   std::vector<double> ub(dim, domain.second);
   std::vector<double> v_max(dim);
-  if (lb[0] > ub[0])
-    for (unsigned int d = 0; d < dim; ++d)
-      lb[d] = -ub[d];
+  for (unsigned int d = 0; d < dim; ++d) {
+    if (lb[d] > ub[d]) {
+      std::swap(lb[d], ub[d]);
+    }
+  }
   for (unsigned int d = 0; d < dim; ++d)
     v_max[d] = 0.2 * (ub[d] - lb[d]);
 
-  std::mt19937 gen(12345);
+  std::random_device rd;
+  std::mt19937 gen(rd());
 
   std::vector<Particle> swarm;
   swarm.reserve(n_points_total);
@@ -240,6 +271,7 @@ OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
   double global_best_val = std::numeric_limits<double>::max();
   auto start_time = std::chrono::high_resolution_clock::now();
   int iter = 0;
+  std::vector<double> hs_buffer(dim);
 
   while (true) {
     if (iter > 0 && iter % params.regrouping_period == 0)
@@ -252,12 +284,13 @@ OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
       int start = s * params.sub_swarm_size;
       int end = std::min(start + params.sub_swarm_size, (int)swarm.size());
       process_sub_swarm_serial(swarm, start, end, dim, lb, ub, v_max, params, f,
-                               gen, iter, max_iter);
+                               gen, iter, max_iter, hs_buffer);
     }
     if (remainder > 0) {
       int start = num_sub_swarms * params.sub_swarm_size;
       process_sub_swarm_serial(swarm, start, (int)swarm.size(), dim, lb, ub,
-                               v_max, params, f, gen, iter, max_iter);
+                               v_max, params, f, gen, iter, max_iter,
+                               hs_buffer);
     }
 
     double current_global_min = std::numeric_limits<double>::max();
@@ -275,7 +308,8 @@ OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
 
     double sum_dist = 0.0;
     for (const auto &p : swarm)
-      sum_dist += euclidean_dist_serial(p.position, global_best_pos);
+      sum_dist +=
+          std::sqrt(euclidean_dist_squared_serial(p.position, global_best_pos));
     double avg_dist = swarm.empty() ? 0.0 : sum_dist / swarm.size();
 
     results.conv_history.push_back(current_global_min);
