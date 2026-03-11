@@ -12,7 +12,8 @@
 #include <unordered_map>
 #include <vector>
 
-std::unordered_map<std::string, DPSOParameters> parse_params(const std::string &filename, int rank) {
+std::unordered_map<std::string, DPSOParameters>
+parse_params(const std::string &filename, int rank) {
   std::unordered_map<std::string, DPSOParameters> config;
   std::ifstream file(filename);
   if (!file.is_open()) {
@@ -28,20 +29,21 @@ std::unordered_map<std::string, DPSOParameters> parse_params(const std::string &
   while (std::getline(file, line)) {
     if (line.empty() || line[0] == '#')
       continue;
-      
+
     if (line[0] == '[' && line.back() == ']') {
-        current_section = line.substr(1, line.size() - 2);
-        if (config.find(current_section) == config.end()) {
-            config[current_section] = config.count("GLOBAL") ? config["GLOBAL"] : DPSOParameters();
-        }
-        continue;
+      current_section = line.substr(1, line.size() - 2);
+      if (config.find(current_section) == config.end()) {
+        config[current_section] =
+            config.count("GLOBAL") ? config["GLOBAL"] : DPSOParameters();
+      }
+      continue;
     }
 
     std::istringstream iss(line);
     std::string key;
     double val;
     if (iss >> key >> val) {
-      auto& params = config[current_section];
+      auto &params = config[current_section];
       if (key == "w")
         params.w = val;
       else if (key == "c1")
@@ -88,114 +90,44 @@ int main(int argc, char **argv) {
   std::unordered_map<std::string,
                      std::function<std::unique_ptr<TestFunction>(unsigned int)>>
       factory;
-  factory["Sphere"] = [](unsigned int dim) {
-    return std::make_unique<Sphere>(dim);
-  };
-  factory["Ellipsoid"] = [](unsigned int dim) {
-    return std::make_unique<Ellipsoid>(dim);
-  };
-  factory["SumOfDiffPowers"] = [](unsigned int dim) {
-    return std::make_unique<SumOfDiffPowers>(dim);
-  };
-  factory["QuinticFunction"] = [](unsigned int dim) {
-    return std::make_unique<QuinticFunction>(dim);
-  };
-  factory["DropWave"] = [](unsigned int dim) {
-    return std::make_unique<DropWave>(dim);
-  };
-  factory["Weierstrass"] = [](unsigned int dim) {
-    return std::make_unique<Weierstrass>(dim);
-  };
-  factory["Alpine1"] = [](unsigned int dim) {
-    return std::make_unique<Alpine1>(dim);
-  };
-  factory["Ackley"] = [](unsigned int dim) {
-    return std::make_unique<Ackley>(dim);
-  };
-  factory["Griewank"] = [](unsigned int dim) {
-    return std::make_unique<Griewank>(dim);
-  };
-  factory["Rastrigin"] = [](unsigned int dim) {
-    return std::make_unique<Rastrigin>(dim);
-  };
-  factory["HappyCat"] = [](unsigned int dim) {
-    return std::make_unique<HappyCat>(dim);
-  };
-  factory["HGBat"] = [](unsigned int dim) {
-    return std::make_unique<HGBat>(dim);
-  };
-  factory["Rosenbrock"] = [](unsigned int dim) {
-    return std::make_unique<Rosenbrock>(dim);
-  };
-  factory["HighCondElliptic"] = [](unsigned int dim) {
-    return std::make_unique<HighCondElliptic>(dim);
-  };
-  factory["Discus"] = [](unsigned int dim) {
-    return std::make_unique<Discus>(dim);
-  };
-  factory["BentCigar"] = [](unsigned int dim) {
-    return std::make_unique<BentCigar>(dim);
-  };
-  factory["PermdbFunc"] = [](unsigned int dim) {
-    return std::make_unique<PermdbFunc>(dim);
-  };
-  factory["Schafferf7Func"] = [](unsigned int dim) {
-    return std::make_unique<Schafferf7Func>(dim);
-  };
-  factory["ExpSchafferF6"] = [](unsigned int dim) {
-    return std::make_unique<ExpSchafferF6>(dim);
-  };
-  factory["RotatedHyper"] = [](unsigned int dim) {
-    return std::make_unique<RotatedHyper>(dim);
-  };
-  factory["Schwefel"] = [](unsigned int dim) {
-    return std::make_unique<Schwefel>(dim);
-  };
-  factory["SumOfDifferentPowers2"] = [](unsigned int dim) {
-    return std::make_unique<SumOfDifferentPowers2>(dim);
-  };
-  factory["XinSheYang1"] = [](unsigned int dim) {
-    return std::make_unique<XinSheYang1>(dim);
-  };
-  factory["Schwefel221"] = [](unsigned int dim) {
-    return std::make_unique<Schwefel221>(dim);
-  };
-  factory["Schwefel222"] = [](unsigned int dim) {
-    return std::make_unique<Schwefel222>(dim);
-  };
-  factory["Salomon"] = [](unsigned int dim) {
-    return std::make_unique<Salomon>(dim);
-  };
-  factory["ModifiedRidge"] = [](unsigned int dim) {
-    return std::make_unique<ModifiedRidge>(dim);
-  };
-  factory["Zakharov"] = [](unsigned int dim) {
-    return std::make_unique<Zakharov>(dim);
-  };
-  factory["ModifiedXinSheYang3"] = [](unsigned int dim) {
-    return std::make_unique<ModifiedXinSheYang3>(dim);
-  };
-  factory["ModifiedXinSheYang5"] = [](unsigned int dim) {
-    return std::make_unique<ModifiedXinSheYang5>(dim);
-  };
-  factory["Levy"] = [](unsigned int dim) {
-    return std::make_unique<Levy>(dim);
-  };
-  factory["Michalewicz"] = [](unsigned int dim) {
-    return std::make_unique<Michalewicz>(dim);
-  };
-  factory["Bohachevsky"] = [](unsigned int dim) {
-    return std::make_unique<Bohachevsky>(dim);
-  };
-  factory["Powell"] = [](unsigned int dim) {
-    return std::make_unique<Powell>(dim);
-  };
-  factory["DixonPrice"] = [](unsigned int dim) {
-    return std::make_unique<DixonPrice>(dim);
-  };
-  factory["StyblinskiTang"] = [](unsigned int dim) {
-    return std::make_unique<StyblinskiTang>(dim);
-  };
+  // clang-format off
+  factory["Sphere"] = [](unsigned int dim) { return std::make_unique<Sphere>(dim); };
+  factory["Ellipsoid"] = [](unsigned int dim) { return std::make_unique<Ellipsoid>(dim); };
+  factory["SumOfDiffPowers"] = [](unsigned int dim) { return std::make_unique<SumOfDiffPowers>(dim); };
+  factory["QuinticFunction"] = [](unsigned int dim) { return std::make_unique<QuinticFunction>(dim); };
+  factory["DropWave"] = [](unsigned int dim) { return std::make_unique<DropWave>(dim); };
+  factory["Weierstrass"] = [](unsigned int dim) { return std::make_unique<Weierstrass>(dim); };
+  factory["Alpine1"] = [](unsigned int dim) { return std::make_unique<Alpine1>(dim); };
+  factory["Ackley"] = [](unsigned int dim) { return std::make_unique<Ackley>(dim); };
+  factory["Griewank"] = [](unsigned int dim) { return std::make_unique<Griewank>(dim); };
+  factory["Rastrigin"] = [](unsigned int dim) { return std::make_unique<Rastrigin>(dim); };
+  factory["HappyCat"] = [](unsigned int dim) { return std::make_unique<HappyCat>(dim); };
+  factory["HGBat"] = [](unsigned int dim) { return std::make_unique<HGBat>(dim); };
+  factory["Rosenbrock"] = [](unsigned int dim) { return std::make_unique<Rosenbrock>(dim); };
+  factory["HighCondElliptic"] = [](unsigned int dim) { return std::make_unique<HighCondElliptic>(dim); };
+  factory["Discus"] = [](unsigned int dim) { return std::make_unique<Discus>(dim); };
+  factory["BentCigar"] = [](unsigned int dim) { return std::make_unique<BentCigar>(dim); };
+  factory["PermdbFunc"] = [](unsigned int dim) { return std::make_unique<PermdbFunc>(dim); };
+  factory["Schafferf7Func"] = [](unsigned int dim) { return std::make_unique<Schafferf7Func>(dim); };
+  factory["ExpSchafferF6"] = [](unsigned int dim) { return std::make_unique<ExpSchafferF6>(dim); };
+  factory["RotatedHyper"] = [](unsigned int dim) { return std::make_unique<RotatedHyper>(dim); };
+  factory["Schwefel"] = [](unsigned int dim) { return std::make_unique<Schwefel>(dim); };
+  factory["SumOfDifferentPowers2"] = [](unsigned int dim) { return std::make_unique<SumOfDifferentPowers2>(dim); };
+  factory["XinSheYang1"] = [](unsigned int dim) { return std::make_unique<XinSheYang1>(dim); };
+  factory["Schwefel221"] = [](unsigned int dim) { return std::make_unique<Schwefel221>(dim); };
+  factory["Schwefel222"] = [](unsigned int dim) { return std::make_unique<Schwefel222>(dim); };
+  factory["Salomon"] = [](unsigned int dim) { return std::make_unique<Salomon>(dim); };
+  factory["ModifiedRidge"] = [](unsigned int dim) { return std::make_unique<ModifiedRidge>(dim); };
+  factory["Zakharov"] = [](unsigned int dim) { return std::make_unique<Zakharov>(dim); };
+  factory["ModifiedXinSheYang3"] = [](unsigned int dim) { return std::make_unique<ModifiedXinSheYang3>(dim); };
+  factory["ModifiedXinSheYang5"] = [](unsigned int dim) { return std::make_unique<ModifiedXinSheYang5>(dim); };
+  factory["Levy"] = [](unsigned int dim) { return std::make_unique<Levy>(dim); };
+  factory["Michalewicz"] = [](unsigned int dim) { return std::make_unique<Michalewicz>(dim); };
+  factory["Bohachevsky"] = [](unsigned int dim) { return std::make_unique<Bohachevsky>(dim); };
+  factory["Powell"] = [](unsigned int dim) { return std::make_unique<Powell>(dim); };
+  factory["DixonPrice"] = [](unsigned int dim) { return std::make_unique<DixonPrice>(dim); };
+  factory["StyblinskiTang"] = [](unsigned int dim) { return std::make_unique<StyblinskiTang>(dim); };
+  // clang-format on
 
   std::vector<std::string> function_names = {"Sphere",
                                              "Ellipsoid",
@@ -259,12 +191,12 @@ int main(int argc, char **argv) {
   for (const auto &name : function_names) {
     bool converged = false;
     auto f_ptr = factory[name](dim);
-    
+
     DPSOParameters current_params;
     if (all_params.count(name)) {
-        current_params = all_params[name];
+      current_params = all_params[name];
     } else if (all_params.count("GLOBAL")) {
-        current_params = all_params["GLOBAL"];
+      current_params = all_params["GLOBAL"];
     }
 
     OutputObject res = dpso(*f_ptr, dim, ppr, iters, current_params);
