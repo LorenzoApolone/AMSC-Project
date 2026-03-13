@@ -21,6 +21,9 @@ private:
   // The fitness value associated with the full_vector
   double best_fitness;
 
+  // Scratch buffer for evaluating particles without loop allocations
+  mutable std::vector<double> eval_scratch;
+
 public:
 
   /**
@@ -52,14 +55,7 @@ public:
                            const std::vector<double> &partial_pos,
                            const std::vector<int> &active_dims) const;
 
-  /**
-   * @brief Updates the context vector and best fitness if it is better
-   * @param partial_best_pos The partial best position found by a sub-swarm
-   * @param active_dims The active dimensions modified by the sub-swarm
-   * @param new_fitness The fitness value associated with the newly modified context vector
-   */
-  void update(const std::vector<double> &partial_best_pos,
-              const std::vector<int> &active_dims, double new_fitness);
+
 
   /**
    * @brief Sets the full context vector and its corresponding fitness limit

@@ -1,5 +1,5 @@
 #include "cpso/CPSOSerial.hpp"
-#include "functions.cpp"
+#include "functions.hpp"
 #include "interfaces/StoppingCriteriaManager.hpp"
 #include <cmath>
 #include <iostream>

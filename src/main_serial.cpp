@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
     auto f_ptr = factory[name](dim);
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
-    OutputObject result = pso_serial(*f_ptr, dim, stop_criterion, n_points);
+    OutputObject result = pso_serial(*f_ptr, dim, stop, n_points);
     result.terminal_info();
     // result.output_to_file();
   }
