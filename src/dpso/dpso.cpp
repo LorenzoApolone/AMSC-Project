@@ -60,11 +60,13 @@ double euclidean_dist_squared(const std::vector<double> &v1,
 }
 
 /**
- * @brief Applies Harmony Search to a sub-swarm.
+ * @brief Applies Harmony Search to a sub-swarm in SoA.
  *
- * @param swarm Reference to the swarm.
+ * @param pbest_pos Swarm personal best positions (SoA).
+ * @param pbest_val Swarm personal best values (SoA).
  * @param start_idx Start index of the sub-swarm.
  * @param end_idx End index of the sub-swarm (exclusive).
+ * @param dim Dimensions.
  * @param f The test function to optimize.
  * @param gen PRNG instance.
  * @param lower_bound Vector of lower bounds.
@@ -72,16 +74,17 @@ double euclidean_dist_squared(const std::vector<double> &v1,
  * @param current_iter Current iteration number.
  * @param max_iter Maximum number of iterations.
  * @param params Algorithm parameters.
+ * @param new_harmony Buffer for harmony search results.
  */
-static void apply_harmony_search(std::vector<Particle> &swarm, int start_idx,
-                                 int end_idx, const TestFunction &f,
+static void apply_harmony_search(const std::vector<double> &pbest_pos,
+                                 std::vector<double> &pbest_val, int start_idx,
+                                 int end_idx, int dim, const TestFunction &f,
                                  std::mt19937 &gen,
                                  const std::vector<double> &lower_bound,
                                  const std::vector<double> &upper_bound,
                                  int current_iter, int max_iter,
                                  const DPSOParameters &params,
                                  std::vector<double> &new_harmony) {
-  int dim = lower_bound.size();
   int sub_swarm_size = end_idx - start_idx;
   if (sub_swarm_size <= 0)
     return;
@@ -94,12 +97,11 @@ static void apply_harmony_search(std::vector<Particle> &swarm, int start_idx,
   for (int d = 0; d < dim; ++d) {
     double bw_max = 0.05 * (upper_bound[d] - lower_bound[d]);
     double bw_min = 0.0001;
-    // Optimization: avoid slow exp/log combination, use std::pow directly
     double bw = bw_max * std::pow(bw_min / bw_max, iter_ratio);
 
     if (random_double(0.0, 1.0, gen) < params.hmcr) {
-      int idx = start_idx + random_int(0, sub_swarm_size - 1, gen);
-      new_harmony[d] = swarm[idx].best_position[d];
+      int p_idx = start_idx + random_int(0, sub_swarm_size - 1, gen);
+      new_harmony[d] = pbest_pos[p_idx * dim + d];
       if (random_double(0.0, 1.0, gen) < PAR)
         new_harmony[d] += random_double(-1.0, 1.0, gen) * bw;
     } else {
@@ -113,24 +115,33 @@ static void apply_harmony_search(std::vector<Particle> &swarm, int start_idx,
   int nearest_idx = -1;
   double min_dist = std::numeric_limits<double>::max();
   for (int i = start_idx; i < end_idx; ++i) {
-    double d_sq = euclidean_dist_squared(new_harmony, swarm[i].best_position);
+    double d_sq = 0.0;
+    for (int d = 0; d < dim; ++d) {
+      double diff = new_harmony[d] - pbest_pos[i * dim + d];
+      d_sq += diff * diff;
+    }
     if (d_sq < min_dist) {
       min_dist = d_sq;
       nearest_idx = i;
     }
   }
-  if (nearest_idx != -1 && new_val < swarm[nearest_idx].best_value) {
-    swarm[nearest_idx].best_position = new_harmony;
-    swarm[nearest_idx].best_value = new_val;
+  if (nearest_idx != -1 && new_val < pbest_val[nearest_idx]) {
+    for (int d = 0; d < dim; ++d) {
+      const_cast<std::vector<double> &>(pbest_pos)[nearest_idx * dim + d] =
+          new_harmony[d];
+    }
+    pbest_val[nearest_idx] = new_val;
   }
 }
 
 /**
  * @brief Executes one local best (lbest) PSO + HS iteration on a sub-swarm.
  *
- * Used for both complete sub-swarms and the possible remainder group.
- *
- * @param swarm Reference to the swarm.
+ * @param pos Swarm positions (SoA).
+ * @param vel Swarm velocities (SoA).
+ * @param pbest_pos Swarm personal best positions (SoA).
+ * @param pbest_val Swarm personal best values (SoA).
+ * @param current_val Swarm current values (SoA).
  * @param start Start index of the sub-swarm.
  * @param end End index of the sub-swarm (exclusive).
  * @param dim Number of dimensions of the search space.
@@ -144,8 +155,12 @@ static void apply_harmony_search(std::vector<Particle> &swarm, int start_idx,
  * @param max_iter Maximum number of iterations.
  * @param hs_buffer Reusable buffer for harmony search.
  */
-static void process_sub_swarm(std::vector<Particle> &swarm, int start, int end,
-                              unsigned int dim, const std::vector<double> &lb,
+static void process_sub_swarm(std::vector<double> &pos, std::vector<double> &vel,
+                              std::vector<double> &pbest_pos,
+                              std::vector<double> &pbest_val,
+                              std::vector<double> &current_val, int start,
+                              int end, unsigned int dim,
+                              const std::vector<double> &lb,
                               const std::vector<double> &ub,
                               const std::vector<double> &v_max,
                               const DPSOParameters &params,
@@ -155,45 +170,50 @@ static void process_sub_swarm(std::vector<Particle> &swarm, int start, int end,
   int lbest_idx = -1;
   double lbest_val = std::numeric_limits<double>::max();
   for (int i = start; i < end; ++i) {
-    if (swarm[i].best_value < lbest_val) {
-      lbest_val = swarm[i].best_value;
+    if (pbest_val[i] < lbest_val) {
+      lbest_val = pbest_val[i];
       lbest_idx = i;
     }
   }
   if (lbest_idx == -1)
     return;
-  const std::vector<double> &lbest_pos = swarm[lbest_idx].best_position;
 
   for (int i = start; i < end; ++i) {
-    Particle &p = swarm[i];
     for (unsigned int d = 0; d < dim; ++d) {
       double r1 = random_double(0.0, 1.0, gen);
       double r2 = random_double(0.0, 1.0, gen);
-      p.velocity[d] = params.w * p.velocity[d] +
-                      params.c1 * r1 * (p.best_position[d] - p.position[d]) +
-                      params.c2 * r2 * (lbest_pos[d] - p.position[d]);
-      p.velocity[d] = std::max(-v_max[d], std::min(v_max[d], p.velocity[d]));
+      int idx = i * dim + d;
+      int lb_idx = lbest_idx * dim + d;
 
-      p.position[d] += p.velocity[d];
+      vel[idx] = params.w * vel[idx] +
+                 params.c1 * r1 * (pbest_pos[idx] - pos[idx]) +
+                 params.c2 * r2 * (pbest_pos[lb_idx] - pos[idx]);
+      vel[idx] = std::max(-v_max[d], std::min(v_max[d], vel[idx]));
 
-      // Boundary treatment: Clamp to domain boundaries and zero velocity
-      if (p.position[d] < lb[d]) {
-        p.position[d] = lb[d];
-        p.velocity[d] = 0.0;
-      } else if (p.position[d] > ub[d]) {
-        p.position[d] = ub[d];
-        p.velocity[d] = 0.0;
+      pos[idx] += vel[idx];
+
+      if (pos[idx] < lb[d]) {
+        pos[idx] = lb[d];
+        vel[idx] = 0.0;
+      } else if (pos[idx] > ub[d]) {
+        pos[idx] = ub[d];
+        vel[idx] = 0.0;
       }
     }
 
-    p.current_value = f.value(p.position);
-    if (p.current_value < p.best_value) {
-      p.best_value = p.current_value;
-      p.best_position = p.position;
+    std::vector<double> p_pos(dim);
+    for (unsigned int d = 0; d < dim; ++d)
+      p_pos[d] = pos[i * dim + d];
+
+    current_val[i] = f.value(p_pos);
+    if (current_val[i] < pbest_val[i]) {
+      pbest_val[i] = current_val[i];
+      for (unsigned int d = 0; d < dim; ++d)
+        pbest_pos[i * dim + d] = pos[i * dim + d];
     }
   }
-  apply_harmony_search(swarm, start, end, f, gen, lb, ub, iter, max_iter,
-                       params, hs_buffer);
+  apply_harmony_search(pbest_pos, pbest_val, start, end, dim, f, gen, lb, ub,
+                       iter, max_iter, params, hs_buffer);
 }
 
 /**
@@ -209,33 +229,40 @@ struct RegroupContext {
 };
 
 /**
- * @brief Shuffles the particles in the swarm to regroup sub-swarms.
+ * @brief Shuffles the particles in the swarm to regroup sub-swarms in SoA.
  *
- * @param local_swarm Reference to the swarm.
- * @param dim Number of dimensions of the search space.
- * @param rank MPI rank of the process.
- * @param size Total number of MPI processes.
+ * @param pos local swarm positions.
+ * @param vel local swarm velocities.
+ * @param pbest_pos local swarm personal best positions.
+ * @param pbest_val local swarm personal best values.
+ * @param current_val local swarm current values.
+ * @param dim Number of dimensions.
+ * @param rank MPI rank.
+ * @param size Total MPI processes.
  * @param g PRNG instance.
- * @param total_particles Total number of particles.
- * @param ctx The context containing persistent buffers to avoid allocations.
+ * @param total_particles Total particles in global swarm.
+ * @param ctx Context for persistent buffers.
  */
-void regroup_particles(std::vector<Particle> &local_swarm, int dim, int rank,
+void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
+                       std::vector<double> &pbest_pos,
+                       std::vector<double> &pbest_val,
+                       std::vector<double> &current_val, int dim, int rank,
                        int size, std::mt19937 &g, int total_particles,
                        RegroupContext &ctx) {
-  int local_n = local_swarm.size();
+  int local_n = current_val.size();
   int p_data_size = 3 * dim + 2;
 
   ctx.send_buffer.clear();
   ctx.send_buffer.reserve(local_n * p_data_size);
-  for (const auto &p : local_swarm) {
-    ctx.send_buffer.insert(ctx.send_buffer.end(), p.position.begin(),
-                           p.position.end());
-    ctx.send_buffer.insert(ctx.send_buffer.end(), p.velocity.begin(),
-                           p.velocity.end());
-    ctx.send_buffer.insert(ctx.send_buffer.end(), p.best_position.begin(),
-                           p.best_position.end());
-    ctx.send_buffer.push_back(p.best_value);
-    ctx.send_buffer.push_back(p.current_value);
+  for (int i = 0; i < local_n; ++i) {
+    ctx.send_buffer.insert(ctx.send_buffer.end(), pos.begin() + i * dim,
+                           pos.begin() + (i + 1) * dim);
+    ctx.send_buffer.insert(ctx.send_buffer.end(), vel.begin() + i * dim,
+                           vel.begin() + (i + 1) * dim);
+    ctx.send_buffer.insert(ctx.send_buffer.end(), pbest_pos.begin() + i * dim,
+                           pbest_pos.begin() + (i + 1) * dim);
+    ctx.send_buffer.push_back(pbest_val[i]);
+    ctx.send_buffer.push_back(current_val[i]);
   }
 
   ctx.recvcounts.resize(size);
@@ -277,20 +304,15 @@ void regroup_particles(std::vector<Particle> &local_swarm, int dim, int rank,
     int picked = ctx.indices[global_idx_start + i];
     int base = picked * p_data_size;
     int off = 0;
-    std::copy(ctx.recv_buffer.begin() + base + off,
-              ctx.recv_buffer.begin() + base + off + dim,
-              local_swarm[i].position.begin());
+    std::copy_n(ctx.recv_buffer.begin() + base + off, dim, pos.begin() + i * dim);
     off += dim;
-    std::copy(ctx.recv_buffer.begin() + base + off,
-              ctx.recv_buffer.begin() + base + off + dim,
-              local_swarm[i].velocity.begin());
+    std::copy_n(ctx.recv_buffer.begin() + base + off, dim, vel.begin() + i * dim);
     off += dim;
-    std::copy(ctx.recv_buffer.begin() + base + off,
-              ctx.recv_buffer.begin() + base + off + dim,
-              local_swarm[i].best_position.begin());
+    std::copy_n(ctx.recv_buffer.begin() + base + off, dim,
+                pbest_pos.begin() + i * dim);
     off += dim;
-    local_swarm[i].best_value = ctx.recv_buffer[base + off++];
-    local_swarm[i].current_value = ctx.recv_buffer[base + off++];
+    pbest_val[i] = ctx.recv_buffer[base + off++];
+    current_val[i] = ctx.recv_buffer[base + off++];
   }
 }
 
@@ -349,10 +371,6 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   std::random_device rd;
   std::mt19937 gen(rd() + rank);
 
-  // Use a designated constant seed for the global generator if we still want
-  // deterministic global MPI shuffling across all ranks, but better to seed
-  // rank 0 and broadcast, or just use rank 0's random_device. Here we use rank
-  // 0's random device to seed everyone.
   unsigned int global_seed = 0;
   if (rank == 0) {
     global_seed = rd();
@@ -360,18 +378,23 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   MPI_Bcast(&global_seed, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
   std::mt19937 global_gen(global_seed);
 
-  std::vector<Particle> swarm;
-  swarm.reserve(n_points_per_rank);
+  std::vector<double> pos(n_points_per_rank * dim);
+  std::vector<double> vel(n_points_per_rank * dim);
+  std::vector<double> pbest_pos(n_points_per_rank * dim);
+  std::vector<double> pbest_val(n_points_per_rank,
+                                std::numeric_limits<double>::max());
+  std::vector<double> current_val(n_points_per_rank);
+
   for (unsigned int i = 0; i < n_points_per_rank; ++i) {
-    Particle p(dim);
+    std::vector<double> p_pos(dim);
     for (unsigned int d = 0; d < dim; ++d) {
-      p.position[d] = random_double(lb[d], ub[d], gen);
-      p.velocity[d] = random_double(-v_max[d], v_max[d], gen);
-      p.best_position[d] = p.position[d];
+      pos[i * dim + d] = random_double(lb[d], ub[d], gen);
+      vel[i * dim + d] = random_double(-v_max[d], v_max[d], gen);
+      pbest_pos[i * dim + d] = pos[i * dim + d];
+      p_pos[d] = pos[i * dim + d];
     }
-    p.current_value = f.value(p.position);
-    p.best_value = p.current_value;
-    swarm.push_back(p);
+    current_val[i] = f.value(p_pos);
+    pbest_val[i] = current_val[i];
   }
 
   OutputObject results(f.get_name(), dim, n_points_total, {},
@@ -386,22 +409,24 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
 
   while (true) {
     if (iter > 0 && iter % params.regrouping_period == 0)
-      regroup_particles(swarm, dim, rank, size, global_gen, n_points_total,
-                        regroup_ctx);
+      regroup_particles(pos, vel, pbest_pos, pbest_val, current_val, dim, rank,
+                        size, global_gen, n_points_total, regroup_ctx);
 
-    int num_sub_swarms = swarm.size() / params.sub_swarm_size;
-    int remainder = swarm.size() % params.sub_swarm_size;
+    int num_sub_swarms = n_points_per_rank / params.sub_swarm_size;
+    int remainder = n_points_per_rank % params.sub_swarm_size;
 
     for (int s = 0; s < num_sub_swarms; ++s) {
       int start = s * params.sub_swarm_size;
-      int end = std::min(start + params.sub_swarm_size, (int)swarm.size());
-      process_sub_swarm(swarm, start, end, dim, lb, ub, v_max, params, f, gen,
-                        iter, max_iter, hs_buffer);
+      int end = start + params.sub_swarm_size;
+      process_sub_swarm(pos, vel, pbest_pos, pbest_val, current_val, start, end,
+                        dim, lb, ub, v_max, params, f, gen, iter, max_iter,
+                        hs_buffer);
     }
     if (remainder > 0) {
       int start = num_sub_swarms * params.sub_swarm_size;
-      process_sub_swarm(swarm, start, (int)swarm.size(), dim, lb, ub, v_max,
-                        params, f, gen, iter, max_iter, hs_buffer);
+      process_sub_swarm(pos, vel, pbest_pos, pbest_val, current_val, start,
+                        n_points_per_rank, dim, lb, ub, v_max, params, f, gen,
+                        iter, max_iter, hs_buffer);
     }
 
     struct {
@@ -411,9 +436,9 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
     local_min.val = std::numeric_limits<double>::max();
     local_min.rank = rank;
     int local_best_idx = -1;
-    for (int i = 0; i < (int)swarm.size(); ++i) {
-      if (swarm[i].best_value < local_min.val) {
-        local_min.val = swarm[i].best_value;
+    for (int i = 0; i < (int)n_points_per_rank; ++i) {
+      if (pbest_val[i] < local_min.val) {
+        local_min.val = pbest_val[i];
         local_best_idx = i;
       }
     }
@@ -421,16 +446,22 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
                   MPI_COMM_WORLD);
 
     std::vector<double> global_best_pos(dim);
-    if (rank == global_min.rank && local_best_idx != -1)
-      global_best_pos = swarm[local_best_idx].best_position;
+    if (rank == global_min.rank && local_best_idx != -1) {
+      for (unsigned int d = 0; d < dim; ++d)
+        global_best_pos[d] = pbest_pos[local_best_idx * dim + d];
+    }
     MPI_Bcast(global_best_pos.data(), dim, MPI_DOUBLE, global_min.rank,
               MPI_COMM_WORLD);
 
-    // Diversity: average distance from the global best
     double local_sum = 0.0;
-    for (const auto &p : swarm)
-      local_sum +=
-          std::sqrt(euclidean_dist_squared(p.position, global_best_pos));
+    for (unsigned int i = 0; i < n_points_per_rank; ++i) {
+      double d_sq = 0.0;
+      for (unsigned int d = 0; d < dim; ++d) {
+        double diff = pos[i * dim + d] - global_best_pos[d];
+        d_sq += diff * diff;
+      }
+      local_sum += std::sqrt(d_sq);
+    }
 
     double global_sum_dist = 0.0;
     MPI_Allreduce(&local_sum, &global_sum_dist, 1, MPI_DOUBLE, MPI_SUM,
@@ -444,8 +475,6 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
     stop_manager.increment_iterations();
     iter++;
 
-    // The stop flag is decided only by rank 0 and then broadcast,
-    // so that all ranks exit at the same iteration (avoids MPI deadlocks).
     int stop_flag = 0;
     if (rank == 0)
       stop_flag =
@@ -462,15 +491,17 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   loc.val = std::numeric_limits<double>::max();
   loc.rank = rank;
   int best_local_idx = -1;
-  for (int i = 0; i < (int)swarm.size(); ++i) {
-    if (swarm[i].best_value < loc.val) {
-      loc.val = swarm[i].best_value;
+  for (int i = 0; i < (int)n_points_per_rank; ++i) {
+    if (pbest_val[i] < loc.val) {
+      loc.val = pbest_val[i];
       best_local_idx = i;
     }
   }
   MPI_Allreduce(&loc, &glob, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD);
-  if (rank == glob.rank && best_local_idx != -1)
-    results.x_best = swarm[best_local_idx].best_position;
+  if (rank == glob.rank && best_local_idx != -1) {
+    for (unsigned int d = 0; d < dim; ++d)
+      results.x_best[d] = pbest_pos[best_local_idx * dim + d];
+  }
   MPI_Bcast(results.x_best.data(), dim, MPI_DOUBLE, glob.rank, MPI_COMM_WORLD);
   results.f_val = glob.val;
   results.execution_time = MPI_Wtime() - start_time;
