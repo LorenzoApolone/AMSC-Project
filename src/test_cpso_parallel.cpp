@@ -1,5 +1,5 @@
 #include "cpso/CPSOParallel.hpp"
-#include "functions.cpp"
+#include "functions.hpp"
 #include "interfaces/StoppingCriteriaManager.hpp"
 #include <iostream>
 #include <memory>

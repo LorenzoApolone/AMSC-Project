@@ -1,9 +1,11 @@
 #include "CPSOBase.hpp"
-#include <cmath>
 #include <chrono>
 
 #if __has_include(<mpi.h>)
 #include <mpi.h>
+#define CPSO_HAVE_MPI 1
+#else
+#define CPSO_HAVE_MPI 0
 #endif
 
 // Constructor for uniform topology
@@ -33,56 +35,33 @@ CPSOBase::CPSOBase(int k_subswarms, int num_particles_per_swarm,
   }
 }
 
-// Method that computes the average distance between particles and the global best position
-void CPSOBase::compute_avg_distance(int iter, const std::vector<SubSwarm>& swarms, 
-                                    const std::vector<double>& current_gbest_pos, 
-                                    double& last_avg_distance, 
-                                    int local_start_idx, int local_end_idx, bool use_mpi) {
-
-  // Compute average distance on the first iter, and then every 10 iterations
-  if (iter == 1 || iter % 10 == 0) {
-    std::vector<double> local_dist_sq(particles_per_swarm, 0.0);
-    for (int p = 0; p < particles_per_swarm; ++p) {
-      for (int i = local_start_idx; i < local_end_idx; ++i) {
-        const auto &particle = swarms[i].get_particles()[p];
-        const auto &active_dims = swarms[i].get_active_dims();
-        for (size_t d = 0; d < active_dims.size(); ++d) {
-          double diff = particle.position[d] - current_gbest_pos[active_dims[d]];
-          local_dist_sq[p] += diff * diff;
-        }
-      }
-    }
-
-    std::vector<double> global_dist_sq(particles_per_swarm, 0.0);
-    
-    // Use MPI in the parallel case, otherwise it uses the local distances
-    if (use_mpi) {
-#ifdef MPI_VERSION
-      MPI_Allreduce(local_dist_sq.data(), global_dist_sq.data(),
-                    particles_per_swarm, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-#endif
-    } else {
-      global_dist_sq = local_dist_sq;
-    }
-
-    double total_distance = 0.0;
-    for (int p = 0; p < particles_per_swarm; ++p) {
-      total_distance += std::sqrt(global_dist_sq[p]);
-    }
-    last_avg_distance = total_distance / particles_per_swarm;
-  }
-}
 
 // Optimization loop
 OutputObject CPSOBase::optimize(const TestFunction &f, StoppingCriteriaManager &stop_manager) {
   auto start_time = std::chrono::high_resolution_clock::now();
 
+  // Validation checks
+  if (num_subswarms > static_cast<int>(f.dim)) {
+      throw std::invalid_argument("number of subswarms must be <= function dimension");
+  }
+
   // Generating random number generators for each subswarm
+  std::random_device rd;
+  unsigned int master_seed = rd();
+
+#if CPSO_HAVE_MPI
+  int mpi_initialized = 0;
+  MPI_Initialized(&mpi_initialized);
+  if (mpi_initialized) {
+    MPI_Bcast(&master_seed, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+  }
+#endif
+
   std::vector<std::mt19937> gens(num_subswarms);
   for (int i = 0; i < num_subswarms; ++i) {
-    gens[i] = std::mt19937(1337 + i);
+    gens[i] = std::mt19937(master_seed + 1 + i);
   }
-  std::mt19937 global_gen(1337);
+  std::mt19937 global_gen(master_seed);
 
   // Domain Decomposition depending on how many subswarm we have
   int total_dim = f.dim;
@@ -90,6 +69,7 @@ OutputObject CPSOBase::optimize(const TestFunction &f, StoppingCriteriaManager &
   int dims_per_swarm = total_dim / num_subswarms;
   int remainder = total_dim % num_subswarms;
 
+  // Creating the subswarms array
   std::vector<SubSwarm> swarms;
   swarms.reserve(num_subswarms);
 
@@ -122,11 +102,15 @@ OutputObject CPSOBase::optimize(const TestFunction &f, StoppingCriteriaManager &
 
   // Creating the Global Context Vector
   ContextVector context(total_dim);
-  std::vector<double> init_vec(total_dim);
   
-  // Set the initial global best position to the mid-point of the domain
-  context.set_full_vector(std::vector<double>(total_dim, bounds.first + (bounds.second - bounds.first) / 2.0),
-                          std::numeric_limits<double>::infinity());
+  // Random Initialization instead of Mid-Point
+  std::uniform_real_distribution<double> dist_init(bounds.first, bounds.second);
+  std::vector<double> init_vec(total_dim);
+  for (int i = 0; i < total_dim; ++i) {
+      init_vec[i] = dist_init(global_gen);
+  }
+  
+  context.set_full_vector(init_vec, f.value(init_vec));
 
   OutputObject out = run_optimization_loop(f, stop_manager, swarms, gens, context, global_gen);
 

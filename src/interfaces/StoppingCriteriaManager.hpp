@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <limits>
+#include <algorithm>
 
 /**
  * @class StoppingCriteriaManager
@@ -14,6 +15,7 @@ private:
 
   double stagnation_tolerance;
 
+  double stagnation_rel_tolerance;
   double diversity_tolerance;
 
   int current_iters;
@@ -23,13 +25,24 @@ private:
 public:
   StoppingCriteriaManager(int max_iters_limit, int stagnation_iters_limit = 50,
                           double stagnation_tol = 1e-6,
+                          double stagnation_rel_tol = 1e-4,
                           double diversity_tol = 1e-4)
       : max_iters(max_iters_limit),
         max_stagnation_iters(stagnation_iters_limit),
         stagnation_tolerance(stagnation_tol),
+        stagnation_rel_tolerance(stagnation_rel_tol),
         diversity_tolerance(diversity_tol), current_iters(0),
         current_stagnation_iters(0),
         last_best_fitness(std::numeric_limits<double>::infinity()) {}
+
+  /**
+   * @brief Determines if an improvement is significant based on absolute and relative thresholds.
+   */
+  bool is_significant_improvement(double prev_fitness, double current_fitness) const {
+    double diff = std::abs(prev_fitness - current_fitness);
+    double rel_diff = diff / std::max(1.0, std::abs(prev_fitness));
+    return (diff >= stagnation_tolerance || rel_diff >= stagnation_rel_tolerance);
+  }
 
   /**
    * @brief Base evaluations for stopping criteria (fevals and stagnation).
@@ -41,8 +54,7 @@ public:
     }
 
     // Stagnation Control
-    if (std::abs(last_best_fitness - current_best_fitness) <
-        stagnation_tolerance) {
+    if (!is_significant_improvement(last_best_fitness, current_best_fitness)) {
       current_stagnation_iters++;
     } else {
       // Significant improvement, reset the counter if there is a significant
@@ -60,11 +72,28 @@ public:
   }
 
   /**
+   * @brief Returns whether the stagnation limit is reached.
+   * Can be used externally to trigger escape injections.
+   */
+  bool is_stagnating() const {
+    return current_stagnation_iters >= max_stagnation_iters;
+  }
+
+  /**
+   * @brief Resets the stagnation counter when injections occur.
+   */
+  void reset_stagnation() {
+    current_stagnation_iters = 0;
+  }
+
+  /**
    * @brief Increments the iterations counter by 1
    */
   void increment_iterations() { current_iters++; }
 
   int get_current_iters() const { return current_iters; }
+
+  int get_current_stagnation_iters() const { return current_stagnation_iters; }
 
   int get_max_iters() const { return max_iters; }
 
