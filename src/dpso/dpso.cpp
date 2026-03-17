@@ -15,6 +15,7 @@
 #include <numeric>
 #include <random>
 #include <vector>
+#include <stdexcept>
 
 /**
  * @brief Generates a random double within [min, max).
@@ -76,15 +77,12 @@ double euclidean_dist_squared(const std::vector<double> &v1,
  * @param params Algorithm parameters.
  * @param new_harmony Buffer for harmony search results.
  */
-static void apply_harmony_search(const std::vector<double> &pbest_pos,
-                                 std::vector<double> &pbest_val, int start_idx,
-                                 int end_idx, int dim, const TestFunction &f,
-                                 std::mt19937 &gen,
-                                 const std::vector<double> &lower_bound,
-                                 const std::vector<double> &upper_bound,
-                                 int current_iter, int max_iter,
-                                 const DPSOParameters &params,
-                                 std::vector<double> &new_harmony) {
+static void apply_harmony_search(
+    const std::vector<double> &pbest_pos, std::vector<double> &pbest_val,
+    int start_idx, int end_idx, int dim, const TestFunction &f,
+    std::mt19937 &gen, const std::vector<double> &lower_bound,
+    const std::vector<double> &upper_bound, int current_iter, int max_iter,
+    const DPSOParameters &params, std::vector<double> &new_harmony) {
   int sub_swarm_size = end_idx - start_idx;
   if (sub_swarm_size <= 0)
     return;
@@ -127,10 +125,11 @@ static void apply_harmony_search(const std::vector<double> &pbest_pos,
   }
   if (nearest_idx != -1 && new_val < pbest_val[nearest_idx]) {
     for (int d = 0; d < dim; ++d) {
-      const_cast<std::vector<double> &>(pbest_pos)[nearest_idx * dim + d] =
-          new_harmony[d];
+      pbest_pos[nearest_idx * dim + d] = new_harmony[d];
+      pos[nearest_idx * dim + d] = new_harmony[d];
     }
     pbest_val[nearest_idx] = new_val;
+    current_val[nearest_idx] = new_val;
   }
 }
 
@@ -155,18 +154,14 @@ static void apply_harmony_search(const std::vector<double> &pbest_pos,
  * @param max_iter Maximum number of iterations.
  * @param hs_buffer Reusable buffer for harmony search.
  */
-static void process_sub_swarm(std::vector<double> &pos, std::vector<double> &vel,
-                              std::vector<double> &pbest_pos,
-                              std::vector<double> &pbest_val,
-                              std::vector<double> &current_val, int start,
-                              int end, unsigned int dim,
-                              const std::vector<double> &lb,
-                              const std::vector<double> &ub,
-                              const std::vector<double> &v_max,
-                              const DPSOParameters &params,
-                              const TestFunction &f, std::mt19937 &gen,
-                              int iter, int max_iter,
-                              std::vector<double> &hs_buffer) {
+static void process_sub_swarm(
+    std::vector<double> &pos, std::vector<double> &vel,
+    std::vector<double> &pbest_pos, std::vector<double> &pbest_val,
+    std::vector<double> &current_val, int start, int end, unsigned int dim,
+    const std::vector<double> &lb, const std::vector<double> &ub,
+    const std::vector<double> &v_max, const DPSOParameters &params,
+    const TestFunction &f, std::mt19937 &gen, int iter, int max_iter,
+    std::vector<double> &hs_buffer) {
   int lbest_idx = -1;
   double lbest_val = std::numeric_limits<double>::max();
   for (int i = start; i < end; ++i) {
@@ -212,7 +207,7 @@ static void process_sub_swarm(std::vector<double> &pos, std::vector<double> &vel
         pbest_pos[i * dim + d] = pos[i * dim + d];
     }
   }
-  apply_harmony_search(pbest_pos, pbest_val, start, end, dim, f, gen, lb, ub,
+  apply_harmony_search(pos, current_val, pbest_pos, pbest_val, start, end, dim, f, gen, lb, ub,
                        iter, max_iter, params, hs_buffer);
 }
 
@@ -222,8 +217,10 @@ static void process_sub_swarm(std::vector<double> &pos, std::vector<double> &vel
  */
 struct RegroupContext {
   std::vector<double> send_buffer;
+  std::vector<int> sendcounts;
+  std::vector<int> sdispls;
   std::vector<int> recvcounts;
-  std::vector<int> displs;
+  std::vector<int> rdispls;
   std::vector<double> recv_buffer;
   std::vector<int> indices;
 };
@@ -252,36 +249,20 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
   int local_n = current_val.size();
   int p_data_size = 3 * dim + 2;
 
-  ctx.send_buffer.clear();
-  ctx.send_buffer.reserve(local_n * p_data_size);
-  for (int i = 0; i < local_n; ++i) {
-    ctx.send_buffer.insert(ctx.send_buffer.end(), pos.begin() + i * dim,
-                           pos.begin() + (i + 1) * dim);
-    ctx.send_buffer.insert(ctx.send_buffer.end(), vel.begin() + i * dim,
-                           vel.begin() + (i + 1) * dim);
-    ctx.send_buffer.insert(ctx.send_buffer.end(), pbest_pos.begin() + i * dim,
-                           pbest_pos.begin() + (i + 1) * dim);
-    ctx.send_buffer.push_back(pbest_val[i]);
-    ctx.send_buffer.push_back(current_val[i]);
-  }
-
-  ctx.recvcounts.resize(size);
-  ctx.displs.resize(size);
-  int current_displ = 0;
+  // Compute distribution of particles
+  std::vector<int> counts(size);
+  std::vector<int> starts(size);
+  int current_start = 0;
   for (int i = 0; i < size; ++i) {
     int count = total_particles / size;
     if (i < total_particles % size)
       count++;
-    ctx.recvcounts[i] = count * p_data_size;
-    ctx.displs[i] = current_displ;
-    current_displ += ctx.recvcounts[i];
+    counts[i] = count;
+    starts[i] = current_start;
+    current_start += count;
   }
 
-  ctx.recv_buffer.resize(total_particles * p_data_size);
-  MPI_Allgatherv(ctx.send_buffer.data(), ctx.send_buffer.size(), MPI_DOUBLE,
-                 ctx.recv_buffer.data(), ctx.recvcounts.data(),
-                 ctx.displs.data(), MPI_DOUBLE, MPI_COMM_WORLD);
-
+  // Generate / broadcast permutation
   if (rank == 0) {
     ctx.indices.resize(total_particles);
     std::iota(ctx.indices.begin(), ctx.indices.end(), 0);
@@ -289,30 +270,109 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
   } else {
     ctx.indices.resize(total_particles);
   }
-
   MPI_Bcast(ctx.indices.data(), total_particles, MPI_INT, 0, MPI_COMM_WORLD);
 
-  int global_idx_start = 0;
-  for (int i = 0; i < rank; ++i) {
-    int count = total_particles / size;
-    if (i < total_particles % size)
-      count++;
-    global_idx_start += count;
+  // ctx.indices[k] = original global index of the particle that will be at new
+  // global index k
+  std::vector<int> inv_indices(total_particles);
+  for (int k = 0; k < total_particles; ++k) {
+    inv_indices[ctx.indices[k]] = k;
   }
 
-  for (int i = 0; i < local_n; ++i) {
-    int picked = ctx.indices[global_idx_start + i];
-    int base = picked * p_data_size;
-    int off = 0;
-    std::copy_n(ctx.recv_buffer.begin() + base + off, dim, pos.begin() + i * dim);
-    off += dim;
-    std::copy_n(ctx.recv_buffer.begin() + base + off, dim, vel.begin() + i * dim);
-    off += dim;
-    std::copy_n(ctx.recv_buffer.begin() + base + off, dim,
-                pbest_pos.begin() + i * dim);
-    off += dim;
-    pbest_val[i] = ctx.recv_buffer[base + off++];
-    current_val[i] = ctx.recv_buffer[base + off++];
+  // Count how many particles we send to and receive from each rank
+  ctx.sendcounts.assign(size, 0);
+  ctx.recvcounts.assign(size, 0);
+
+  std::vector<int> dest_ranks(local_n);
+  for (int j = 0; j < local_n; ++j) {
+    int orig_g = starts[rank] + j;
+    int k = inv_indices[orig_g];
+    int d_rank = 0;
+    while (d_rank < size - 1 && k >= starts[d_rank + 1]) {
+      d_rank++;
+    }
+    dest_ranks[j] = d_rank;
+    ctx.sendcounts[d_rank] += p_data_size;
+  }
+
+  std::vector<int> src_ranks(local_n);
+  for (int j = 0; j < local_n; ++j) {
+    int k = starts[rank] + j;
+    int orig_g = ctx.indices[k];
+    int s_rank = 0;
+    while (s_rank < size - 1 && orig_g >= starts[s_rank + 1]) {
+      s_rank++;
+    }
+    src_ranks[j] = s_rank;
+    ctx.recvcounts[s_rank] += p_data_size;
+  }
+
+  ctx.sdispls.assign(size, 0);
+  ctx.rdispls.assign(size, 0);
+  for (int i = 1; i < size; ++i) {
+    ctx.sdispls[i] = ctx.sdispls[i - 1] + ctx.sendcounts[i - 1];
+    ctx.rdispls[i] = ctx.rdispls[i - 1] + ctx.recvcounts[i - 1];
+  }
+
+  // Pack send_buffer ordered by destination rank
+  ctx.send_buffer.resize(local_n * p_data_size);
+  std::vector<int> current_sdispl = ctx.sdispls;
+  for (int j = 0; j < local_n; ++j) {
+    int d_rank = dest_ranks[j];
+    int offset = current_sdispl[d_rank];
+
+    std::copy_n(pos.begin() + j * dim, dim, ctx.send_buffer.begin() + offset);
+    offset += dim;
+    std::copy_n(vel.begin() + j * dim, dim, ctx.send_buffer.begin() + offset);
+    offset += dim;
+    std::copy_n(pbest_pos.begin() + j * dim, dim,
+                ctx.send_buffer.begin() + offset);
+    offset += dim;
+    ctx.send_buffer[offset++] = pbest_val[j];
+    ctx.send_buffer[offset++] = current_val[j];
+
+    current_sdispl[d_rank] += p_data_size;
+  }
+
+  // Allocate recv_buffer
+  ctx.recv_buffer.resize(local_n * p_data_size);
+
+  // Alltoallv to exchange selectively
+  MPI_Alltoallv(ctx.send_buffer.data(), ctx.sendcounts.data(),
+                ctx.sdispls.data(), MPI_DOUBLE, ctx.recv_buffer.data(),
+                ctx.recvcounts.data(), ctx.rdispls.data(), MPI_DOUBLE,
+                MPI_COMM_WORLD);
+
+  // Unpack recv_buffer into our local particles
+  std::vector<std::vector<int>> recv_j_by_src(size);
+  for (int j = 0; j < local_n; ++j) {
+    recv_j_by_src[src_ranks[j]].push_back(j);
+  }
+
+  for (int s = 0; s < size; ++s) {
+    if (recv_j_by_src[s].empty())
+      continue;
+
+    // Sort local indices by their original global index so we unpack in the
+    // same order they were packed
+    std::sort(recv_j_by_src[s].begin(), recv_j_by_src[s].end(),
+              [&](int j1, int j2) {
+                return ctx.indices[starts[rank] + j1] <
+                       ctx.indices[starts[rank] + j2];
+              });
+
+    int offset = ctx.rdispls[s];
+    for (int j : recv_j_by_src[s]) {
+      std::copy_n(ctx.recv_buffer.begin() + offset, dim, pos.begin() + j * dim);
+      offset += dim;
+      std::copy_n(ctx.recv_buffer.begin() + offset, dim, vel.begin() + j * dim);
+      offset += dim;
+      std::copy_n(ctx.recv_buffer.begin() + offset, dim,
+                  pbest_pos.begin() + j * dim);
+      offset += dim;
+      pbest_val[j] = ctx.recv_buffer[offset++];
+      current_val[j] = ctx.recv_buffer[offset++];
+    }
   }
 }
 
@@ -346,14 +406,9 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   }
 
   if (n_points_per_rank < (unsigned int)params.sub_swarm_size) {
-    if (rank == 0) {
-      std::cerr << "Error: particles per rank (" << n_points_per_rank
-                << ") less than sub-swarm size (" << params.sub_swarm_size
-                << ").\n";
-    }
-    return OutputObject(f.get_name(), dim, n_points_total, {},
-                        f.get_true_solution(), 0.0, {}, size, 0.0, 0,
-                        stop_manager);
+    throw std::invalid_argument("Error: particles per rank (" + std::to_string(n_points_per_rank) +
+                                ") less than sub-swarm size (" + std::to_string(params.sub_swarm_size) +
+                                ").");
   }
 
   const auto &domain = f.get_domain();

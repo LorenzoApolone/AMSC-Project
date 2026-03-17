@@ -21,6 +21,7 @@
 #include <numeric>
 #include <random>
 #include <vector>
+#include <stdexcept>
 
 /**
  * @brief Generates a random double within [min, max).
@@ -84,7 +85,8 @@ static double euclidean_dist_squared_serial(const std::vector<double> &v1,
  * @param new_harmony Reusable buffer vector for the generated local harmony.
  */
 static void apply_harmony_search_serial(
-    const std::vector<double> &pbest_pos, std::vector<double> &pbest_val,
+    std::vector<double> &pos, std::vector<double> &current_val,
+    std::vector<double> &pbest_pos, std::vector<double> &pbest_val,
     int start_idx, int end_idx, int dim, const TestFunction &f,
     std::mt19937 &gen, const std::vector<double> &lower_bound,
     const std::vector<double> &upper_bound, int current_iter, int max_iter,
@@ -131,10 +133,11 @@ static void apply_harmony_search_serial(
   }
   if (nearest_idx != -1 && new_val < pbest_val[nearest_idx]) {
     for (int d = 0; d < dim; ++d) {
-      const_cast<std::vector<double> &>(pbest_pos)[nearest_idx * dim + d] =
-          new_harmony[d];
+      pbest_pos[nearest_idx * dim + d] = new_harmony[d];
+      pos[nearest_idx * dim + d] = new_harmony[d];
     }
     pbest_val[nearest_idx] = new_val;
+    current_val[nearest_idx] = new_val;
   }
 }
 
@@ -229,7 +232,7 @@ static void process_sub_swarm_serial(
         pbest_pos[i * dim + d] = pos[i * dim + d];
     }
   }
-  apply_harmony_search_serial(pbest_pos, pbest_val, start, end, dim, f, gen, lb,
+  apply_harmony_search_serial(pos, current_val, pbest_pos, pbest_val, start, end, dim, f, gen, lb,
                               ub, iter, max_iter, params, hs_buffer);
 }
 
@@ -302,12 +305,9 @@ OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
   StoppingCriteriaManager stop_manager(max_iter, 2000, convergence_tol, 1e-3);
 
   if (n_points_total < (unsigned int)params.sub_swarm_size) {
-    std::cerr << "Error: total particles (" << n_points_total
-              << ") less than sub-swarm size (" << params.sub_swarm_size
-              << ").\n";
-    return OutputObject(f.get_name(), dim, n_points_total, {},
-                        f.get_true_solution(), 0.0, {}, 1, 0.0, 0,
-                        stop_manager);
+    throw std::invalid_argument("Error: total particles (" + std::to_string(n_points_total) +
+                                ") less than sub-swarm size (" + std::to_string(params.sub_swarm_size) +
+                                ").");
   }
 
   const auto &domain = f.get_domain();

@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <stdexcept>
 
 std::unordered_map<std::string, DPSOParameters>
 parse_params(const std::string &filename, int rank) {
@@ -199,25 +200,33 @@ int main(int argc, char **argv) {
       current_params = all_params["GLOBAL"];
     }
 
-    OutputObject res =
-        dpso(*f_ptr, dim, ppr, iters, current_params, true_convergence_tol);
-    double fval = f_ptr->value(res.x_best);
-    double err = f_ptr->error(res.x_best);
-    bool true_converged = err < true_convergence_tol;
-    if (rank == 0) {
-      std::cout << std::left << std::setw(22) << name << std::right
-                << std::setw(6) << dim << std::setw(8) << ppr // total particles
-                << std::setw(8) << iters << "   " << std::scientific
-                << std::setprecision(4) << std::setw(13) << fval << "   "
-                << std::setw(13) << err << "   " << std::fixed
-                << std::setprecision(2) << std::setw(8) << res.execution_time
-                << "s" << std::endl;
-      if (res.iterations >= iters)
-        stopped_by_max_iter++;
-      else if (!true_converged)
-        incorrect_early_stop++;
-      if (true_converged)
-        correct_total++;
+    try {
+      OutputObject res =
+          dpso(*f_ptr, dim, ppr, iters, current_params, 1e-6);
+      double fval = f_ptr->value(res.x_best);
+      double err = f_ptr->error(res.x_best);
+      bool true_converged = err < true_convergence_tol;
+      if (rank == 0) {
+        std::cout << std::left << std::setw(22) << name << std::right
+                  << std::setw(6) << dim << std::setw(8) << ppr // total particles
+                  << std::setw(8) << iters << "   " << std::scientific
+                  << std::setprecision(4) << std::setw(13) << fval << "   "
+                  << std::setw(13) << err << "   " << std::fixed
+                  << std::setprecision(2) << std::setw(8) << res.execution_time
+                  << "s" << std::endl;
+        if (res.iterations >= iters)
+          stopped_by_max_iter++;
+        else if (!true_converged)
+          incorrect_early_stop++;
+        if (true_converged)
+          correct_total++;
+      }
+    } catch (const std::invalid_argument& e) {
+      if (rank == 0) {
+        std::cerr << "Configuration Error for " << name << ": " << e.what() << "\n";
+      }
+      MPI_Finalize();
+      return 1;
     }
   }
   if (rank == 0)
