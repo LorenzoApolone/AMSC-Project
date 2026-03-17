@@ -204,7 +204,8 @@ int main(int argc, char **argv)
                                              "Bohachevsky",
                                              "Powell",
                                              "DixonPrice",
-                                             "StyblinskiTang", "QuinticFunction"};
+                                             "StyblinskiTang", 
+                                             "QuinticFunction"};
 
 
   int rank;

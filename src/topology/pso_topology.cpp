@@ -205,15 +205,18 @@ OutputObject pso_topology(const TestFunction &f,
 
     double t_start = MPI_Wtime();
 
+    std::vector<double> old_pbest_val = pbest_val;
+    std::vector<double> old_pbest_pos = pbest_pos;
+
     std::vector<MPI_Request> requests;
     requests.reserve(send_ranks.size() + recv_ranks.size());
 
     for (int r : send_ranks) {
       int idx = 0;
       for (int local_i : export_particles[r]) {
-        send_buffers[r][idx++] = pbest_val[local_i];
+        send_buffers[r][idx++] = old_pbest_val[local_i];
         for (int j = 0; j < d; ++j) {
-          send_buffers[r][idx++] = pbest_pos[local_i * d + j];
+          send_buffers[r][idx++] = old_pbest_pos[local_i * d + j];
         }
       }
       MPI_Request req;
@@ -254,7 +257,7 @@ OutputObject pso_topology(const TestFunction &f,
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
       int best_gid = gid;
-      double best_val = pbest_val[i];
+      double best_val = old_pbest_val[i];
 
       for (int neigh : adjacency_list[gid]) {
         if (neigh < 0 || neigh >= n_points) {
@@ -265,7 +268,7 @@ OutputObject pso_topology(const TestFunction &f,
         
         double neigh_val;
         if (particle_owner[neigh] == rank) {
-          neigh_val = pbest_val[neigh - displs[rank]];
+          neigh_val = old_pbest_val[neigh - displs[rank]];
         } else {
           int gidx = gid_to_ghost_idx[neigh];
           neigh_val = ghost_val[gidx];
@@ -283,7 +286,7 @@ OutputObject pso_topology(const TestFunction &f,
         double lbest_j;
         
         if (particle_owner[best_gid] == rank) {
-          lbest_j = pbest_pos[(best_gid - displs[rank]) * d + j];
+          lbest_j = old_pbest_pos[(best_gid - displs[rank]) * d + j];
         } else {
           int gidx = gid_to_ghost_idx[best_gid];
           lbest_j = ghost_pos[gidx * d + j];
@@ -293,7 +296,7 @@ OutputObject pso_topology(const TestFunction &f,
 
         vel[idx] =
             current_w * vel[idx] +
-            PSOHyperparameters::C1 * r1 * (pbest_pos[idx] - pos[idx]) +
+            PSOHyperparameters::C1 * r1 * (old_pbest_pos[idx] - pos[idx]) +
             PSOHyperparameters::C2 * r2 * (lbest_j - pos[idx]);
 
         pos[idx] += vel[idx];
@@ -368,8 +371,7 @@ OutputObject pso_topology(const TestFunction &f,
     // 4) Stopping criterion, the check is done only on rank 0.
     int stop_signal = 0;
     if (rank == 0) {
-      double err = f.error(gbest_pos);
-      history.push_back(err);
+      history.push_back(gbest_val);
       if (stop.should_stop(gbest_val, avg_distance)) {
          stop_signal = 1;
          

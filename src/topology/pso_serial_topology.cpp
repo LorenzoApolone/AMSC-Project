@@ -90,6 +90,9 @@ OutputObject pso_serial_topology(const TestFunction &f,
         ((PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) *
          static_cast<double>(iter) / static_cast<double>(max_iter_limit));
 
+    std::vector<double> old_pbest_val = pbest_val;
+    auto old_pbest_pos = pbest_pos;
+
     // For each particle compute lbest from adjacency list
     for (int i = 0; i < local_n; ++i) {
       int gid = i; // in serial local id == global id
@@ -101,7 +104,7 @@ OutputObject pso_serial_topology(const TestFunction &f,
 
       // Find best among {gid} U neighbors(gid)
       int best_gid = gid;
-      double best_val = pbest_val[gid];
+      double best_val = old_pbest_val[gid];
 
       for (int neigh : adjacency_list[gid]) {
         if (neigh < 0 || neigh >= n_points) {
@@ -110,8 +113,8 @@ OutputObject pso_serial_topology(const TestFunction &f,
           std::exit(1);
         }
 
-        if (pbest_val[neigh] < best_val) {
-          best_val = pbest_val[neigh];
+        if (old_pbest_val[neigh] < best_val) {
+          best_val = old_pbest_val[neigh];
           best_gid = neigh;
         }
       }
@@ -120,11 +123,11 @@ OutputObject pso_serial_topology(const TestFunction &f,
       for (int j = 0; j < d; ++j) {
         double r1 = dis_01(gen);
         double r2 = dis_01(gen);
-        double lbest_j = pbest_pos[best_gid][j];
+        double lbest_j = old_pbest_pos[best_gid][j];
 
         vel[i][j] =
             current_w * vel[i][j] +
-            PSOHyperparameters::C1 * r1 * (pbest_pos[i][j] - pos[i][j]) +
+            PSOHyperparameters::C1 * r1 * (old_pbest_pos[i][j] - pos[i][j]) +
             PSOHyperparameters::C2 * r2 * (lbest_j - pos[i][j]);
 
         pos[i][j] += vel[i][j];
@@ -166,8 +169,7 @@ OutputObject pso_serial_topology(const TestFunction &f,
     double avg_distance = sum_dist / static_cast<double>(n_points);
 
     // Stopping criterion
-    double err = f.error(gbest_pos);
-    history.push_back(err);
+    history.push_back(gbest_val);
 
     if (stop.should_stop(gbest_val, avg_distance)) {
       must_stop = true;
