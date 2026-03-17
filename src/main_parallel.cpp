@@ -167,6 +167,7 @@ int main(int argc, char **argv)
   factory["Powell"] = [](unsigned int dim){ return std::make_unique<Powell>(dim); };
   factory["DixonPrice"] = [](unsigned int dim){ return std::make_unique<DixonPrice>(dim); };
   factory["StyblinskiTang"] = [](unsigned int dim){ return std::make_unique<StyblinskiTang>(dim); };
+  factory["QuinticFunction"] = [](unsigned int dim){ return std::make_unique<QuinticFunction>(dim); };
 
   // List of functions to execute (maintaining the previous order)
   std::vector<std::string> function_names = {"Sphere",
@@ -203,7 +204,7 @@ int main(int argc, char **argv)
                                              "Bohachevsky",
                                              "Powell",
                                              "DixonPrice",
-                                             "StyblinskiTang"};
+                                             "StyblinskiTang", "QuinticFunction"};
 
 
   int rank;

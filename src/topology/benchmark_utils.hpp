@@ -221,6 +221,7 @@ static FunctionFactory build_factory()
     factory["Powell"] = [](unsigned int dim){ return std::make_unique<Powell>(dim); };
     factory["DixonPrice"] = [](unsigned int dim){ return std::make_unique<DixonPrice>(dim); };
     factory["StyblinskiTang"] = [](unsigned int dim){ return std::make_unique<StyblinskiTang>(dim); };
+    factory["QuinticFunction"] = [](unsigned int dim){ return std::make_unique<QuinticFunction>(dim); };
     return factory;
 }
 
@@ -237,7 +238,8 @@ static std::vector<std::string> build_function_names()
         "BentCigar","PermdbFunc","Schafferf7Func","ExpSchafferF6","RotatedHyper","Schwefel",
         "SumOfDifferentPowers2","XinSheYang1","Schwefel221","Schwefel222","Salomon",
         "ModifiedRidge","Zakharov","ModifiedXinSheYang3","ModifiedXinSheYang5",
-        "Levy","Michalewicz","Bohachevsky","Powell","DixonPrice","StyblinskiTang"
+        "Levy","Michalewicz","Bohachevsky","Powell","DixonPrice","StyblinskiTang",
+        "QuinticFunction"
     };
 }
 
