@@ -275,6 +275,7 @@ static ExperimentStats run_topology_experiment(
     double delta_x,
     int iterations_stagnation,
     double stagnation_tol,
+    double stagnation_rel_tol,
     double diversity_tol,
     double p_rewiring,
     double p_random,
@@ -308,6 +309,7 @@ static ExperimentStats run_topology_experiment(
         StoppingCriteriaManager stop(max_iter,
                                      iterations_stagnation,
                                      stagnation_tol,
+                                     stagnation_rel_tol,
                                      diversity_tol);
 
         bcast_adjacency_list(adjacency_list, static_cast<int>(n_points), rank);
@@ -354,6 +356,7 @@ static ExperimentStats run_classic_experiment(
     double delta_x,
     int iterations_stagnation,
     double stagnation_tol,
+    double stagnation_rel_tol,
     double diversity_tol,
     const std::vector<std::string>& function_names,
     const FunctionFactory& factory)
@@ -412,6 +415,7 @@ static ExperimentStats run_serial_topology_experiment(
     double delta_x,
     int iterations_stagnation,
     double stagnation_tol,
+    double stagnation_rel_tol,
     double diversity_tol,
     double p_rewiring,
     double p_random,
@@ -442,6 +446,7 @@ static ExperimentStats run_serial_topology_experiment(
         StoppingCriteriaManager stop(max_iter,
                                      iterations_stagnation,
                                      stagnation_tol,
+                                     stagnation_rel_tol,
                                      diversity_tol);
 
         OutputObject result = pso_serial_topology(*function,

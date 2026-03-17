@@ -56,6 +56,7 @@ int main(int argc, char **argv)
   int m = 3;                                // for scale-free network, number of edges of each new node
   int iterations_stagnation = max_iter/2.2; // number of iterations for stagnation control
   double stagnation_tol = 1e-10;            // tolerance for stagnation-based stopping
+  double stagnation_rel_tol = 1e-8;         // relative tolerance for stagnation-based stopping
   double diversity_tol = 1e-8;              // diversity tolerance for stopping criteria
   double p_rewiring = 0.05;                 // rewiring probability for small-world network
   double p_random = 0.08;                   // edge probability for random network
@@ -73,6 +74,7 @@ int main(int argc, char **argv)
       delta_x,
       iterations_stagnation,
       stagnation_tol,
+      stagnation_rel_tol,
       diversity_tol,
       p_rewiring,
       p_random,
@@ -90,6 +92,7 @@ int main(int argc, char **argv)
       delta_x,
       iterations_stagnation,
       stagnation_tol,
+      stagnation_rel_tol,
       diversity_tol,
       p_rewiring,
       p_random,
@@ -107,6 +110,7 @@ int main(int argc, char **argv)
       delta_x,
       iterations_stagnation,
       stagnation_tol,
+      stagnation_rel_tol,
       diversity_tol,
       p_rewiring,
       p_random,
@@ -123,6 +127,7 @@ int main(int argc, char **argv)
       delta_x,
       iterations_stagnation,
       stagnation_tol,
+      stagnation_rel_tol,
       diversity_tol,
       function_names,
       factory
@@ -141,6 +146,7 @@ int main(int argc, char **argv)
         delta_x,
         iterations_stagnation,
         stagnation_tol,
+        stagnation_rel_tol,
         diversity_tol,
         p_rewiring,
         p_random,
@@ -157,6 +163,7 @@ int main(int argc, char **argv)
         delta_x,
         iterations_stagnation,
         stagnation_tol,
+        stagnation_rel_tol,
         diversity_tol,
         p_rewiring,
         p_random,
@@ -173,6 +180,7 @@ int main(int argc, char **argv)
         delta_x,
         iterations_stagnation,
         stagnation_tol,
+        stagnation_rel_tol,
         diversity_tol,
         p_rewiring,
         p_random,
