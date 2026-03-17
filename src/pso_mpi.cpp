@@ -128,6 +128,7 @@ OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &sto
          max_iter_limit);
 
     // Update Particles (this is the local Work)
+    std::vector<double> old_gbest_pos = gbest_pos;
     for (int i = 0; i < local_n; ++i) {
       for (int j = 0; j < d; ++j) {
         double r1 = dis_01(gen);
@@ -137,7 +138,7 @@ OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &sto
         vel[i][j] =
             current_w * vel[i][j] +
             PSOHyperparameters::C1 * r1 * (pbest_pos[i][j] - pos[i][j]) +
-            PSOHyperparameters::C2 * r2 * (gbest_pos[j] - pos[i][j]);
+            PSOHyperparameters::C2 * r2 * (old_gbest_pos[j] - pos[i][j]);
 
         // Update position
         pos[i][j] += vel[i][j];
@@ -201,8 +202,7 @@ OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &sto
     // Check Stopping Criterion (Rank 0 decides)
     int stop_signal = 0;
     if (rank == 0) {
-      double current_normalized_error = f.error(gbest_pos);
-      history.push_back(current_normalized_error);
+      history.push_back(gbest_val);
       
       /// @brief Check tolerance using patience
       if (stop.should_stop(gbest_val, avg_distance)) {

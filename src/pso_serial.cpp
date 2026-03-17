@@ -113,10 +113,12 @@ OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& s
     int max_iter_limit = stop.get_max_iters();
 
     while (!must_stop) {
+        stop.increment_iterations();
         // Dynamic inertia weight calculation (linearly decreases)
         double current_w = PSOHyperparameters::W_MAX - ((PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) * iter / max_iter_limit);
 
         // Update each particle
+        std::vector<double> old_gbest_pos = gbest_pos;
         for (int i = 0; i < local_n; ++i) {
             for (int j = 0; j < d; ++j) {
                 double r1 = dist01(gen);
@@ -124,7 +126,7 @@ OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& s
                 // Update velocity
                 vel[i][j] = current_w * vel[i][j]
                           + PSOHyperparameters::C1 * r1 * (pbest_pos[i][j] - pos[i][j])
-                          + PSOHyperparameters::C2 * r2 * (gbest_pos[j] - pos[i][j]);
+                          + PSOHyperparameters::C2 * r2 * (old_gbest_pos[j] - pos[i][j]);
                 // Update position
                 pos[i][j] += vel[i][j];
                 // Boundary check: avoid going out of bounds
@@ -150,11 +152,21 @@ OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& s
         // ------------------------------
         // Check stopping criteria
         // ------------------------------
-        double current_normalized_error = f.error(gbest_pos);
+        double sum_dist = 0.0;
+        for (int i = 0; i < local_n; ++i) {
+            double dist_sq = 0.0;
+            for (int j = 0; j < d; ++j) {
+                double diff = pos[i][j] - gbest_pos[j];   
+                dist_sq += diff * diff;
+            }
+            sum_dist += std::sqrt(dist_sq);
+        }
+        double avg_distance = sum_dist / local_n;
+
         // Save error to history
-        history.push_back(current_normalized_error);
+        history.push_back(gbest_val);
         
-        if (stop.should_stop(iter, current_normalized_error)) {
+        if (stop.should_stop(gbest_val, avg_distance)) {
             must_stop = true;
         }
         // Prepare for next iteration
