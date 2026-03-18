@@ -61,94 +61,52 @@ int main(int argc, char *argv[]) {
                      std::function<std::unique_ptr<TestFunction>(unsigned int)>>
       factory;
 
-  factory["Sphere"] = [](unsigned int dim) {
-    return std::make_unique<Sphere>(dim);
-  };
-  
-  factory["Ellipsoid"] = [](unsigned int dim) {
-    return std::make_unique<Ellipsoid>(dim);
-  };
-  factory["SumOfDiffPowers"] = [](unsigned int dim) {
-    return std::make_unique<SumOfDiffPowers>(dim);
-  };
-  factory["DropWave"] = [](unsigned int dim) {
-    return std::make_unique<DropWave>(dim);
-  };
-  factory["Weierstrass"] = [](unsigned int dim) {
-    return std::make_unique<Weierstrass>(dim);
-  };
-  factory["Alpine1"] = [](unsigned int dim) {
-    return std::make_unique<Alpine1>(dim);
-  };
-  factory["Ackley"] = [](unsigned int dim) {
-    return std::make_unique<Ackley>(dim);
-  };
-  factory["Griewank"] = [](unsigned int dim) {
-    return std::make_unique<Griewank>(dim);
-  };
-  factory["Rastrigin"] = [](unsigned int dim) {
-    return std::make_unique<Rastrigin>(dim);
-  };
-  factory["HappyCat"] = [](unsigned int dim) {
-    return std::make_unique<HappyCat>(dim);
-  };
-  factory["HGBat"] = [](unsigned int dim) {
-    return std::make_unique<HGBat>(dim);
-  };
-  factory["Rosenbrock"] = [](unsigned int dim) {
-    return std::make_unique<Rosenbrock>(dim);
-  };
-  factory["HighCondElliptic"] = [](unsigned int dim) {
-    return std::make_unique<HighCondElliptic>(dim);
-  };
-  factory["Discus"] = [](unsigned int dim) {
-    return std::make_unique<Discus>(dim);
-  };
-  factory["BentCigar"] = [](unsigned int dim) {
-    return std::make_unique<BentCigar>(dim);
-  };
-  factory["PermdbFunc"] = [](unsigned int dim) {
-    return std::make_unique<PermdbFunc>(dim);
-  };
-  factory["Schafferf7Func"] = [](unsigned int dim) {
-    return std::make_unique<Schafferf7Func>(dim);
-  };
-  factory["ExpSchafferF6"] = [](unsigned int dim) {
-    return std::make_unique<ExpSchafferF6>(dim);
-  };
-  factory["RotatedHyper"] = [](unsigned int dim) {
-    return std::make_unique<RotatedHyper>(dim);
-  };
-  factory["Schwefel"] = [](unsigned int dim) {
-    return std::make_unique<Schwefel>(dim);
-  };
-  factory["SumOfDifferentPowers2"] = [](unsigned int dim) {
-    return std::make_unique<SumOfDifferentPowers2>(dim);
-  };
-  factory["XinSheYang1"] = [](unsigned int dim) {
-    return std::make_unique<XinSheYang1>(dim);
-  };
-  factory["Schwefel221"] = [](unsigned int dim) {
-    return std::make_unique<Schwefel221>(dim);
-  };
-  factory["Schwefel222"] = [](unsigned int dim) {
-    return std::make_unique<Schwefel222>(dim);
-  };
-  factory["Salomon"] = [](unsigned int dim) {
-    return std::make_unique<Salomon>(dim);
-  };
-  factory["ModifiedRidge"] = [](unsigned int dim) {
-    return std::make_unique<ModifiedRidge>(dim);
-  };
-  factory["Zakharov"] = [](unsigned int dim) {
-    return std::make_unique<Zakharov>(dim);
-  };
-  factory["ModifiedXinSheYang3"] = [](unsigned int dim) {
-    return std::make_unique<ModifiedXinSheYang3>(dim);
-  };
-  factory["ModifiedXinSheYang5"] = [](unsigned int dim) {
-    return std::make_unique<ModifiedXinSheYang5>(dim);
-  };
+  factory["Sphere"] = [](unsigned int dim) { return std::make_unique<Sphere>(dim); };
+  factory["Ellipsoid"] = [](unsigned int dim) { return std::make_unique<Ellipsoid>(dim); };
+  factory["SumOfDiffPowers"] = [](unsigned int dim) { return std::make_unique<SumOfDiffPowers>(dim); };
+  factory["DropWave"] = [](unsigned int dim) { return std::make_unique<DropWave>(dim); };
+  factory["Weierstrass"] = [](unsigned int dim) { return std::make_unique<Weierstrass>(dim); };
+  factory["Alpine1"] = [](unsigned int dim) { return std::make_unique<Alpine1>(dim); };
+  factory["Ackley"] = [](unsigned int dim) { return std::make_unique<Ackley>(dim); };
+  factory["Griewank"] = [](unsigned int dim) { return std::make_unique<Griewank>(dim); };
+  factory["Rastrigin"] = [](unsigned int dim) { return std::make_unique<Rastrigin>(dim); };
+  factory["HappyCat"] = [](unsigned int dim) { return std::make_unique<HappyCat>(dim); };
+  factory["HGBat"] = [](unsigned int dim) { return std::make_unique<HGBat>(dim); };
+  factory["Rosenbrock"] = [](unsigned int dim) { return std::make_unique<Rosenbrock>(dim); };
+  factory["HighCondElliptic"] = [](unsigned int dim) { return std::make_unique<HighCondElliptic>(dim); };
+  factory["Discus"] = [](unsigned int dim) { return std::make_unique<Discus>(dim); };
+  factory["BentCigar"] = [](unsigned int dim) { return std::make_unique<BentCigar>(dim); };
+  factory["PermdbFunc"] = [](unsigned int dim) { return std::make_unique<PermdbFunc>(dim); };
+  factory["Schafferf7Func"] = [](unsigned int dim) { return std::make_unique<Schafferf7Func>(dim); };
+  factory["ExpSchafferF6"] = [](unsigned int dim) { return std::make_unique<ExpSchafferF6>(dim); };
+  factory["RotatedHyper"] = [](unsigned int dim) { return std::make_unique<RotatedHyper>(dim); };
+  factory["Schwefel"] = [](unsigned int dim) { return std::make_unique<Schwefel>(dim); };
+  factory["SumOfDifferentPowers2"] = [](unsigned int dim) { return std::make_unique<SumOfDifferentPowers2>(dim); };
+  factory["XinSheYang1"] = [](unsigned int dim) { return std::make_unique<XinSheYang1>(dim); };
+  factory["Schwefel221"] = [](unsigned int dim) { return std::make_unique<Schwefel221>(dim); };
+  factory["Schwefel222"] = [](unsigned int dim) { return std::make_unique<Schwefel222>(dim); };
+  factory["Salomon"] = [](unsigned int dim) { return std::make_unique<Salomon>(dim); };
+  factory["ModifiedRidge"] = [](unsigned int dim) { return std::make_unique<ModifiedRidge>(dim); };
+  factory["Zakharov"] = [](unsigned int dim) { return std::make_unique<Zakharov>(dim); };
+  factory["ModifiedXinSheYang3"] = [](unsigned int dim) { return std::make_unique<ModifiedXinSheYang3>(dim); };
+  factory["ModifiedXinSheYang5"] = [](unsigned int dim) { return std::make_unique<ModifiedXinSheYang5>(dim); };
+  factory["Levy"] = [](unsigned int dim) { return std::make_unique<Levy>(dim); };
+  factory["Michalewicz"] = [](unsigned int dim) { return std::make_unique<Michalewicz>(dim); };
+  factory["Bohachevsky"] = [](unsigned int dim) { return std::make_unique<Bohachevsky>(dim); };
+  factory["Powell"] = [](unsigned int dim) { return std::make_unique<Powell>(dim); };
+  factory["DixonPrice"] = [](unsigned int dim) { return std::make_unique<DixonPrice>(dim); };
+  factory["StyblinskiTang"] = [](unsigned int dim) { return std::make_unique<StyblinskiTang>(dim); };
+  factory["QuinticFunction"] = [](unsigned int dim) { return std::make_unique<QuinticFunction>(dim); };
+  factory["Step"] = [](unsigned int dim) { return std::make_unique<Step>(dim); };
+  factory["Qing"] = [](unsigned int dim) { return std::make_unique<Qing>(dim); };
+  factory["Trid"] = [](unsigned int dim) { return std::make_unique<Trid>(dim); };
+  factory["Shubert"] = [](unsigned int dim) { return std::make_unique<Shubert>(dim); };
+  factory["Alpine2"] = [](unsigned int dim) { return std::make_unique<Alpine2>(dim); };
+  factory["Eggholder"] = [](unsigned int dim) { return std::make_unique<Eggholder>(dim); };
+  factory["Easom"] = [](unsigned int dim) { return std::make_unique<Easom>(dim); };
+  factory["Brown"] = [](unsigned int dim) { return std::make_unique<Brown>(dim); };
+  factory["Csendes"] = [](unsigned int dim) { return std::make_unique<Csendes>(dim); };
+  factory["Vincent"] = [](unsigned int dim) { return std::make_unique<Vincent>(dim); };
 
   // List of functions to execute (maintaining the previous order)
   std::vector<std::string> function_names = {"Sphere",
@@ -179,7 +137,24 @@ int main(int argc, char *argv[]) {
                                              "ModifiedRidge",
                                              "Zakharov",
                                              "ModifiedXinSheYang3",
-                                             "ModifiedXinSheYang5"};
+                                             "ModifiedXinSheYang5",
+                                             "Levy",
+                                             "Michalewicz",
+                                             "Bohachevsky",
+                                             "Powell",
+                                             "DixonPrice",
+                                             "StyblinskiTang",
+                                             "QuinticFunction",
+                                             "Step",
+                                             "Qing",
+                                             "Trid",
+                                             "Shubert",
+                                             "Alpine2",
+                                             "Eggholder",
+                                             "Easom",
+                                             "Brown",
+                                             "Csendes",
+                                             "Vincent"};
 
  using clock = std::chrono::high_resolution_clock;
 

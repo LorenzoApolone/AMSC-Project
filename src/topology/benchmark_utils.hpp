@@ -222,6 +222,16 @@ static FunctionFactory build_factory()
     factory["DixonPrice"] = [](unsigned int dim){ return std::make_unique<DixonPrice>(dim); };
     factory["StyblinskiTang"] = [](unsigned int dim){ return std::make_unique<StyblinskiTang>(dim); };
     factory["QuinticFunction"] = [](unsigned int dim){ return std::make_unique<QuinticFunction>(dim); };
+    factory["Step"] = [](unsigned int dim){ return std::make_unique<Step>(dim); };
+    factory["Qing"] = [](unsigned int dim){ return std::make_unique<Qing>(dim); };
+    factory["Trid"] = [](unsigned int dim){ return std::make_unique<Trid>(dim); };
+    factory["Shubert"] = [](unsigned int dim){ return std::make_unique<Shubert>(dim); };
+    factory["Alpine2"] = [](unsigned int dim){ return std::make_unique<Alpine2>(dim); };
+    factory["Eggholder"] = [](unsigned int dim){ return std::make_unique<Eggholder>(dim); };
+    factory["Easom"] = [](unsigned int dim){ return std::make_unique<Easom>(dim); };
+    factory["Brown"] = [](unsigned int dim){ return std::make_unique<Brown>(dim); };
+    factory["Csendes"] = [](unsigned int dim){ return std::make_unique<Csendes>(dim); };
+    factory["Vincent"] = [](unsigned int dim){ return std::make_unique<Vincent>(dim); };
     return factory;
 }
 
@@ -239,7 +249,8 @@ static std::vector<std::string> build_function_names()
         "SumOfDifferentPowers2","XinSheYang1","Schwefel221","Schwefel222","Salomon",
         "ModifiedRidge","Zakharov","ModifiedXinSheYang3","ModifiedXinSheYang5",
         "Levy","Michalewicz","Bohachevsky","Powell","DixonPrice","StyblinskiTang",
-        "QuinticFunction"
+        "QuinticFunction","Step","Qing","Trid","Shubert","Alpine2",
+        "Eggholder","Easom","Brown","Csendes","Vincent"
     };
 }
 

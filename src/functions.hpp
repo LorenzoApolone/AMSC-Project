@@ -1,5 +1,5 @@
 /**
- * @file functions_part2.hpp
+ * @file functions.hpp
  * @brief Test functions (benchmark) with Doxygen-style documentation.
  */
 #include "interfaces.hpp"
@@ -1049,5 +1049,243 @@ public:
       sum += std::pow(xi, 4.0) - 16.0 * xi * xi + 5.0 * xi;
     }
     return 0.5 * sum;
+  }
+};
+
+/**
+ * @class Step
+ * @brief Step function: f(x) = Σ_{i=1..D} (⌊x_i + 0.5⌋)^2.
+ * @note Discontinuous with flat plateaus. Global minimum at x_i ∈ [-0.5, 0.5), f(x*) = 0.
+ */
+class Step : public TestFunction {
+public:
+  Step(unsigned int dim)
+      : TestFunction(dim, "Step", std::pair<double, double>{-100.0, 100.0},
+                     std::vector<double>(dim, 0.0)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double sum = 0.0;
+    for (double xi : x) {
+      double term = std::floor(xi + 0.5);
+      sum += term * term;
+    }
+    return sum;
+  }
+};
+
+/**
+ * @class Qing
+ * @brief Qing function: f(x) = Σ_{i=1..D} (x_i^2 - i)^2.
+ * @note Global minimum at x_i = ±√i, f(x*) = 0.
+ */
+class Qing : public TestFunction {
+public:
+  Qing(unsigned int dim)
+      : TestFunction(dim, "Qing", std::pair<double, double>{-500.0, 500.0},
+                     [](unsigned int d) {
+                       std::vector<double> v(d);
+                       for (unsigned int i = 0; i < d; ++i) v[i] = std::sqrt(i + 1.0);
+                       return v;
+                     }(dim)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double sum = 0.0;
+    for (std::size_t i = 0; i < x.size(); ++i) {
+      double term = x[i] * x[i] - (i + 1.0);
+      sum += term * term;
+    }
+    return sum;
+  }
+};
+
+/**
+ * @class Trid
+ * @brief Trid function: f(x) = Σ_{i=1..D} (x_i - 1)^2 - Σ_{i=2..D} x_i x_{i-1}.
+ * @note Global minimum at x_i = i * (D + 1 - i), f(x*) = -D(D+4)(D-1)/6.
+ */
+class Trid : public TestFunction {
+public:
+  Trid(unsigned int dim)
+      : TestFunction(dim, "Trid", 
+                     std::pair<double, double>{-std::pow(dim, 2.0), std::pow(dim, 2.0)},
+                     [](unsigned int d) {
+                       std::vector<double> v(d);
+                       for (unsigned int i = 0; i < d; ++i) v[i] = (i + 1.0) * (d + 1.0 - (i + 1.0));
+                       return v;
+                     }(dim)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double sum1 = 0.0;
+    double sum2 = 0.0;
+    for (std::size_t i = 0; i < x.size(); ++i) {
+      sum1 += std::pow(x[i] - 1.0, 2.0);
+      if (i > 0) {
+        sum2 += x[i] * x[i - 1];
+      }
+    }
+    return sum1 - sum2;
+  }
+};
+
+/**
+ * @class Shubert
+ * @brief Shubert function (N-dimensional): f(x) = Π_{i=1..D} Σ_{j=1..5} j cos((j+1)x_i + j).
+ * @note Highly multimodal, numerous global and local minima.
+ */
+class Shubert : public TestFunction {
+public:
+  Shubert(unsigned int dim)
+      : TestFunction(dim, "Shubert", std::pair<double, double>{-10.0, 10.0},
+                     std::vector<double>(dim, 0.0)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double prod = 1.0;
+    for (double xi : x) {
+      double sum = 0.0;
+      for (int j = 1; j <= 5; ++j) {
+        sum += j * std::cos((j + 1.0) * xi + j);
+      }
+      prod *= sum;
+    }
+    return prod;
+  }
+};
+
+/**
+ * @class Alpine2
+ * @brief Alpine 2 function: f(x) = -Π_{i=1..D} √x_i sin(x_i).
+ * @note Maximize-like function normally, inverted for minimization. Global minimum around x_i = 7.917.
+ */
+class Alpine2 : public TestFunction {
+public:
+  Alpine2(unsigned int dim)
+      : TestFunction(dim, "Alpine2", std::pair<double, double>{0.0, 10.0},
+                     std::vector<double>(dim, 7.917052698245946)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double prod = 1.0;
+    for (double xi : x) {
+      prod *= std::sqrt(xi) * std::sin(xi);
+    }
+    return -prod;
+  }
+};
+
+/**
+ * @class Eggholder
+ * @brief Eggholder function: N-D generalization.
+ * @note Extremely difficult, highly asymmetric with severe local minima traps.
+ */
+class Eggholder : public TestFunction {
+public:
+  Eggholder(unsigned int dim)
+      : TestFunction(dim, "Eggholder", std::pair<double, double>{-512.0, 512.0},
+                     std::vector<double>(dim, 512.0)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double sum = 0.0;
+    for (std::size_t i = 0; i + 1 < x.size(); ++i) {
+      double term1 = -(x[i + 1] + 47.0) * std::sin(std::sqrt(std::fabs(x[i + 1] + x[i] / 2.0 + 47.0)));
+      double term2 = -x[i] * std::sin(std::sqrt(std::fabs(x[i] - (x[i + 1] + 47.0))));
+      sum += term1 + term2;
+    }
+    return sum;
+  }
+};
+
+/**
+ * @class Easom
+ * @brief Easom function (N-D form).
+ * @note Global minimum has a very small area relative to the search space. Global minimum at x_i=π, f(x*)=-1.
+ */
+class Easom : public TestFunction {
+public:
+  Easom(unsigned int dim)
+      : TestFunction(dim, "Easom", std::pair<double, double>{-100.0, 100.0},
+                     std::vector<double>(dim, 3.14159265358979323846)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double prod_cos = 1.0;
+    double sum_sq = 0.0;
+    for (double xi : x) {
+      prod_cos *= std::cos(xi);
+      sum_sq += std::pow(xi - 3.14159265358979323846, 2.0);
+    }
+    return -prod_cos * std::exp(-sum_sq);
+  }
+};
+
+/**
+ * @class Brown
+ * @brief Brown function: highly coupled non-linear function.
+ * @note Global minimum at x_i=0, f(x*)=0.
+ */
+class Brown : public TestFunction {
+public:
+  Brown(unsigned int dim)
+      : TestFunction(dim, "Brown", std::pair<double, double>{-1.0, 4.0},
+                     std::vector<double>(dim, 0.0)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double sum = 0.0;
+    for (std::size_t i = 0; i + 1 < x.size(); ++i) {
+      double x_i_sq = x[i] * x[i];
+      double x_ip1_sq = x[i + 1] * x[i + 1];
+      sum += std::pow(x_i_sq, x_ip1_sq + 1.0) + std::pow(x_ip1_sq, x_i_sq + 1.0);
+    }
+    return sum;
+  }
+};
+
+/**
+ * @class Csendes
+ * @brief Csendes (Infinity condition) function.
+ * @note Infinite number of local minima approaching the global minimum at x=0. f(0)=0.
+ */
+class Csendes : public TestFunction {
+public:
+  Csendes(unsigned int dim)
+      : TestFunction(dim, "Csendes", std::pair<double, double>{-1.0, 1.0},
+                     std::vector<double>(dim, 0.0)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double sum = 0.0;
+    for (double xi : x) {
+      if (xi == 0.0) continue;
+      sum += std::pow(xi, 6.0) * (2.0 + std::sin(1.0 / xi));
+    }
+    return sum;
+  }
+};
+
+/**
+ * @class Vincent
+ * @brief Vincent function.
+ * @note Extremely dense set of local minima near the lower bound. Global minimum is -D.
+ */
+class Vincent : public TestFunction {
+public:
+  Vincent(unsigned int dim)
+      : TestFunction(dim, "Vincent", std::pair<double, double>{0.25, 10.0},
+                     std::vector<double>(dim, 7.70628)) {}
+
+  double value(const std::vector<double> &x) const override {
+    if (x.empty()) return 0.0;
+    double sum = 0.0;
+    for (double xi : x) {
+      // To avoid log(<=0) domain errors during search, cap it slightly above 0 safely
+      double safe_xi = std::max(xi, 1e-10);
+      sum += std::sin(10.0 * std::log(safe_xi));
+    }
+    return -sum;
   }
 };
