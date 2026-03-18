@@ -11,6 +11,17 @@
 #include <string>
 #include <vector>
 
+enum class FunctionTypology {
+  UNIMODAL,
+  MULTIMODAL,
+  SEPARABLE,
+  NON_SEPARABLE,
+  DIFFERENTIABLE,
+  NON_DIFFERENTIABLE,
+  FLAT,
+  COUPLED
+};
+
 using namespace std;
 
 /**
@@ -30,18 +41,24 @@ public:
   TestFunction(unsigned int dim_,
                string function_name_,
                pair<double, double> domain_,
-               const vector<double> true_solution_) : dim(dim_),
+               const vector<double> true_solution_,
+               const vector<FunctionTypology> typologies_ = {}) : dim(dim_),
                                                       function_name(function_name_),
                                                       domain(domain_),
-                                                      true_solution(true_solution_) {};
+                                                      true_solution(true_solution_),
+                                                      typologies(typologies_) {};
 
   unsigned int dim;                       ///< Dimensionality
   const string function_name;             ///< Function name
   const pair<double, double> domain;      ///< Search domain
   const vector<double> true_solution;     ///< Global optimum
+  const vector<FunctionTypology> typologies; ///< Typologies of the function
 
   /// @return Function name
   const string get_name() const { return function_name; }
+
+  /// @return Function typologies
+  const vector<FunctionTypology>& get_typologies() const { return typologies; }
 
   /// @return Search domain pair [min, max]
   const pair<double, double> &get_domain() const { return domain; };

@@ -20,6 +20,7 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -97,7 +98,23 @@ struct ExperimentStats {
     double t_allgatherv = 0.0;
     double total_time = 0.0;
     std::vector<std::string> functions_converged;
+    std::map<FunctionTypology, int> converged_by_typology;
+    std::map<FunctionTypology, int> total_by_typology;
 };
+
+static std::string typology_to_string(FunctionTypology t) {
+    switch(t) {
+        case FunctionTypology::UNIMODAL: return "Unimodal";
+        case FunctionTypology::MULTIMODAL: return "Multimodal";
+        case FunctionTypology::SEPARABLE: return "Separable";
+        case FunctionTypology::NON_SEPARABLE: return "Non-separable";
+        case FunctionTypology::DIFFERENTIABLE: return "Differentiable";
+        case FunctionTypology::NON_DIFFERENTIABLE: return "Non-differentiable";
+        case FunctionTypology::FLAT: return "Flat";
+        case FunctionTypology::COUPLED: return "Coupled";
+        default: return "Unknown";
+    }
+}
 
 /**
  * @brief Updates the statistics of one experiment.
@@ -123,6 +140,10 @@ static void update_experiment_stats(const std::string& name,
     const double final_fitness = result.get_best_fitness();
     const double f_star = function.value(function.get_true_solution());
 
+    for (auto t : function.get_typologies()) {
+        stats.total_by_typology[t]++;
+    }
+
     const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
     const bool stopped_by_maxiter = (result.iterations >= static_cast<int>(max_iter));
 
@@ -138,6 +159,7 @@ static void update_experiment_stats(const std::string& name,
         stats.stopped_by_maxiter_and_correct++;
         stats.number_of_converged++;
         stats.functions_converged.push_back(name);
+        for (auto t : function.get_typologies()) stats.converged_by_typology[t]++;
     }
 
     if (!stopped_by_maxiter && !is_correct) {
@@ -148,6 +170,7 @@ static void update_experiment_stats(const std::string& name,
         stats.correct_when_early_stop++;
         stats.number_of_converged++;
         stats.functions_converged.push_back(name);
+        for (auto t : function.get_typologies()) stats.converged_by_typology[t]++;
     }
 }
 
@@ -171,6 +194,14 @@ static void print_experiment_stats(const std::string& label,
               << stats.correct_when_early_stop << std::endl;
     std::cout << "Correct total: "
               << stats.correct_total << std::endl;
+    std::cout << "Converged by typology:\n";
+    for (const auto& [t, total_count] : stats.total_by_typology) {
+        int conv_count = 0;
+        if (stats.converged_by_typology.count(t)) {
+            conv_count = stats.converged_by_typology.at(t);
+        }
+        std::cout << "  - " << typology_to_string(t) << ": " << conv_count << "/" << total_count << std::endl;
+    }
 }
 
 /**

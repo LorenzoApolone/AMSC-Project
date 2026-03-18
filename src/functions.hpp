@@ -18,7 +18,7 @@ public:
    */
   Sphere(unsigned int dim)
       : TestFunction(dim, "Sphere", std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.)) {};
+                     std::vector<double>(dim, 0.), {FunctionTypology::UNIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {};
   /**
    * @brief Evaluate f(x) = Σ x_i^2.
    * @param x Input vector (size = dim).
@@ -46,7 +46,7 @@ public:
    */
   Ellipsoid(unsigned int dim)
       : TestFunction(dim, "Ellipsoid", std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.)) {};
+                     std::vector<double>(dim, 0.), {FunctionTypology::UNIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {};
   /**
    * @brief Evaluate f(x) = Σ (i+1)·x_i^2.
    * @param x Input vector (size = dim).
@@ -73,7 +73,7 @@ public:
   SumOfDiffPowers(unsigned int dim)
       : TestFunction(dim, "SumOfDiffPowers",
                      std::pair<double, double>{-10.0, 10.0},
-                     std::vector<double>(dim, 0.)) {};
+                     std::vector<double>(dim, 0.), {FunctionTypology::UNIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = 0.0;
@@ -96,7 +96,7 @@ public:
   QuinticFunction(unsigned int dim)
       : TestFunction(dim, "QuinticFunction",
                      std::pair<double, double>{-20.0, 20.0},
-                     std::vector<double>(dim, -1.0)) {};
+                     std::vector<double>(dim, -1.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = 0.0;
@@ -122,7 +122,7 @@ class DropWave : public TestFunction {
 public:
   DropWave(unsigned int dim)
       : TestFunction(dim, "DropWave", std::pair<double, double>{-5.12, 5.12},
-                     std::vector<double>(dim, 0.)) {};
+                     std::vector<double>(dim, 0.), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = 1.0;
@@ -151,7 +151,7 @@ class Weierstrass : public TestFunction {
 public:
   Weierstrass(unsigned int dim)
       : TestFunction(dim, "Weierstrass", std::pair<double, double>{-0.5, 0.5},
-                     std::vector<double>(dim, 0.)) {};
+                     std::vector<double>(dim, 0.), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = 0.;
@@ -182,7 +182,7 @@ class Alpine1 : public TestFunction {
 public:
   Alpine1(unsigned int dim)
       : TestFunction(dim, "Alpine1", std::pair<double, double>{-10., 10.},
-                     std::vector<double>(dim, 0.)) {};
+                     std::vector<double>(dim, 0.), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = 0.;
@@ -205,7 +205,7 @@ class Ackley : public TestFunction {
 public:
   Ackley(unsigned int dim)
       : TestFunction(dim, "Ackley", std::pair<double, double>{-32.768, 32.768},
-                     std::vector<double>(dim, 0.)) {};
+                     std::vector<double>(dim, 0.), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     const double a = 20.0;
@@ -234,7 +234,7 @@ class Griewank : public TestFunction {
 public:
   Griewank(unsigned int dim)
       : TestFunction(dim, "Griewank", std::pair<double, double>{-100., 100.},
-                     std::vector<double>(dim, 0.)) {};
+                     std::vector<double>(dim, 0.), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = 1.;
@@ -259,7 +259,7 @@ class Rastrigin : public TestFunction {
 public:
   Rastrigin(unsigned int dim)
       : TestFunction(dim, "Rastrigin", std::pair<double, double>{-5.12, 5.12},
-                     std::vector<double>(dim, 0.)) {};
+                     std::vector<double>(dim, 0.), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = 10.0 * dim;
@@ -280,7 +280,7 @@ class HappyCat : public TestFunction {
 public:
   HappyCat(unsigned int dim)
       : TestFunction(dim, "HappyCat", std::pair<double, double>{-20., 20.},
-                     std::vector<double>(dim, -1.)) {};
+                     std::vector<double>(dim, -1.), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::COUPLED, FunctionTypology::DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = -dim;
@@ -310,7 +310,7 @@ class HGBat : public TestFunction {
 public:
   HGBat(unsigned int dim)
       : TestFunction(dim, "HGBat", std::pair<double, double>{-15., 15.},
-                     std::vector<double>(dim, -1.)) {};
+                     std::vector<double>(dim, -1.), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::COUPLED, FunctionTypology::NON_DIFFERENTIABLE}) {};
 
   double value(const std::vector<double> &x) const override {
     double sum = 0.;
@@ -337,7 +337,7 @@ class Rosenbrock : public TestFunction {
 public:
   Rosenbrock(unsigned int dim)
       : TestFunction(dim, "Rosenbrock", std::pair<double, double>{-10.0, 10.0},
-                     std::vector<double>(dim, 1.0)) {}
+                     std::vector<double>(dim, 1.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::COUPLED, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     double sum = 0.0;
@@ -361,7 +361,7 @@ public:
   HighCondElliptic(unsigned int dim)
       : TestFunction(dim, "HighConditionedElliptic",
                      std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::UNIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     double sum = 0.0;
@@ -387,7 +387,7 @@ class Discus : public TestFunction {
 public:
   Discus(unsigned int dim)
       : TestFunction(dim, "Discus", std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::UNIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -414,7 +414,7 @@ class BentCigar : public TestFunction {
 public:
   BentCigar(unsigned int dim)
       : TestFunction(dim, "BentCigar", std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::UNIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -445,7 +445,7 @@ public:
                        for (unsigned int i = 0; i < dim; ++i)
                          v[i] = static_cast<double>(i + 1);
                        return v;
-                     }()) {}
+                     }(), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
   double value(const std::vector<double> &x) const override {
     if (x.empty())
       return 0.0;
@@ -478,7 +478,7 @@ public:
   Schafferf7Func(unsigned int dim)
       : TestFunction(dim, "SchafferF7",
                      std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
   double value(const std::vector<double> &x) const override {
     const std::size_t D = x.size();
     if (D < 2)
@@ -511,7 +511,7 @@ public:
   ExpSchafferF6(unsigned int dim)
       : TestFunction(dim, "ExpandedSchafferF6",
                      std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     const std::size_t D = x.size();
@@ -547,7 +547,7 @@ public:
   RotatedHyper(unsigned int dim)
       : TestFunction(dim, "RotatedHyper-ellipsoidFunction",
                      std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::UNIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
   double value(const std::vector<double> &x) const override {
     if (x.empty())
       return 0.0;
@@ -570,7 +570,7 @@ class Schwefel : public TestFunction {
 public:
   Schwefel(unsigned int dim)
       : TestFunction(dim, " Schwefel", std::pair<double, double>{-500.0, 500.0},
-                     std::vector<double>(dim, 420.968746359982025)) {}
+                     std::vector<double>(dim, 420.968746359982025), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
   double value(const std::vector<double> &x) const override {
     if (x.empty())
       return 0.0;
@@ -591,7 +591,7 @@ public:
   SumOfDifferentPowers2(unsigned int dim)
       : TestFunction(dim, "SumOfDifferentPowers",
                      std::pair<double, double>{-10.0, 10.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::UNIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -619,7 +619,7 @@ public:
   XinSheYang1(unsigned int dim)
       : TestFunction(dim, "Xin-SheYang's1",
                      std::pair<double, double>{-2.0 * PI(), 2.0 * PI()},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -649,7 +649,7 @@ public:
   Schwefel221(unsigned int dim)
       : TestFunction(dim, "Schwefel2_21",
                      std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::UNIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -674,7 +674,7 @@ public:
   Schwefel222(unsigned int dim)
       : TestFunction(dim, "Schwefel2_22",
                      std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::UNIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -701,7 +701,7 @@ class Salomon : public TestFunction {
 public:
   Salomon(unsigned int dim)
       : TestFunction(dim, "Salomon", std::pair<double, double>{-20.0, 20.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -728,7 +728,7 @@ public:
   ModifiedRidge(unsigned int dim)
       : TestFunction(dim, "ModifiedRidge",
                      std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -752,7 +752,7 @@ class Zakharov : public TestFunction {
 public:
   Zakharov(unsigned int dim)
       : TestFunction(dim, "Zakharov", std::pair<double, double>{-10.0, 10.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::UNIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -780,7 +780,7 @@ public:
   ModifiedXinSheYang3(unsigned int dim)
       : TestFunction(dim, "ModifiedXin-SheYang",
                      std::pair<double, double>{-20.0, 20.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -812,7 +812,7 @@ public:
   ModifiedXinSheYang5(unsigned int dim)
       : TestFunction(dim, "ModifiedXin-SheYang5",
                      std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -846,7 +846,7 @@ class Levy : public TestFunction {
 public:
   Levy(unsigned int dim)
       : TestFunction(dim, "Levy", std::pair<double, double>{-10.0, 10.0},
-                     std::vector<double>(dim, 1.0)) {}
+                     std::vector<double>(dim, 1.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -898,7 +898,7 @@ public:
                          return std::vector<double>{2.2029, 1.5707, 1.2849, 1.9230, 1.7204,
                                                     1.5707, 1.4544, 1.7560, 1.6557, 1.5707};
                        return std::vector<double>(d, 0.0);
-                     }(dim)) {}
+                     }(dim), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -934,7 +934,7 @@ public:
   Bohachevsky(unsigned int dim)
       : TestFunction(dim, "Bohachevsky",
                      std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     const std::size_t D = x.size();
@@ -967,7 +967,7 @@ class Powell : public TestFunction {
 public:
   Powell(unsigned int dim)
       : TestFunction(dim, "Powell", std::pair<double, double>{-4.0, 5.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     const std::size_t D = x.size();
@@ -1009,7 +1009,7 @@ public:
                          v[i] = std::pow(2.0, -(std::pow(2.0, math_i) - 2.0) / std::pow(2.0, math_i));
                        }
                        return v;
-                     }(dim)) {}
+                     }(dim), {FunctionTypology::UNIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -1038,7 +1038,7 @@ public:
   StyblinskiTang(unsigned int dim)
       : TestFunction(dim, "StyblinskiTang",
                      std::pair<double, double>{-5.0, 5.0},
-                     std::vector<double>(dim, -2.903534)) {}
+                     std::vector<double>(dim, -2.903534), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
@@ -1061,7 +1061,7 @@ class Step : public TestFunction {
 public:
   Step(unsigned int dim)
       : TestFunction(dim, "Step", std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE, FunctionTypology::FLAT}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
@@ -1087,7 +1087,7 @@ public:
                        std::vector<double> v(d);
                        for (unsigned int i = 0; i < d; ++i) v[i] = std::sqrt(i + 1.0);
                        return v;
-                     }(dim)) {}
+                     }(dim), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
@@ -1114,7 +1114,7 @@ public:
                        std::vector<double> v(d);
                        for (unsigned int i = 0; i < d; ++i) v[i] = (i + 1.0) * (d + 1.0 - (i + 1.0));
                        return v;
-                     }(dim)) {}
+                     }(dim), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
@@ -1139,7 +1139,7 @@ class Shubert : public TestFunction {
 public:
   Shubert(unsigned int dim)
       : TestFunction(dim, "Shubert", std::pair<double, double>{-10.0, 10.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
@@ -1164,7 +1164,7 @@ class Alpine2 : public TestFunction {
 public:
   Alpine2(unsigned int dim)
       : TestFunction(dim, "Alpine2", std::pair<double, double>{0.0, 10.0},
-                     std::vector<double>(dim, 7.917052698245946)) {}
+                     std::vector<double>(dim, 7.917052698245946), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::NON_DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
@@ -1185,7 +1185,7 @@ class Eggholder : public TestFunction {
 public:
   Eggholder(unsigned int dim)
       : TestFunction(dim, "Eggholder", std::pair<double, double>{-512.0, 512.0},
-                     std::vector<double>(dim, 512.0)) {}
+                     std::vector<double>(dim, 512.0), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
@@ -1208,7 +1208,7 @@ class Easom : public TestFunction {
 public:
   Easom(unsigned int dim)
       : TestFunction(dim, "Easom", std::pair<double, double>{-100.0, 100.0},
-                     std::vector<double>(dim, 3.14159265358979323846)) {}
+                     std::vector<double>(dim, 3.14159265358979323846), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
@@ -1231,7 +1231,7 @@ class Brown : public TestFunction {
 public:
   Brown(unsigned int dim)
       : TestFunction(dim, "Brown", std::pair<double, double>{-1.0, 4.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::UNIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
@@ -1254,7 +1254,7 @@ class Csendes : public TestFunction {
 public:
   Csendes(unsigned int dim)
       : TestFunction(dim, "Csendes", std::pair<double, double>{-1.0, 1.0},
-                     std::vector<double>(dim, 0.0)) {}
+                     std::vector<double>(dim, 0.0), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
@@ -1276,7 +1276,7 @@ class Vincent : public TestFunction {
 public:
   Vincent(unsigned int dim)
       : TestFunction(dim, "Vincent", std::pair<double, double>{0.25, 10.0},
-                     std::vector<double>(dim, 7.70628)) {}
+                     std::vector<double>(dim, 7.70628), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty()) return 0.0;
