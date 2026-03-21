@@ -97,6 +97,15 @@ public:
 
   int get_max_iters() const { return max_iters; }
 
+  int get_max_stagnation_iters() const { return max_stagnation_iters; }
+
+  bool reached_max_iters() const { return current_iters >= max_iters; }
+
+  bool reached_diversity_limit(double explicit_avg_distance) const {
+    return explicit_avg_distance >= 0.0 &&
+           explicit_avg_distance < diversity_tolerance;
+  }
+
   /**
    * @brief Evaluates whether the algorithm should stop using an explicitly
    * calculated average distance.
@@ -113,8 +122,7 @@ public:
       return true;
     }
 
-    if (explicit_avg_distance >= 0.0 &&
-        explicit_avg_distance < diversity_tolerance) {
+    if (reached_diversity_limit(explicit_avg_distance)) {
       return true;
     }
 
