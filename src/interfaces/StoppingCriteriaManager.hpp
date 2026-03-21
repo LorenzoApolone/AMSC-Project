@@ -6,7 +6,7 @@
 
 /**
  * @class StoppingCriteriaManager
- * @brief Manages the termination criteria for the PSO/CPSO algorithms.
+ * @brief Manages the stopping criteria for the PSO/CPSO algorithms.
  */
 class StoppingCriteriaManager {
 private:
