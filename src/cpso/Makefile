@@ -5,7 +5,7 @@ TEST_CPSO = test_cpso
 TEST_CPSO_PARALLEL = test_cpso_parallel
 
 # local cpso source files
-CPSO_SRCS = CPSOBase.cpp CPSOParallel.cpp CPSOSerial.cpp ContextVector.cpp SubSwarm.cpp SwarmMetrics.cpp
+CPSO_SRCS = CPSOBase.cpp CPSOParallel.cpp CPSOSerial.cpp ContextVector.cpp SubSwarm.cpp SubSwarmTopologyFactory.cpp SwarmMetrics.cpp
 CPSO_OBJS = $(CPSO_SRCS:.cpp=.o)
 
 # external dependencies from main src/

@@ -1,9 +1,0 @@
-
-CPSO Serial
-mpic++ -std=c++17 -O3 -Wall -pedantic -I. test_cpso.cpp cpso/*.cpp topology/create_network.cpp interfaces.cpp functions.cpp -o test_cpso
-./test_cpso 10 5 20 20000
-
-
-CPSO Parallel
-mpic++ -std=c++17 -O3 -Wall -pedantic -I. test_cpso_parallel.cpp cpso/*.cpp topology/create_network.cpp interfaces.cpp functions.cpp -o test_cpso_parallel
-mpirun -np 4 ./test_cpso_parallel 10 5 20 20000
