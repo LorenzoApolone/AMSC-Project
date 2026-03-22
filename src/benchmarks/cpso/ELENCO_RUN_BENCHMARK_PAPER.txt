@@ -1,0 +1,61 @@
+ELENCO RUN BENCHMARK CPSO - VERSIONE PAPER
+
+Totale run eseguite da `run_cpso_benchmarks.sh --battery all`: 305
+Seed di default: 123, 456, 789, 2024, 4242
+
+Benchmark 1 - Numero di processi MPI vs Tempo totale con particelle per processo costanti
+Suite: weak_particles_per_process_constant
+Famiglia: cpso_weak_particles_dim64_k_equals_p_pps32
+Run coinvolte: 60
+Modalita': seriale di riferimento + parallelo.
+
+Benchmark 2 - Numero di processi MPI vs Tempo totale con dimensione del problema per processo costante
+Suite: weak_dimension_per_process_constant
+Famiglia: cpso_weak_dimensions_localdim8_totalparticles256
+Run coinvolte: 60
+Modalita': seriale di riferimento + parallelo.
+
+Benchmark 3 - Numero di processi MPI vs Tempo di comunicazione con carico locale costante
+Suite: weak_local_load_constant
+Famiglia: cpso_weak_local_particles32_dim_per_swarm4
+Run coinvolte: 30
+Modalita': solo parallelo.
+Metriche: mean_sum_comm_total_s, mean_sum_wait_total_s, breakdown allgather/bcast/allreduce/barrier. PNG automatici: *comm_total.png, *wait_total.png, *comm_breakdown.png.
+
+Benchmark 4 - Numero di processi MPI vs Tempo totale con problema totale fisso
+Suite: strong_scaling_fixed_algorithm
+Famiglie:
+- cmp_strong_dim32_k32_pps8
+- cmp_strong_dim64_k32_pps8
+- cmp_strong_dim128_k32_pps8
+Run coinvolte: 105
+Modalita': seriale di riferimento + parallelo.
+
+Benchmark 5 - Numero di processi MPI vs Speedup con problema totale fisso
+Derivato da Benchmark 4.
+CSV principale: summary.csv
+Colonna: speedup
+Nota: baseline ufficiale MPI = caso parallelo con np minimo della stessa configurazione.
+
+Benchmark 6 - Numero di processi MPI vs Efficienza con problema totale fisso
+Derivato da Benchmark 4.
+CSV principale: summary.csv
+Colonna: efficiency
+
+Benchmark 7 - Numero di processi MPI vs Tempo di comunicazione/attesa con problema totale fisso
+Derivato da Benchmark 4.
+CSV principale: summary.csv
+Colonne: mean_sum_comm_total_s, mean_sum_wait_total_s, mean_sum_comm_allgather_s, mean_sum_comm_bcast_s, mean_sum_comm_allreduce_s, mean_sum_comm_barrier_s. PNG automatici: *comm_total.png, *wait_total.png, *comm_breakdown.png.
+
+Benchmark 8 - Numero di funzioni convergenti all'aumentare del problema divise per tipologia e tempo richiesto
+Suite: dimension_sweep_fixed_np8
+Famiglia: cpso_dim_sweep_np8_k8_pps16
+Run coinvolte: 50
+Modalita': seriale di riferimento + parallelo np=8.
+CSV principali: typology_summary.csv, summary.csv, function_outcome_summary.csv.
+
+Benchmark 9 - Numero di funzioni convergenti all'aumentare della precisione richiesta
+Derivato dai log funzione-per-funzione tramite precision_sweep.csv.
+Suite consigliata per il paper: dimension_sweep_fixed_np8
+Famiglia consigliata: cpso_dim_sweep_np8_k8_pps16
+Modalita': seriale di riferimento + parallelo np=8.

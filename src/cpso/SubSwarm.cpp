@@ -3,19 +3,93 @@
  * @brief Implementation of the SubSwarm class methods
  */
 #include "SubSwarm.hpp"
+#include "NumericValidation.hpp"
+#include <algorithm>
 #include <stdexcept>
 
-// Constuctor of the SubSwarm class
-SubSwarm::SubSwarm(int num_particles, const std::vector<int> &active_dimensions, double lower_bound, 
-                   double upper_bound, const std::vector<std::vector<int>> &adj_list)
+namespace {
+
+void validate_dimension_set(const std::vector<int> &dims) {
+  if (dims.empty()) {
+    throw std::invalid_argument("active dimensions must not be empty");
+  }
+
+  // Sort a copy so uniqueness can be checked without changing the order.
+  std::vector<int> sorted_dims = dims;
+  std::sort(sorted_dims.begin(), sorted_dims.end());
+  auto duplicate_it = std::adjacent_find(sorted_dims.begin(), sorted_dims.end());
+  if (duplicate_it != sorted_dims.end()) {
+    throw std::invalid_argument("active dimensions must be unique");
+  }
+
+  if (sorted_dims.front() < 0) {
+    throw std::invalid_argument("active dimensions must be non-negative");
+  }
+}
+
+void validate_adjacency_list(const std::vector<std::vector<int>> &adj_list,
+                             int num_particles) {
+  // The neighborhood graph must describe exactly the local particles.
+  if (!adj_list.empty() &&
+      adj_list.size() != static_cast<size_t>(num_particles)) {
+    throw std::invalid_argument(
+        "adjacency list size must match the number of particles");
+  }
+
+  for (const auto &neighbors : adj_list) {
+    for (int neighbor_idx : neighbors) {
+      if (neighbor_idx < 0 || neighbor_idx >= num_particles) {
+        throw std::out_of_range(
+            "adjacency list contains an invalid particle index");
+      }
+    }
+  }
+}
+
+} // namespace
+
+// Fully allocated constructor.
+SubSwarm::SubSwarm(int num_particles, const std::vector<int> &active_dimensions,
+                   double lower_bound, double upper_bound,
+                   const std::vector<std::vector<int>> &adj_list)
+    : SubSwarm(num_particles, active_dimensions, lower_bound, upper_bound,
+               adj_list, StorageMode::FULL) {}
+
+SubSwarm::SubSwarm(int num_particles,
+                   const std::vector<int> &active_dimensions,
+                   double lower_bound, double upper_bound,
+                   const std::vector<std::vector<int>> &adj_list,
+                   StorageMode storage_mode)
     : num_particles(num_particles), active_dims(active_dimensions),
       gbest_val(std::numeric_limits<double>::infinity()),
       gbest_particle_idx(-1), ignore_gbest_this_iter(false),
       adjacency_list(adj_list), bounds_lower(lower_bound),
-      bounds_upper(upper_bound) {
+      bounds_upper(upper_bound), storage_mode(storage_mode) {
+      
+  // Safety Checks      
+  if (num_particles < 0) {
+    throw std::invalid_argument("subswarm particle count must be >= 0");
+  }
+  ensure_finite_value(lower_bound, "subswarm lower bound");
+  ensure_finite_value(upper_bound, "subswarm upper bound");
+  if (bounds_lower > bounds_upper) {
+    throw std::invalid_argument("lower bound must be <= upper bound");
+  }
+  validate_dimension_set(active_dimensions);
+
+  if (storage_mode == StorageMode::FULL) {
+    if (num_particles == 0) {
+      throw std::invalid_argument("subswarm must contain at least one particle");
+    }
+    validate_adjacency_list(adj_list, num_particles);
+  } else if (!adj_list.empty()) {
+    throw std::invalid_argument(
+        "placeholder subswarms must not own an adjacency list");
+  }
+
   int dim = active_dims.size();
   gbest_pos.resize(dim, 0.0);
-  
+
   positions.resize(num_particles * dim);
   velocities.resize(num_particles * dim);
   best_positions.resize(num_particles * dim);
@@ -23,27 +97,41 @@ SubSwarm::SubSwarm(int num_particles, const std::vector<int> &active_dimensions,
   best_values.resize(num_particles, std::numeric_limits<double>::infinity());
 }
 
+SubSwarm SubSwarm::make_placeholder(const std::vector<int> &active_dimensions,
+                                    double lower_bound,
+                                    double upper_bound) {
+  return SubSwarm(0, active_dimensions, lower_bound, upper_bound, {},
+                  StorageMode::PLACEHOLDER);
+}
+
+
+void SubSwarm::ensure_full_storage(const char *method_name) const {
+  if (storage_mode == StorageMode::PLACEHOLDER) {
+    throw std::logic_error(std::string(method_name) +
+                           " cannot be called on a placeholder subswarm");
+  }
+}
 
 void SubSwarm::initialize(std::mt19937 &gen, ContextVector &ctx, const TestFunction &f) {
+  ensure_full_storage("initialize");
   
-  // Creating probability distributions for both positions and velocity
+  // Initialize positions in the domain with small initial velocities around zero.
   std::uniform_real_distribution<double> dist_pos(bounds_lower, bounds_upper);
   double range = bounds_upper - bounds_lower;
 
   std::uniform_real_distribution<double> dist_vel(-0.1 * range, 0.1 * range);
 
-  // We get the context vector to extract the values of the active dimensions
   const std::vector<double> &context_vec = ctx.get_full_vector();
+  ensure_finite_vector(context_vec, "context vector before subswarm initialization");
 
-  // For every particle we initialize its position and its velocity
-  // We set the best position as the initial one
+  // Initialize positions, velocities and personal-best memories.
   int dim = active_dims.size();
   for (int i = 0; i < num_particles; ++i) {
     std::vector<double> temp_pos(dim);
     for (int d = 0; d < dim; ++d) {
       int idx = i * dim + d;
       if (i == 0) {
-        // Place the first particle at the context vector without energy
+        // Use the current context as a stable anchor particle.
         positions[idx] = context_vec[active_dims[d]];
         velocities[idx] = 0.0;
       } else {
@@ -54,11 +142,14 @@ void SubSwarm::initialize(std::mt19937 &gen, ContextVector &ctx, const TestFunct
       temp_pos[d] = positions[idx];
     }
 
-    // Evaluate the particle position
+    ensure_finite_vector(temp_pos, "initialized particle position");
+
+    // Evaluate the initial particle in the current cooperative context.
     current_values[i] = ctx.evaluate_particle(f, temp_pos, active_dims);
+    ensure_finite_value(current_values[i], "initialized particle fitness");
     best_values[i] = current_values[i];
 
-    // Update the best position and value if the current position is better
+    // Track the best local candidate seen during initialization.
     if (current_values[i] < gbest_val) {
       gbest_val = current_values[i];
       gbest_pos = temp_pos;
@@ -68,6 +159,7 @@ void SubSwarm::initialize(std::mt19937 &gen, ContextVector &ctx, const TestFunct
 }
 
 void SubSwarm::recalculate_fitness(ContextVector &ctx, const TestFunction &f) {
+  ensure_full_storage("recalculate_fitness");
   gbest_val = std::numeric_limits<double>::infinity();
   gbest_particle_idx = -1;
 
@@ -82,15 +174,21 @@ void SubSwarm::recalculate_fitness(ContextVector &ctx, const TestFunction &f) {
       temp_pos[d] = positions[idx];
     }
 
-    // Re-evaluate the historical best position of the particle using the new context
-    best_values[i] = ctx.evaluate_particle(f, temp_best_pos, active_dims);
-    
-    // Current position can also change its relative fitness compared to other particles
-    current_values[i] = ctx.evaluate_particle(f, temp_pos, active_dims);
+    ensure_finite_vector(temp_best_pos, "particle personal-best position");
+    ensure_finite_vector(temp_pos, "particle current position");
 
-    // If the particle's current position in this new context is strictly better than its historical memory
+    // Re-evaluate the stored personal best in the updated cooperative context.
+    best_values[i] = ctx.evaluate_particle(f, temp_best_pos, active_dims);
+    ensure_finite_value(best_values[i], "particle personal-best fitness");
+
+    // The current position may now dominate the stored memory under the new context.
+    current_values[i] = ctx.evaluate_particle(f, temp_pos, active_dims);
+    ensure_finite_value(current_values[i], "particle current fitness");
+
+    // Promote the current position if the reshaped context makes it better.
     if (current_values[i] < best_values[i]) {
       best_values[i] = current_values[i];
+      ensure_finite_value(best_values[i], "updated personal-best fitness");
       for (int d = 0; d < dim; ++d) {
           best_positions[i * dim + d] = positions[i * dim + d];
       }
@@ -107,23 +205,44 @@ void SubSwarm::recalculate_fitness(ContextVector &ctx, const TestFunction &f) {
 
 void SubSwarm::update_active_dims(const std::vector<int> &new_dims,
                                   const ContextVector &ctx, std::mt19937 &gen, bool is_owned) {
-  
+  if (is_owned && storage_mode == StorageMode::PLACEHOLDER) {
+    throw std::logic_error("placeholder subswarms cannot become locally owned at runtime");
+  }
+
   if (new_dims.size() != active_dims.size()) {
     throw std::runtime_error("Size mismatch during dimension shuffling");
   }
+  validate_dimension_set(new_dims);
 
-  // We overwrite the active dimensions with the new ones
+  const std::vector<int> old_active_dims = active_dims;
+  const std::vector<double> old_positions = positions;
+  const std::vector<double> old_velocities = velocities;
+  const std::vector<double> old_best_positions = best_positions;
+
+  // Switch the subswarm to the new cooperative block.
   active_dims = new_dims;
 
-  // Since the dims changed, the previous gbest is not valid anymore, so we set it to infinity
+  // Reshuffling invalidates the previous subswarm best.
   gbest_val = std::numeric_limits<double>::infinity();
   gbest_particle_idx = -1;
   gbest_pos.assign(active_dims.size(), 0.0);
 
-  // We get the context vector to extract the values of the new active dimensions
   const std::vector<double> &context_vec = ctx.get_full_vector();
+  ensure_finite_vector(context_vec, "context vector before subswarm initialization");
   int dim = active_dims.size();
 
+    // Map each new local coordinate to the matching coordinate in the previous block, when it exists.
+  std::vector<int> old_local_index(dim, -1);
+  for (int new_local = 0; new_local < dim; ++new_local) {
+    for (int old_local = 0; old_local < dim; ++old_local) {
+      if (old_active_dims[old_local] == active_dims[new_local]) {
+        old_local_index[new_local] = old_local;
+        break;
+      }
+    }
+  }
+
+  // Placeholders keep only the reshuffled coordinates needed to mirror the shared context.
   if (!is_owned) {
     for (int i = 0; i < num_particles; ++i) {
       current_values[i] = std::numeric_limits<double>::infinity();
@@ -133,64 +252,75 @@ void SubSwarm::update_active_dims(const std::vector<int> &new_dims,
         positions[idx] = context_vec[active_dims[d]];
         best_positions[idx] = positions[idx];
         velocities[idx] = 0.0;
+        ensure_finite_value(positions[idx], "placeholder reshuffle position");
       }
     }
     return;
   }
 
   double range = bounds_upper - bounds_lower;
-
-  // The particles will start around the global best, but we provide a wider spread to maintain diversity
   std::uniform_real_distribution<double> dist_pos(-0.25 * range, 0.25 * range);
-  
-  // Create the velocity distribution once outside the loops
   std::uniform_real_distribution<double> dist_vel(-0.05 * range, 0.05 * range);
 
-  // For every particle we update its position and velocity
+  // Preserve coordinates and memories only for dimensions that remain in the same subswarm.
   for (int i = 0; i < num_particles; ++i) {
     current_values[i] = std::numeric_limits<double>::infinity();
     best_values[i] = std::numeric_limits<double>::infinity();
 
     for (int d = 0; d < dim; ++d) {
       int idx = i * dim + d;
+      int old_local = old_local_index[d];
+
       if (i == 0) {
-        // Place the first particle at the context vector without energy
         positions[idx] = context_vec[active_dims[d]];
         velocities[idx] = 0.0;
+        best_positions[idx] = positions[idx];
+        continue;
+      }
+
+      if (old_local >= 0) {
+        int old_idx = i * dim + old_local;
+        positions[idx] = old_positions[old_idx];
+        velocities[idx] = old_velocities[old_idx];
+        best_positions[idx] = old_best_positions[old_idx];
       } else {
         positions[idx] = context_vec[active_dims[d]] + dist_pos(gen);
-        // Inject some initial energy on the new dimensions
         velocities[idx] = dist_vel(gen);
       }
-      
-      // Keep within bounds
-      if (positions[idx] < bounds_lower) positions[idx] = bounds_lower;
-      if (positions[idx] > bounds_upper) positions[idx] = bounds_upper;
 
-      best_positions[idx] = positions[idx];
+      positions[idx] = std::clamp(positions[idx], bounds_lower, bounds_upper);
+      if (old_local < 0) {
+        best_positions[idx] = positions[idx];
+      }
+
+      ensure_finite_value(positions[idx], "reshuffled particle position");
+      ensure_finite_value(velocities[idx], "reshuffled particle velocity");
+      ensure_finite_value(best_positions[idx], "reshuffled particle personal best");
     }
   }
 }
 
 
 void SubSwarm::inject_velocities(std::mt19937 &gen, bool hard_reset) {
+  ensure_full_storage("inject_velocities");
 
   double range = bounds_upper - bounds_lower;
   std::uniform_real_distribution<double> dist_vel(-0.15 * range, 0.15 * range);
 
-  // For every particle, we check if it is the global best. If not, we will inject random velocities
+  // Kick every non-best particle away from its current trajectory.
   int dim = active_dims.size();
   for (int i = 0; i < num_particles; ++i) {
-    // We use the particle index instead of floating-point comparison for robustness
+    // Compare by particle index instead of floating-point equality.
     bool is_gbest = (i == gbest_particle_idx);
 
-    // If the particle is not the global best, we inject random velocities and clear cognitive memory
+    // Optionally clear local memory so the particle can explore a new region.
     if (!is_gbest) {
       for (int d = 0; d < dim; ++d) {
         int idx = i * dim + d;
 
-        // Double the original range for explosive escape
+        // Use a wider perturbation to produce a visible escape step.
         velocities[idx] = dist_vel(gen) * 2.0; 
+        ensure_finite_value(velocities[idx], "injected particle velocity");
         
         if (hard_reset) {
           // Reset the personal memory so cognitive component doesn't pull it back instantly
@@ -198,51 +328,64 @@ void SubSwarm::inject_velocities(std::mt19937 &gen, bool hard_reset) {
         }
       }
       if (hard_reset) {
-        best_values[i] = current_values[i]; // Reset personal best fitness
+        best_values[i] = current_values[i]; // Keep the personal-best fitness aligned with the reset memory
       }
     }
   }
 }
 
 void SubSwarm::reset_gbest_attraction() {
+  ensure_full_storage("reset_gbest_attraction");
   ignore_gbest_this_iter = true;
 }
 
 void SubSwarm::update_velocities_and_positions(double w, double c1, double c2,
                                                std::mt19937 &gen, double progress_ratio) {
+  ensure_full_storage("update_velocities_and_positions");
+  ensure_finite_value(progress_ratio, "progress ratio");
+  ensure_finite_value(w, "inertia weight");
+  ensure_finite_value(c1, "cognitive coefficient");
+  ensure_finite_value(c2, "social coefficient");
   std::uniform_real_distribution<double> dist01(0.0, 1.0);
 
 
   int dim = active_dims.size();
   for (int i = 0; i < num_particles; ++i) {
-    
+
     std::vector<double> lbest_pos(dim);
+    int lbest_particle_idx = i;
     for (int d = 0; d < dim; ++d) {
         lbest_pos[d] = best_positions[i * dim + d];
     }
     double lbest_val = best_values[i];
 
-    // If the adjacency list is not empty, we look for the best neighbor
+    // Use the neighborhood graph when present, otherwise fall back to the subswarm best.
     if (!adjacency_list.empty()) {
       for (int neighbor_idx : adjacency_list[i]) {
         if (best_values[neighbor_idx] < lbest_val) {
-          
-          // If the neighbor is better, we update the local best
+
+          // Keep the best neighborhood guide available to this particle.
           lbest_val = best_values[neighbor_idx];
+          lbest_particle_idx = neighbor_idx;
           for (int d = 0; d < dim; ++d) {
               lbest_pos[d] = best_positions[neighbor_idx * dim + d];
           }
         }
       }
     } else {
-      // If the adjacency list is empty, we use the global best
+      // Without a neighborhood graph, the subswarm best acts as the local guide.
       lbest_pos = gbest_pos;
       lbest_val = gbest_val;
+      lbest_particle_idx = gbest_particle_idx;
     }
 
     double v_max = (bounds_upper - bounds_lower) * (0.2 - 0.15 * progress_ratio);
+    ensure_finite_value(v_max, "velocity clamp range");
+    if (v_max < 0.0) {
+      throw std::runtime_error("velocity clamp range must be >= 0");
+    }
 
-    // We update the velocity and the position of every particle using the PSO equations
+    // Apply the standard PSO update with the selected local guide.
     for (int d = 0; d < dim; ++d) {
       double r1 = dist01(gen);
       double r2 = dist01(gen);
@@ -250,18 +393,31 @@ void SubSwarm::update_velocities_and_positions(double w, double c1, double c2,
       int idx = i * dim + d;
 
       double c1_act = (best_values[i] == std::numeric_limits<double>::infinity()) ? 0.0 : c1;
-      double c2_act = (lbest_val == std::numeric_limits<double>::infinity() || ignore_gbest_this_iter) ? 0.0 : c2;
+      // Temporarily remove social attraction when the caller requested one exploration-only step.
+      const bool ignore_selected_global_best =
+          ignore_gbest_this_iter && gbest_particle_idx >= 0 &&
+          lbest_particle_idx == gbest_particle_idx;
+      double c2_act =
+          (lbest_val == std::numeric_limits<double>::infinity() ||
+           ignore_selected_global_best)
+              ? 0.0
+              : c2;
 
       velocities[idx] = w * velocities[idx] +
                       c1_act * r1 * (best_positions[idx] - positions[idx]) +
                       c2_act * r2 * (lbest_pos[d] - positions[idx]);
 
-      if (velocities[idx] > v_max) velocities[idx] = v_max;
-      else if (velocities[idx] < -v_max) velocities[idx] = -v_max;
+      if (v_max == 0.0) {
+        velocities[idx] = 0.0;
+      } else if (velocities[idx] > v_max) {
+        velocities[idx] = v_max;
+      } else if (velocities[idx] < -v_max) {
+        velocities[idx] = -v_max;
+      }
 
       positions[idx] += velocities[idx];
 
-      // We apply the bounds-checking to the particle
+      // Reflect particles back into the domain with a bounce.
       if (positions[idx] < bounds_lower) {
         positions[idx] = bounds_lower; 
         velocities[idx] = -0.5 * velocities[idx];
@@ -269,6 +425,9 @@ void SubSwarm::update_velocities_and_positions(double w, double c1, double c2,
         positions[idx] = bounds_upper;
         velocities[idx] = -0.5 * velocities[idx];
       }
+
+      ensure_finite_value(velocities[idx], "updated particle velocity");
+      ensure_finite_value(positions[idx], "updated particle position");
     }
   }
 
@@ -277,30 +436,37 @@ void SubSwarm::update_velocities_and_positions(double w, double c1, double c2,
 }
 
 void SubSwarm::evaluate_and_update(ContextVector &ctx, const TestFunction &f) {
+  ensure_full_storage("evaluate_and_update");
 
   int dim = active_dims.size();
   std::vector<double> temp_pos(dim);
+  std::vector<double> temp_best_pos(dim);
 
   for (int i = 0; i < num_particles; ++i) {
     for (int d = 0; d < dim; ++d) {
         temp_pos[d] = positions[i * dim + d];
+        temp_best_pos[d] = best_positions[i * dim + d];
     }
     
-    // Evaluates for every particles its current fitness
-    current_values[i] = ctx.evaluate_particle(f, temp_pos, active_dims);
+    ensure_finite_vector(temp_pos, "particle position before evaluation");
 
-    // If the current position is better than the best position, we update the best position
+    // Evaluate the new particle position in the current cooperative context.
+    current_values[i] = ctx.evaluate_particle(f, temp_pos, active_dims);
+    ensure_finite_value(current_values[i], "evaluated particle fitness");
+
+    // Refresh the personal best if the new position improves it.
     if (current_values[i] < best_values[i]) {
       best_values[i] = current_values[i];
       for (int d = 0; d < dim; ++d) {
           best_positions[i * dim + d] = positions[i * dim + d];
+          temp_best_pos[d] = positions[i * dim + d];
       }
     }
 
-    // If the best position is better than the global best position, we update the global best position
+    // Update the subswarm best from the refreshed personal memories.
     if (best_values[i] < gbest_val) {
       gbest_val = best_values[i];
-      gbest_pos = temp_pos;
+      gbest_pos = temp_best_pos;
       gbest_particle_idx = i;
     }
   }
