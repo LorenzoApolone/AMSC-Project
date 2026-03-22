@@ -1,9 +1,7 @@
 /**
  * @file SubSwarm.hpp
- * @brief Defines the SubSwarm class and CPSOParticle struct used in Cooperative
- * Particle Swarm Optimization
+ * @brief Defines the CPSO sub-swarm and its particle state.
  */
-
 #pragma once
 
 #include "../interfaces.hpp"
@@ -14,171 +12,163 @@
 
 /**
  * @class SubSwarm
- * @brief Manages a swarm of particles operating on a specific subset of the problem
+ * @brief Represents one subswarm inside CPSO.
  */
 class SubSwarm {
 private:
+  // Marks whether the object stores a real local subswarm or only a 
+  // lightweight metadata placeholder (for MPI cases).
+  enum class StorageMode { FULL, PLACEHOLDER };
 
-  // Number of particles in this sub-swarm
   int num_particles;
-
-  // Positions of all particles in the sub-swarm
-  std::vector<double> positions; 
-
-  // Velocities of all particles in the sub-swarm
-  std::vector<double> velocities; 
-
-  // Best positions found by all particles
+  std::vector<double> positions;
+  std::vector<double> velocities;
   std::vector<double> best_positions;
-  
-  // Fitness values of current positions
-  std::vector<double> current_values; 
-
-  // Fitness values of best positions found
+  std::vector<double> current_values;
   std::vector<double> best_values;
-  // The indices of dimensions that this sub-swarm optimizes
-  std::vector<int> active_dims;  
-
-  // The best position found by the entire sub-swarm in the active dimensions
-  std::vector<double> gbest_pos; 
-
-  // The fitness value of the sub-swarm's global best position
-  double gbest_val; 
-
-  // Index of the global best particle
+  std::vector<int> active_dims;
+  std::vector<double> gbest_pos;
+  double gbest_val;
   int gbest_particle_idx;
-
-  // Flag to temporarily disable gbest social attraction during stagnation resets
   bool ignore_gbest_this_iter;
-
-  // Network topology defining particle neighbors for local-best calculation
-  std::vector<std::vector<int>> adjacency_list; 
-
-  // Lower bound of the search space
-  double bounds_lower; 
-  
-  // Upper bound of the search space
-  double bounds_upper; 
-
-public:
+  std::vector<std::vector<int>> adjacency_list;
+  double bounds_lower;
+  double bounds_upper;
+  StorageMode storage_mode;
 
   /**
-   * @brief Constructs a new SubSwarm
-   * @param num_particles Number of particles in the sub-swarm
-   * @param active_dimensions The global dimension indices this sub-swarm will
-   * optimize
-   * @param lower_bound The lower boundary of the space
-   * @param upper_bound The upper boundary of the space
-   * @param adj_list Network topology for social interactions
+   * @brief Rejects operations that require particle storage on placeholder subswarms.
+   * @param method_name Name of the method requesting full storage.
+   */
+  void ensure_full_storage(const char *method_name) const;
+
+  /**
+   * @brief Internal constructor.
+   * @param num_particles Number of particles stored locally.
+   * @param active_dimensions Global dimensions assigned to the subswarm.
+   * @param lower_bound Lower domain bound for every active dimension.
+   * @param upper_bound Upper domain bound for every active dimension.
+   * @param adj_list Optional neighborhood graph over the local particles.
+   * @param storage_mode Allocation mode used for the subswarm state.
+   */
+  SubSwarm(int num_particles, const std::vector<int> &active_dimensions,
+           double lower_bound, double upper_bound,
+           const std::vector<std::vector<int>> &adj_list,
+           StorageMode storage_mode);
+
+public:
+  /**
+   * @brief Builds a fully allocated subswarm.
+   * @param num_particles Number of particles stored in the subswarm.
+   * @param active_dimensions Global dimensions assigned to the subswarm.
+   * @param lower_bound Lower domain bound for every active dimension.
+   * @param upper_bound Upper domain bound for every active dimension.
+   * @param adj_list Optional neighborhood graph over the local particles.
    */
   SubSwarm(int num_particles, const std::vector<int> &active_dimensions,
            double lower_bound, double upper_bound,
            const std::vector<std::vector<int>> &adj_list = {});
 
-  // Default copy constructor
-  SubSwarm(const SubSwarm&) = default;
+  /**
+   * @brief Builds a placeholder for a subswarm owned by another rank.
+   * @param active_dimensions Global dimensions assigned to the subswarm.
+   * @param lower_bound Lower domain bound for every active dimension.
+   * @param upper_bound Upper domain bound for every active dimension.
+   * @return A placeholder subswarm that keeps only dimension metadata.
+   */
+  static SubSwarm make_placeholder(const std::vector<int> &active_dimensions,
+                                   double lower_bound, double upper_bound);
 
-  // Default copy assignment operator
-  SubSwarm& operator=(const SubSwarm&) = default;
-
-  // Move Constructor
-  SubSwarm(SubSwarm&&) noexcept = default;
-
-  // Move assignment operator
-  SubSwarm& operator=(SubSwarm&&) noexcept = default;
-
-  // Default destructor
+  SubSwarm(const SubSwarm &) = default;
+  SubSwarm &operator=(const SubSwarm &) = default;
+  SubSwarm(SubSwarm &&) noexcept = default;
+  SubSwarm &operator=(SubSwarm &&) noexcept = default;
   ~SubSwarm() = default;
 
   /**
-   * @brief Initializes the particles' positions and velocities randomly within
-   * bounds and evaluates their initial fitness
-   * @param gen Random number generator
-   * @param ctx ContextVector used to provide fixed values for inactive dimensions
-   * @param f The test function to be optimized
+   * @brief Initializes particle positions, velocities and local best memories.
+   * @param gen Random generator.
+   * @param ctx Cooperative context vector used to evaluate particles.
+   * @param f Benchmark function optimized by the subswarm.
    */
   void initialize(std::mt19937 &gen, ContextVector &ctx, const TestFunction &f);
 
   /**
-   * @brief Recalculates the historical best fitness of the particles and the sub-swarm's global best
-   * based on the current ContextVector
-   * @param ctx The ContextVector containing the current state of inactive dimensions
-   * @param f The test function to be optimized
+   * @brief Evaluates current and personal-best particles after a context change.
+   * @param ctx Cooperative context vector used to evaluate particles.
+   * @param f Benchmark function optimized by the subswarm.
    */
   void recalculate_fitness(ContextVector &ctx, const TestFunction &f);
 
   /**
-   * @brief Updates the dimensions optimized by this sub-swarm, updating
-   * internal states to match new dimensions
-   * @param new_dims The new set of dimension indices to optimize
-   * @param ctx The ContextVector to extract current values for the new dimensions
-   * @param gen Random number generator for injecting small initial velocities
-   * @param is_owned Whether the current MPI rank owns this sub-swarm 
+   * @brief Updates the dimensions handled by the subswarm after a shuffle.
+   * @param new_dims New global dimensions assigned to the subswarm.
+   * @param ctx Current cooperative context used to seed reshuffled coordinates.
+   * @param gen Random generator used when new coordinates must be sampled.
+   * @param is_owned true when the local rank owns the subswarm storage after the shuffle.
    */
   void update_active_dims(const std::vector<int> &new_dims,
-                          const ContextVector &ctx, std::mt19937 &gen, bool is_owned = true);
+                          const ContextVector &ctx, std::mt19937 &gen,
+                          bool is_owned = true);
 
   /**
-   * @brief Injects random velocities into particles to prevent stagnation
-   * @param gen Random number generator
-   * @param hard_reset Whether to reset velocities to zero
+   * @brief Perturbs particle velocities to escape prolonged stagnation.
+   * @param gen Random generator used to sample the perturbation.
+   * @param hard_reset true to also reset personal-best memories.
    */
   void inject_velocities(std::mt19937 &gen, bool hard_reset = false);
 
   /**
-   * @brief Sets a flag to ignore global best attraction for one iter,
-   * used during a hard jump/injection to avoid collapse
+   * @brief Disables attraction toward the current subswarm best for one iteration.
    */
   void reset_gbest_attraction();
 
   /**
-   * @brief Updates the velocity and position of each particle using PSO
-   * equations
-   * @param w Inertia weight
-   * @param c1 Cognitive learning factor
-   * @param c2 Social learning factor
-   * @param gen Random number generator
+   * @brief Applies one PSO velocity/position update to the local particles.
+   * @param w Inertia coefficient.
+   * @param c1 Cognitive coefficient.
+   * @param c2 Social coefficient.
+   * @param gen Random generator used to sample the stochastic factors.
+   * @param progress_ratio Normalized run progress used to adapt the velocity clamp.
    */
   void update_velocities_and_positions(double w, double c1, double c2,
-                                       std::mt19937 &gen, double progress_ratio = 0.5);
+                                       std::mt19937 &gen,
+                                       double progress_ratio = 0.5);
 
   /**
-   * @brief Evaluates the fitness of all particles and updates their personal
-   * bests and the sub-swarm's global best
-   * @param ctx ContextVector used to combine active and inactive dimensions for
-   * full evaluation
-   * @param f The test function to be optimized
+   * @brief Evaluates the updated particles and refreshes local/global best memories.
+   * @param ctx Cooperative context used to evaluate particles.
+   * @param f Benchmark function optimized by the subswarm.
    */
   void evaluate_and_update(ContextVector &ctx, const TestFunction &f);
 
   /**
-   * @brief Gets the global best position found by this sub-swarm 
-   * @return A constant reference to the global best position vector
-   * (sub-dimensional)
+   * @brief Returns the best position currently known by the subswarm.
+   * @return The subswarm best position in local coordinates.
    */
   const std::vector<double> &get_gbest_pos() const;
 
   /**
-   * @brief Gets the fitness value of the sub-swarm's global best position
-   * @return The global best fitness value
+   * @brief Returns the fitness of the current subswarm best.
+   * @return Best fitness currently stored by the subswarm.
    */
   double get_gbest_val() const;
 
   /**
-   * @brief Gets the list of active dimensions optimized by this sub-swarm
-   * @return A constant reference to the active dimension indices vector
+   * @brief Returns the global dimensions currently assigned to the subswarm.
+   * @return The active global dimensions handled by the subswarm.
    */
   const std::vector<int> &get_active_dims() const;
 
   /**
-   * @brief Gets the number of particles in the sub-swarm
-   * @return The number of particles
+   * @brief Returns the number of locally stored particles.
+   * @return Number of particles stored in the subswarm.
    */
   int get_num_particles() const;
 
   /**
-   * @brief Gets the positions of all particles in the sub-swarm
-   * @return A constant reference to the flat vector of particle positions
+   * @brief Returns the flattened particle-position buffer.
+   * @return Flat storage containing the current particle positions.
    */
   const std::vector<double> &get_positions() const;
 };
