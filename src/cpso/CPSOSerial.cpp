@@ -43,15 +43,11 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
     const TestFunction &f, StoppingCriteriaManager &stop_manager,
     std::vector<SubSwarm> &swarms, std::vector<std::mt19937> &gens,
     ContextVector &context, std::mt19937 &global_gen) {
-  // Per-run bookkeeping for the serial solver:
-  // - `fitness_history` stores the best global fitness after each iteration.
-  // - `iter` mirrors the iteration counter reported in the final artifacts.
+  // Parameters kept during the exec
   std::vector<double> fitness_history;
   int iter = 0;
 
-  // Helper used by every failure path to return a consistent serial artifact.
-  // The serial solver does not track MPI timings, so the failure object only
-  // needs the current context, history, iteration count, and failure message.
+  // Lambda function used to take track of the failure of the algorithm
   auto build_numeric_failure = [&](const std::string &message) {
     CpsoRunArtifacts artifacts;
     artifacts.best_position = context.get_full_vector();
@@ -65,10 +61,7 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
   };
 
   try {
-    // Phase 1: derive the static decomposition of the search space.
-    // As in the parallel solver, each sub-swarm owns a contiguous block of the
-    // global dimensions. In the serial case every sub-swarm lives in the same
-    // process, so there is no rank ownership layer on top of this split.
+    // Derive the composition of the funcions
     int total_dim = f.dim;
     bool must_stop = false;
     double last_avg_distance = std::numeric_limits<double>::infinity();
@@ -78,11 +71,7 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
     int remainder = total_dim % get_num_subswarms();
     int injection_count = 0;
 
-    // Phase 2: bootstrap all sub-swarms against the shared initial context.
-    // The context coming into this method is the common starting point for the
-    // whole cooperative run. Each sub-swarm initializes locally, and if its
-    // local gbest already improves the current shared fitness, its coordinates
-    // are copied into the global context immediately.
+    // Each sub-swarm initializes locally, and if its local gbest already improves the current shared fitness, its coordinates are copied into the global context immediately.
     std::vector<double> init_vector = context.get_full_vector();
     double init_fitness = context.get_best_fitness();
 
@@ -99,17 +88,12 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
       }
     }
 
-    // Phase 3: main optimization loop.
-    // The serial solver advances all sub-swarms inside one process, so later
-    // sub-swarms in the same iteration immediately observe the context updates
-    // committed by earlier ones.
+    // Main optimization loop
     while (!must_stop) {
       iter++;
       stop_manager.increment_iterations();
 
       // Periodically reshuffle the dimension assignment of the sub-swarms.
-      // The block sizes remain unchanged; only the mapping from global
-      // dimensions to sub-swarms is permuted.
       if (iter > 1 && iter % get_shuffle_freq() == 0) {
         std::vector<int> permutation(total_dim);
         std::iota(permutation.begin(), permutation.end(), 0);
@@ -127,8 +111,7 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
         }
       }
 
-      // Convert iteration progress into the inertia weight used by the PSO
-      // update rule for this step.
+      // Convert iteration progress into the inertia weight used by the PSO update rule for this step.
       double progress_ratio =
           static_cast<double>(stop_manager.get_current_iters()) /
           stop_manager.get_max_iters();
@@ -139,19 +122,15 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
       double current_w =
           get_w_max() - (get_w_max() - get_w_min()) * progress_ratio;
 
-      // Phase 3a: advance each sub-swarm and immediately fold any improving
-      // local gbest into the shared context.
+      // Advance each sub-swarm and immediately fold any improving local gbest into the shared context.
       for (int i = 0; i < get_num_subswarms(); ++i) {
-        // Re-evaluate the sub-swarm on the latest context, perform one PSO
-        // dynamics step, and refresh its local best information.
+        // Evaluate the sub_swarm of the latest context and perform one PSO algorithm
         swarms[i].recalculate_fitness(context, f);
         swarms[i].update_velocities_and_positions(current_w, get_c1(), get_c2(),
                                                   gens[i], progress_ratio);
         swarms[i].evaluate_and_update(context, f);
 
-        // In the serial solver there is no batch merge: if this sub-swarm now
-        // owns a better gbest than the shared context, its active coordinates
-        // are copied directly into the global context before moving on.
+.
         double current_fitness = context.get_best_fitness();
         if (swarms[i].get_gbest_val() < current_fitness) {
           double new_fitness = swarms[i].get_gbest_val();
@@ -165,14 +144,11 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
         }
       }
 
-      // Phase 3b: evaluate the synchronized global state after all sub-swarms
-      // have advanced in this iteration.
       double current_best_fitness = context.get_best_fitness();
       const std::vector<double> &current_gbest_pos = context.get_full_vector();
       fitness_history.push_back(current_best_fitness);
 
-      // The serial average distance is computed over all sub-swarms and then
-      // passed to the stopping criteria manager as the diversity signal.
+      // The average distance is computed over all sub-swarms and given to the SC
       SwarmMetrics::compute_avg_distance(swarms, current_gbest_pos,
                                          last_avg_distance, 0,
                                          get_num_subswarms(), false);
@@ -191,9 +167,7 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
           current_stag_iters > 0 &&
           (current_stag_iters % get_stagnation_patience() == 0);
 
-      // Velocity injection is the serial escape mechanism for repeated
-      // stagnation. Every third injection escalates to a harder reset that
-      // also clears the attraction toward the previous global best.
+      // Applying velocity injection toi prevent stagnation in a false positive position
       if (should_inject) {
         injection_count++;
         bool hard_reset = (injection_count % 3 == 0);
@@ -210,7 +184,6 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
         }
       }
 
-      // In serial mode the local stopping decision is already the global one.
       if (local_stop) {
         stop_reason = infer_cpso_stop_reason(stop_for_max_iters,
                                              stop_for_low_diversity,
@@ -219,7 +192,7 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
       }
     }
 
-    // Phase 4: package the successful run into the common artifact format.
+    
     CpsoRunArtifacts artifacts;
     artifacts.best_position = context.get_full_vector();
     artifacts.best_fitness = context.get_best_fitness();
@@ -229,8 +202,6 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
     artifacts.stop_reason = stop_reason;
     return artifacts;
   } catch (const std::exception &ex) {
-    // Final safety net: any uncaught exception is converted into a serial
-    // NUMERIC_FAILURE artifact instead of escaping the solver boundary.
     return build_numeric_failure(std::string("serial CPSO numeric failure: ") + ex.what());
   }
 }
