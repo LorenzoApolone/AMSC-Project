@@ -52,3 +52,23 @@ test_cpso_parallel
 .DS_Store
 src/main_dpso
 src/main_dpso_serial
+
+# Doxygen generated documentation
+doxygen_out/
+html/
+latex/
+man/
+rtf/
+xml/
+docbook/
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local build and generated benchmark outputs
+build/
+src/benchmarks/cpso/results/
+
+# Local scratch files
+src/bounds.second
+
