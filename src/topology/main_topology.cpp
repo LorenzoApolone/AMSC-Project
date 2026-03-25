@@ -216,34 +216,6 @@ int main(int argc, char **argv)
     */
     int n = not_converged(all);
 
-  //uniform output format for benchmarking
-    std::cout << "\n";
-    
-    std::cout << "RESULT,"
-              << "version=classic,"
-              << "time=" << classic_stats.total_time << ","
-              << "conv=" << classic_stats.number_of_converged << ","
-              << "total=" << number_of_functions << ","
-              << "\n";
-
-    
-    std::cout << "RESULT,"
-              << "version=scale_free,"
-              << "time=" << scale_stats.total_time << ","
-              << "conv=" << scale_stats.number_of_converged << ","
-              << "total=" << number_of_functions << ","
-              << "\n";
-
-  
-    std::cout << "RESULT," << "version=small_world," << "time=" << small_stats.total_time << ","
-              << "conv=" << small_stats.number_of_converged << "," << "total=" << number_of_functions << "," << "\n";
-
-    std::cout << "RESULT," << "version=random," << "time=" << random_stats.total_time << ","
-              << "conv=" << random_stats.number_of_converged << "," << "total=" << number_of_functions << "," << "\n";
-              
-    std::cout << "RESULT," << "not_converged=" << n << "," << "total=" << number_of_functions << ","<< "\n";
-
-    std::cout << "\n";
 
   // output in human friendly format
 
@@ -268,6 +240,32 @@ int main(int argc, char **argv)
     std::cout << "Total time serial random topology: " << serial_random_stats.total_time << " s\n";
     std::cout << "Convergence rate serial random topology: " << serial_random_stats.number_of_converged << "/" << number_of_functions << std::endl;
     */
+
+    //uniform output format for benchmarking
+    std::cout << "\n";
+    
+    // Intestazione:
+    // std::cout << "RESULT,method,dim,n_points,max_iter,delta_x,seed,time_total,time_comm,converged,total\n";
+
+    std::cout << "RESULT,classic," << dim << "," << n_points << "," << max_iter << "," << delta_x << "," << seed << "," 
+              << classic_stats.total_time << "," << classic_stats.t_allgatherv << "," 
+              << classic_stats.number_of_converged << "," << number_of_functions << "\n";
+
+    std::cout << "RESULT,scale_free," << dim << "," << n_points << "," << max_iter << "," << delta_x << "," << seed << "," 
+              << scale_stats.total_time << "," << scale_stats.t_allgatherv << "," 
+              << scale_stats.number_of_converged << "," << number_of_functions << "\n";
+
+    std::cout << "RESULT,small_world," << dim << "," << n_points << "," << max_iter << "," << delta_x << "," << seed << "," 
+              << small_stats.total_time << "," << small_stats.t_allgatherv << "," 
+              << small_stats.number_of_converged << "," << number_of_functions << "\n";
+
+    std::cout << "RESULT,random," << dim << "," << n_points << "," << max_iter << "," << delta_x << "," << seed << "," 
+              << random_stats.total_time << "," << random_stats.t_allgatherv << "," 
+              << random_stats.number_of_converged << "," << number_of_functions << "\n";
+
+    std::cout << "RESULT,not_converged," << n << "," << number_of_functions << "\n";
+
+    std::cout << "\n";
 }
   MPI_Finalize();
   return 0;
