@@ -6,7 +6,7 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Iterable, Sequence
 
-DEFAULT_PROCESSES = (1, 2, 4, 8, 16, 32)
+DEFAULT_PROCESSES = (1, 2, 4, 8, 16, 28)
 DEFAULT_SEEDS = (123, 456, 789, 2024, 4242)
 DEFAULT_SHUFFLE_FREQ = 50
 DEFAULT_STAGNATION_PATIENCE = 50
@@ -217,7 +217,7 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
                 )
 
     weak_dimension_local_dim = 8
-    weak_dimension_total_particles = 256
+    weak_dimension_total_particles = 224
     for seed in seeds:
         for mpi_processes in DEFAULT_PROCESSES:
             dim = weak_dimension_local_dim * mpi_processes
@@ -226,7 +226,7 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
             common = dict(
                 battery="cpso",
                 suite="weak_dimension_per_process_constant",
-                family="cpso_weak_dimensions_localdim8_totalparticles256",
+                family="cpso_weak_dimensions_localdim8_totalparticles224",
                 dim=dim,
                 k_subswarms=mpi_processes,
                 particles_per_swarm=particles_per_swarm,
