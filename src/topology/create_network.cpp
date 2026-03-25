@@ -7,7 +7,7 @@
 #include <set>
 #include "create_network.hpp"
 
-void create_network(int N, double p, std::vector<std::vector<int>> &adjacency_list) {
+void create_network(int N, double p, std::vector<std::vector<int>> &adjacency_list, unsigned int seed) {
     adjacency_list.assign(N, std::vector<int>());
     std::set<std::pair<int, int>> edges;
 
@@ -16,8 +16,7 @@ void create_network(int N, double p, std::vector<std::vector<int>> &adjacency_li
         edges.insert({std::min(i, r), std::max(i, r)});
     }
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen(seed);
     std::uniform_real_distribution<> dis(0.0, 1.0);
     std::uniform_int_distribution<> node_dis(0, N - 1);
 
@@ -54,7 +53,7 @@ void create_network(int N, double p, std::vector<std::vector<int>> &adjacency_li
     }
 }
 
-void create_scale_free_network(int N, int m, std::vector<std::vector<int>>& adjacency_list)
+void create_scale_free_network(int N, int m, std::vector<std::vector<int>>& adjacency_list, unsigned int seed)
 {
     adjacency_list.assign(N, {});
     if (N <= 0) return;
@@ -62,8 +61,7 @@ void create_scale_free_network(int N, int m, std::vector<std::vector<int>>& adja
     if (m < 1) m = 1;
     if (m >= N) m = N - 1;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen(seed);
 
     int m0 = m + 1;
     if (m0 > N) m0 = N;
@@ -118,13 +116,12 @@ void create_scale_free_network(int N, int m, std::vector<std::vector<int>>& adja
     }
 }
 
-void create_random_network(int N, double p, std::vector<std::vector<int>>& adjacency_list)
+void create_random_network(int N, double p, std::vector<std::vector<int>>& adjacency_list, unsigned int seed)
 {
     adjacency_list.assign(N, {});
     if (N <= 0 || p < 0.0 || p > 1.0) return;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen(seed);
     std::uniform_real_distribution<double> dis(0.0, 1.0);
 
     for (int i = 0; i < N; ++i) {

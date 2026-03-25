@@ -54,14 +54,14 @@ struct PSOHyperparameters {
  * @return OutputObject containing optimization results, convergence history, etc.
  */
 
-OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& stop, int n_points) {
+OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& stop, int n_points, unsigned int seed) {
     // ------------------------------
     // Initialization phase
     // ------------------------------
     
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    std::mt19937 gen(42);  
+    std::mt19937 gen(seed);  
     std::pair<double, double> bounds = f.get_domain();
     double LB = bounds.first;
     double UB = bounds.second;

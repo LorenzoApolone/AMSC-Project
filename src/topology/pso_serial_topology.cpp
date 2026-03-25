@@ -26,7 +26,7 @@ OutputObject pso_serial_topology(const TestFunction &f,
                           int d,
                           StoppingCriteriaManager &stop,
                           int n_points,
-                          const std::vector<std::vector<int>> &adjacency_list) {
+                          const std::vector<std::vector<int>> &adjacency_list, unsigned int seed) {
 
 
   // Chronometer start
@@ -55,7 +55,7 @@ OutputObject pso_serial_topology(const TestFunction &f,
   double range = UB - LB;
 
   // Random generators
-  std::mt19937 gen( 42 + std::hash<std::string>{}(f.get_name()));
+  std::mt19937 gen(seed);
   std::uniform_real_distribution<> dis(LB, UB);
   std::uniform_real_distribution<> dis_01(0.0, 1.0);
   std::uniform_real_distribution<> vel_dis(-1.0, 1.0);

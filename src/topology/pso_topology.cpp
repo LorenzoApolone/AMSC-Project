@@ -30,7 +30,7 @@ OutputObject pso_topology(const TestFunction &f,
                        int d,
                       StoppingCriteriaManager &stop,
                        int n_points,
-                       const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot) {
+                       const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot, unsigned int seed) {
 
   // MPI Setup
   int rank, size;
@@ -75,27 +75,38 @@ OutputObject pso_topology(const TestFunction &f,
   double UB = bounds.second;
 
   // Random generators to dinstribute particel on the domain
-  std::mt19937 gen(rank + 42 + std::hash<std::string>{}(f.get_name()));
+  std::mt19937 gen(seed);
   std::uniform_real_distribution<> dis(LB, UB);
   std::uniform_real_distribution<> dis_01(0.0, 1.0);
   std::uniform_real_distribution<> vel_dis(-1.0, 1.0);
   double range = UB - LB;
 
   // Distribute particles randomly in the domain, initialize velocities and pbest
-  for (int i = 0; i < local_n; ++i) {
+  for (int i = 0; i < n_points; ++i) {
+    bool is_mine = (i >= displs[rank] && i < displs[rank] + local_n);
+    int local_idx = i - displs[rank];
     std::vector<double> current_pos(d);
+    
     for (int j = 0; j < d; ++j) {
-      int idx = i * d + j;
-      pos[idx] = dis(gen);
-      vel[idx] = vel_dis(gen) * range * PSOHyperparameters::V_INIT_FACTOR;
-      pbest_pos[idx] = pos[idx];
-      current_pos[j] = pos[idx];
+      double pos_j = dis(gen);
+      double vel_j = vel_dis(gen) * range * PSOHyperparameters::V_INIT_FACTOR;
+      
+      if (is_mine) {
+          int idx = local_idx * d + j;
+          pos[idx] = pos_j;
+          vel[idx] = vel_j;
+          pbest_pos[idx] = pos_j;
+          current_pos[j] = pos_j;
+      }
     }
-    double fitness = f.value(current_pos);
-    pbest_val[i] = fitness;
-    if (fitness < gbest_val) {
-      gbest_val = fitness;
-      gbest_pos = current_pos;
+    
+    if (is_mine) {
+      double fitness = f.value(current_pos);
+      pbest_val[local_idx] = fitness;
+      if (fitness < gbest_val) {
+        gbest_val = fitness;
+        gbest_pos = current_pos;
+      }
     }
   }
 

@@ -41,7 +41,7 @@ struct PSOHyperparameters {
  * @return OutputObject containing results and metrics
  */
 OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &stop,
-                     int n_points) {
+                     int n_points, unsigned int seed) {
 
   // --- MPI Setup ---
   int rank, size;
@@ -76,25 +76,38 @@ OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &sto
   double UB = bounds.second;
 
   /// @brief Seed for random number generator (using different seeds per rank is crucial)
-  std::mt19937 gen(rank + 42);
+  std::mt19937 gen(seed);
   std::uniform_real_distribution<> dis(LB, UB);
   std::uniform_real_distribution<> dis_01(0.0, 1.0);
 
-  for (int i = 0; i < local_n; ++i) {
+  int displ = 0;
+  for (int r = 0; r < rank; ++r) {
+      displ += (n_points / size) + (r < (n_points % size) ? 1 : 0);
+  }
+
+  for (int i = 0; i < n_points; ++i) {
+    bool is_mine = (i >= displ && i < displ + local_n);
+    int local_idx = i - displ;
     for (int j = 0; j < d; ++j) {
-      pos[i][j] = dis(gen);
-      /// @brief Initializes velocity as a fraction of search space to prevent explosions
-      vel[i][j] = (dis(gen) - dis(gen)) * PSOHyperparameters::V_INIT_FACTOR;
-      pbest_pos[i][j] = pos[i][j];
+      double pos_j = dis(gen);
+      double vel_j = (dis(gen) - dis(gen)) * PSOHyperparameters::V_INIT_FACTOR;
+      
+      if (is_mine) {
+          pos[local_idx][j] = pos_j;
+          vel[local_idx][j] = vel_j;
+          pbest_pos[local_idx][j] = pos_j;
+      }
     }
 
-    // Initial Evaluation
-    double fitness = f.value(pos[i]);
-    pbest_val[i] = fitness;
+    if (is_mine) {
+      // Initial Evaluation
+      double fitness = f.value(pos[local_idx]);
+      pbest_val[local_idx] = fitness;
 
-    if (fitness < gbest_val) {
-      gbest_val = fitness;
-      gbest_pos = pos[i];
+      if (fitness < gbest_val) {
+        gbest_val = fitness;
+        gbest_pos = pos[local_idx];
+      }
     }
   }
 

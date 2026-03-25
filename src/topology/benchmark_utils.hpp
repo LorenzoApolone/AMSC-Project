@@ -323,7 +323,8 @@ static ExperimentStats run_topology_experiment(
     double p_random,
     int m,
     const std::vector<std::string>& function_names,
-    const FunctionFactory& factory)
+    const FunctionFactory& factory,
+    unsigned int seed)
 {
     MPI_Barrier(MPI_COMM_WORLD);
     double t_start = MPI_Wtime();
@@ -337,13 +338,13 @@ static ExperimentStats run_topology_experiment(
         if (rank == 0) {
             switch (mode) {
                 case TopologyMode::SMALL_WORLD:
-                    create_network(static_cast<int>(n_points), p_rewiring, adjacency_list);
+                    create_network(static_cast<int>(n_points), p_rewiring, adjacency_list, seed);
                     break;
                 case TopologyMode::SCALE_FREE:
-                    create_scale_free_network(static_cast<int>(n_points), m, adjacency_list);
+                    create_scale_free_network(static_cast<int>(n_points), m, adjacency_list, seed);
                     break;
                 case TopologyMode::RANDOM:
-                    create_random_network(static_cast<int>(n_points), p_random, adjacency_list);
+                    create_random_network(static_cast<int>(n_points), p_random, adjacency_list, seed);
                     break;
             }
         }
@@ -361,7 +362,8 @@ static ExperimentStats run_topology_experiment(
                                            stop,
                                            n_points,
                                            adjacency_list,
-                                           stats.t_allgatherv);
+                                           stats.t_allgatherv,
+                                           seed);
 
         if (rank == 0) {
             update_experiment_stats(name, result, *function, delta_x, max_iter, stats);
@@ -401,7 +403,8 @@ static ExperimentStats run_classic_experiment(
     double stagnation_rel_tol,
     double diversity_tol,
     const std::vector<std::string>& function_names,
-    const FunctionFactory& factory)
+    const FunctionFactory& factory,
+    unsigned int seed)
 {
     MPI_Barrier(MPI_COMM_WORLD);
     double t_start = MPI_Wtime();
@@ -416,7 +419,7 @@ static ExperimentStats run_classic_experiment(
                                      stagnation_tol,
                                      diversity_tol);
 
-        OutputObject result = pso_mpi(*function, dim, stop, n_points);
+        OutputObject result = pso_mpi(*function, dim, stop, n_points, seed);
 
         if (rank == 0) {
             update_experiment_stats(name, result, *function, delta_x, max_iter, stats);
@@ -463,7 +466,8 @@ static ExperimentStats run_serial_topology_experiment(
     double p_random,
     int m,
     const std::vector<std::string>& function_names,
-    const FunctionFactory& factory)
+    const FunctionFactory& factory,
+    unsigned int seed)
 {
     double t_start = MPI_Wtime();
 
@@ -475,13 +479,13 @@ static ExperimentStats run_serial_topology_experiment(
 
         switch (mode) {
             case TopologyMode::SMALL_WORLD:
-                create_network(static_cast<int>(n_points), p_rewiring, adjacency_list);
+                create_network(static_cast<int>(n_points), p_rewiring, adjacency_list, seed);
                 break;
             case TopologyMode::SCALE_FREE:
-                create_scale_free_network(static_cast<int>(n_points), m, adjacency_list);
+                create_scale_free_network(static_cast<int>(n_points), m, adjacency_list, seed);
                 break;
             case TopologyMode::RANDOM:
-                create_random_network(static_cast<int>(n_points), p_random, adjacency_list);
+                create_random_network(static_cast<int>(n_points), p_random, adjacency_list, seed);
                 break;
         }
 
@@ -495,7 +499,8 @@ static ExperimentStats run_serial_topology_experiment(
                                                   dim,
                                                   stop,
                                                   n_points,
-                                                  adjacency_list);
+                                                  adjacency_list,
+                                                  seed);
 
         update_experiment_stats(name, result, *function, delta_x, max_iter, stats);
     }

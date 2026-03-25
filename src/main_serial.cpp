@@ -43,7 +43,7 @@
 int main(int argc, char *argv[]) {
   if (argc < 5) {
     std::cerr << "Usage: " << argv[0]
-              << " <dim> <n_points> <max_iter> <delta_x>\n";
+              << " <dim> <n_points> <max_iter> <delta_x> [seed]\n";
     return 1;
   }
 
@@ -51,9 +51,10 @@ int main(int argc, char *argv[]) {
   unsigned int n_points = std::atoi(argv[2]);
   unsigned int max_iter = std::atoi(argv[3]);
   double delta_x = std::atof(argv[4]);
+  unsigned int seed = (argc > 5) ? static_cast<unsigned int>(std::stoul(argv[5])) : 12345;
 
-  int iterations_stagnation = 200; // number of iterations for stagnation control
-  double stagnation_tol = 1e-6; // delta x for
+  int iterations_stagnation = std::max(100, static_cast<int>(max_iter / 4)); // number of iterations for stagnation control
+  double stagnation_tol = 1e-8; // delta x for
   double diversity_tol = 1e-4; // diversity tolerance for stopping criteria
 
   // Factory Definition
@@ -165,7 +166,7 @@ int main(int argc, char *argv[]) {
     auto f_ptr = factory[name](dim);
     StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
 
-    OutputObject result = pso_serial(*f_ptr, dim, stop, n_points);
+    OutputObject result = pso_serial(*f_ptr, dim, stop, n_points, seed);
     result.terminal_info();
     // result.output_to_file();
   }

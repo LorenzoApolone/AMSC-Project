@@ -39,11 +39,11 @@ int main(int argc, char **argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  // Argouments: <dim> <n_points> <max_iter> <delta_x>
+  // Argouments: <dim> <n_points> <max_iter> <delta_x> [seed]
   if (argc < 5) {
     if (rank == 0) {
       std::cerr << "Usage: " << argv[0]
-                << " <dim> <n_points> <max_iter> <delta_x>\n";
+                << " <dim> <n_points> <max_iter> <delta_x> [seed]\n";
     }
     MPI_Finalize();
     return 1;
@@ -53,11 +53,12 @@ int main(int argc, char **argv)
   unsigned int n_points= std::atoi(argv[2]);
   unsigned int max_iter= std::atoi(argv[3]);
   double delta_x       = std::atof(argv[4]);
+  unsigned int seed    = (argc > 5) ? static_cast<unsigned int>(std::stoul(argv[5])) : 12345;
   int m = 3;                                // for scale-free network, number of edges of each new node
-  int iterations_stagnation = max_iter/2.2; // number of iterations for stagnation control
-  double stagnation_tol = 1e-10;            // tolerance for stagnation-based stopping
-  double stagnation_rel_tol = 1e-8;         // relative tolerance for stagnation-based stopping
-  double diversity_tol = 1e-8;              // diversity tolerance for stopping criteria
+  int iterations_stagnation = std::max(100, static_cast<int>(max_iter / 4)); // number of iterations for stagnation control
+  double stagnation_tol = 1e-8;             // tolerance for stagnation-based stopping
+  double stagnation_rel_tol = 1e-4;         // relative tolerance for stagnation-based stopping
+  double diversity_tol = 1e-4;              // diversity tolerance for stopping criteria
   double p_rewiring = 0.05;                 // rewiring probability for small-world network
   double p_random = 0.08;                   // edge probability for random network
 
@@ -80,7 +81,8 @@ int main(int argc, char **argv)
       p_random,
       m,
       function_names,
-      factory
+      factory,
+      seed
   );
 
   ExperimentStats scale_stats = run_topology_experiment(
@@ -98,7 +100,8 @@ int main(int argc, char **argv)
       p_random,
       m,
       function_names,
-      factory
+      factory,
+      seed
   );
 
   ExperimentStats random_stats = run_topology_experiment(
@@ -116,7 +119,8 @@ int main(int argc, char **argv)
       p_random,
       m,
       function_names,
-      factory
+      factory,
+      seed
   );
 
   ExperimentStats classic_stats = run_classic_experiment(
@@ -130,7 +134,8 @@ int main(int argc, char **argv)
       stagnation_rel_tol,
       diversity_tol,
       function_names,
-      factory
+      factory,
+      seed
   );
 
   ExperimentStats serial_small_stats;

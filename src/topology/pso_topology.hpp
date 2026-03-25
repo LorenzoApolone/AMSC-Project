@@ -52,7 +52,7 @@ OutputObject pso_topology(const TestFunction &f,
                        int d,
                         StoppingCriteriaManager &stop,
                        int n_points,
-                       const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot);
+                       const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot, unsigned int seed = 12345);
 
 /**
  * @brief Execute the topology-based serial PSO algorithm.
@@ -82,4 +82,4 @@ OutputObject pso_serial_topology(const TestFunction &f,
                           int d,
                           StoppingCriteriaManager &stop,
                           int n_points,
-                          const std::vector<std::vector<int>> &adjacency_list);
+                          const std::vector<std::vector<int>> &adjacency_list, unsigned int seed = 12345);

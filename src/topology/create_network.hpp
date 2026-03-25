@@ -37,7 +37,7 @@ enum class NetworkType {
  * @pre 0.0 <= p <= 1.0
  *
  */
-void create_network(int N, double p, std::vector<std::vector<int>> &adjacency_list);
+void create_network(int N, double p, std::vector<std::vector<int>> &adjacency_list, unsigned int seed);
 
 /**
  * @brief Generate a scale-free network via preferential attachment.
@@ -56,7 +56,7 @@ void create_network(int N, double p, std::vector<std::vector<int>> &adjacency_li
  * @pre m >= 1
  * @pre m < N 
  */
-void create_scale_free_network(int N, int m, std::vector<std::vector<int>> &adjacency_list);
+void create_scale_free_network(int N, int m, std::vector<std::vector<int>> &adjacency_list, unsigned int seed);
 
 /**
  * @brief Generate an Erdős–Rényi random graph G(N, p).
@@ -73,4 +73,4 @@ void create_scale_free_network(int N, int m, std::vector<std::vector<int>> &adja
  * @pre 0.0 <= p <= 1.0
  *
  */
-void create_random_network(int N, double p, std::vector<std::vector<int>> &adjacency_list);
+void create_random_network(int N, double p, std::vector<std::vector<int>> &adjacency_list, unsigned int seed);
