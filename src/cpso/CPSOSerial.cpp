@@ -130,7 +130,7 @@ CpsoRunArtifacts CPSOSerial::run_optimization_loop(
                                                   gens[i], progress_ratio);
         swarms[i].evaluate_and_update(context, f);
 
-.
+
         double current_fitness = context.get_best_fitness();
         if (swarms[i].get_gbest_val() < current_fitness) {
           double new_fitness = swarms[i].get_gbest_val();
