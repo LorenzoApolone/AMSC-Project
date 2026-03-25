@@ -11,7 +11,7 @@ Modalita': seriale di riferimento + parallelo.
 
 Benchmark 2 - Numero di processi MPI vs Tempo totale con dimensione del problema per processo costante
 Suite: weak_dimension_per_process_constant
-Famiglia: cpso_weak_dimensions_localdim8_totalparticles256
+Famiglia: cpso_weak_dimensions_localdim8_totalparticles224
 Run coinvolte: 60
 Modalita': seriale di riferimento + parallelo.
 
