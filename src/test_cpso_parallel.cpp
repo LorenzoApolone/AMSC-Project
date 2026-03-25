@@ -60,15 +60,11 @@ int main(int argc, char **argv) {
 
     auto f2 = factory_it->second(dim);
 
-    std::vector<NetworkType> topologies = {NetworkType::SCALE_FREE,
-                                           NetworkType::SMALL_WORLD,
-                                           NetworkType::RANDOM};
-
     int scaled_stagnation = std::max(100, max_iters / 4);
     StoppingCriteriaManager stop2(max_iters, scaled_stagnation, 1e-8);
-    CPSOParallel cpso_p(k_subswarms, particles_per_swarm, topologies,
-                        shuffle_freq, stagnation_patience, 0.9, 0.4,
-                        1.49618, 1.49618, seed);
+    CPSOParallel cpso_p(k_subswarms, particles_per_swarm,
+                        NetworkType::SCALE_FREE, shuffle_freq,
+                        stagnation_patience, 0.9, 0.4, 1.49618, 1.49618, seed);
 
     MPI_Barrier(MPI_COMM_WORLD);
     double t_start = MPI_Wtime();
