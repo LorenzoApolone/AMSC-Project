@@ -278,7 +278,7 @@ static void regroup_particles_serial(std::vector<double> &pos,
  */
 OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
                          unsigned int n_points_total, int max_iter,
-                         const DPSOParameters &params, double convergence_tol) {
+                         const DPSOParameters &params, double convergence_tol, unsigned int seed) {
   // Stopping criteria aligned with CPSO:
   //   iterations_stagnation = max(100, max_iter / 4)
   //   stagnation_tol        = 1e-8
@@ -305,7 +305,7 @@ OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
     v_max[d] = 0.2 * (ub[d] - lb[d]);
 
   std::random_device rd;
-  std::mt19937 gen(rd());
+  std::mt19937 gen(seed == 0 ? rd() : seed);
 
   std::vector<double> pos(n_points_total * dim);
   std::vector<double> vel(n_points_total * dim);

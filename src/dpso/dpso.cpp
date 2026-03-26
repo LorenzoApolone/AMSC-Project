@@ -394,7 +394,7 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
  */
 OutputObject dpso(const TestFunction &f, unsigned int dim,
                   unsigned int n_points_total, int max_iter,
-                  const DPSOParameters &params, double convergence_tol) {
+                  const DPSOParameters &params, double convergence_tol, unsigned int seed) {
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -430,11 +430,11 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
     v_max[d] = 0.2 * (ub[d] - lb[d]);
 
   std::random_device rd;
-  std::mt19937 gen(rd() + rank);
+  std::mt19937 gen(seed == 0 ? rd() + rank : seed + rank);
 
   unsigned int global_seed = 0;
   if (rank == 0) {
-    global_seed = rd();
+    global_seed = seed == 0 ? rd() : seed;
   }
   MPI_Bcast(&global_seed, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
   std::mt19937 global_gen(global_seed);
