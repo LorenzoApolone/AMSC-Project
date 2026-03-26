@@ -34,9 +34,9 @@ int main(int argc, char **argv)
   int correct_when_early_stop = 0;
   int correct_total = 0;
   int number_of_functions = 0;
-  int iterations_stagnation = 800;
-  double stagnation_tol = 1e-9; // delta x for
-  double diversity_tol = 1e-7; // diversity tolerance for stopping criteria
+  int iterations_stagnation = std::max(100, (int)max_iter / 4);
+  double stagnation_tol = 1e-8; // delta x for
+  double diversity_tol = 1e-6; // diversity tolerance for stopping criteria
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 

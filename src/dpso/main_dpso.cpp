@@ -1,5 +1,6 @@
 #include "dpso/methods_dpso.hpp"
 #include "functions.hpp"
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <functional>
@@ -8,10 +9,11 @@
 #include <memory>
 #include <mpi.h>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
-#include <stdexcept>
 
 std::unordered_map<std::string, DPSOParameters>
 parse_params(const std::string &filename, int rank) {
@@ -71,7 +73,6 @@ int main(int argc, char **argv) {
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
-  double start_time = MPI_Wtime();
 
   if (argc < 4) {
     if (rank == 0) {
@@ -128,6 +129,16 @@ int main(int argc, char **argv) {
   factory["Powell"] = [](unsigned int dim) { return std::make_unique<Powell>(dim); };
   factory["DixonPrice"] = [](unsigned int dim) { return std::make_unique<DixonPrice>(dim); };
   factory["StyblinskiTang"] = [](unsigned int dim) { return std::make_unique<StyblinskiTang>(dim); };
+  factory["Step"]           = [](unsigned int dim) { return std::make_unique<Step>(dim); };
+  factory["Qing"]           = [](unsigned int dim) { return std::make_unique<Qing>(dim); };
+  factory["Trid"]           = [](unsigned int dim) { return std::make_unique<Trid>(dim); };
+  factory["Shubert"]        = [](unsigned int dim) { return std::make_unique<Shubert>(dim); };
+  factory["Alpine2"]        = [](unsigned int dim) { return std::make_unique<Alpine2>(dim); };
+  factory["Eggholder"]      = [](unsigned int dim) { return std::make_unique<Eggholder>(dim); };
+  factory["Easom"]          = [](unsigned int dim) { return std::make_unique<Easom>(dim); };
+  factory["Brown"]          = [](unsigned int dim) { return std::make_unique<Brown>(dim); };
+  factory["Csendes"]        = [](unsigned int dim) { return std::make_unique<Csendes>(dim); };
+  factory["Vincent"]        = [](unsigned int dim) { return std::make_unique<Vincent>(dim); };
   // clang-format on
 
   std::vector<std::string> function_names = {"Sphere",
@@ -165,11 +176,19 @@ int main(int argc, char **argv) {
                                              "Bohachevsky",
                                              "Powell",
                                              "DixonPrice",
-                                             "StyblinskiTang"};
+                                             "StyblinskiTang",
+                                             "Step",
+                                             "Qing",
+                                             "Trid",
+                                             "Shubert",
+                                             "Alpine2",
+                                             "Eggholder",
+                                             "Easom",
+                                             "Brown",
+                                             "Csendes",
+                                             "Vincent"};
 
-  int number_of_converged = 0;
   int number_of_functions = function_names.size();
-  std::vector<std::string> functions_converged;
   double t_start = MPI_Wtime();
 
   int iters = base_iter;
@@ -186,11 +205,138 @@ int main(int argc, char **argv) {
   if (!param_file.empty()) {
     all_params = parse_params(param_file, rank);
   }
-  int stopped_by_max_iter = 0;
-  int incorrect_early_stop = 0;
+
+  using CatMap = std::unordered_map<std::string, std::vector<std::string>>;
+  CatMap categories;
+  categories["Unimodal"] = {"Sphere",
+                            "Ellipsoid",
+                            "SumOfDiffPowers",
+                            "QuinticFunction",
+                            "HighCondElliptic",
+                            "Discus",
+                            "BentCigar",
+                            "RotatedHyper",
+                            "Zakharov",
+                            "Powell",
+                            "DixonPrice",
+                            "Qing",
+                            "Trid",
+                            "Brown"};
+  categories["Multimodal"] = {"DropWave",
+                              "Weierstrass",
+                              "Alpine1",
+                              "Ackley",
+                              "Griewank",
+                              "Rastrigin",
+                              "HappyCat",
+                              "HGBat",
+                              "Rosenbrock",
+                              "PermdbFunc",
+                              "Schafferf7Func",
+                              "ExpSchafferF6",
+                              "Schwefel",
+                              "SumOfDifferentPowers2",
+                              "XinSheYang1",
+                              "Schwefel221",
+                              "Schwefel222",
+                              "Salomon",
+                              "ModifiedRidge",
+                              "ModifiedXinSheYang3",
+                              "ModifiedXinSheYang5",
+                              "Levy",
+                              "Michalewicz",
+                              "Bohachevsky",
+                              "StyblinskiTang",
+                              "Shubert",
+                              "Alpine2",
+                              "Eggholder",
+                              "Easom",
+                              "Csendes",
+                              "Vincent"};
+  categories["Separable"] = {
+      "Sphere",      "SumOfDiffPowers", "QuinticFunction",
+      "Weierstrass", "Alpine1",         "Ackley",
+      "Rastrigin",   "Schwefel",        "XinSheYang1",
+      "Schwefel221", "Schwefel222",     "Salomon",
+      "Michalewicz", "Bohachevsky",     "StyblinskiTang",
+      "Levy",        "DixonPrice",      "Step",
+      "Qing",        "Alpine2",         "Easom",
+      "Csendes",     "Vincent"};
+  categories["Non-separable"] = {"Ellipsoid",
+                                 "DropWave",
+                                 "Griewank",
+                                 "HappyCat",
+                                 "HGBat",
+                                 "Rosenbrock",
+                                 "HighCondElliptic",
+                                 "Discus",
+                                 "BentCigar",
+                                 "PermdbFunc",
+                                 "Schafferf7Func",
+                                 "ExpSchafferF6",
+                                 "RotatedHyper",
+                                 "SumOfDifferentPowers2",
+                                 "ModifiedRidge",
+                                 "Zakharov",
+                                 "ModifiedXinSheYang3",
+                                 "ModifiedXinSheYang5",
+                                 "Powell",
+                                 "Trid",
+                                 "Shubert",
+                                 "Eggholder",
+                                 "Brown"};
+  categories["Differentiable"] = {"Sphere",
+                                  "Ellipsoid",
+                                  "SumOfDiffPowers",
+                                  "QuinticFunction",
+                                  "Griewank",
+                                  "HappyCat",
+                                  "HGBat",
+                                  "Rosenbrock",
+                                  "HighCondElliptic",
+                                  "Discus",
+                                  "BentCigar",
+                                  "PermdbFunc",
+                                  "RotatedHyper",
+                                  "Schwefel",
+                                  "SumOfDifferentPowers2",
+                                  "Schwefel221",
+                                  "Schwefel222",
+                                  "Salomon",
+                                  "ModifiedRidge",
+                                  "Zakharov",
+                                  "ModifiedXinSheYang3",
+                                  "Levy",
+                                  "Michalewicz",
+                                  "Bohachevsky",
+                                  "Powell",
+                                  "DixonPrice",
+                                  "StyblinskiTang",
+                                  "Rastrigin",
+                                  "Ackley",
+                                  "Qing",
+                                  "Trid",
+                                  "Shubert",
+                                  "Alpine2",
+                                  "Eggholder",
+                                  "Easom",
+                                  "Brown",
+                                  "Csendes",
+                                  "Vincent"};
+  categories["Non-differentiable"] = {
+      "Weierstrass",   "Alpine1",     "Schafferf7Func",
+      "ExpSchafferF6", "XinSheYang1", "ModifiedXinSheYang5",
+      "Step"};
+  categories["Flat"] = {"DropWave", "Step"};
+  categories["Coupled"] = {"HappyCat", "HGBat", "Rosenbrock"};
+
+  int stopped_by_maxiter_and_incorrect = 0;
+  int stopped_by_maxiter_and_correct = 0;
+  int incorrect_when_early_stop = 0;
+  int correct_when_early_stop = 0;
   int correct_total = 0;
+  std::vector<std::string> functions_converged;
   for (const auto &name : function_names) {
-    bool converged = false;
     auto f_ptr = factory[name](dim);
 
     DPSOParameters current_params;
@@ -201,29 +347,36 @@ int main(int argc, char **argv) {
     }
 
     try {
-      OutputObject res =
-          dpso(*f_ptr, dim, ppr, iters, current_params, 1e-6);
+      OutputObject res = dpso(*f_ptr, dim, ppr, iters, current_params, 1e-6);
       double fval = f_ptr->value(res.x_best);
       double err = f_ptr->error(res.x_best);
       bool true_converged = err < true_convergence_tol;
       if (rank == 0) {
         std::cout << std::left << std::setw(22) << name << std::right
-                  << std::setw(6) << dim << std::setw(8) << ppr // total particles
-                  << std::setw(8) << iters << "   " << std::scientific
-                  << std::setprecision(4) << std::setw(13) << fval << "   "
-                  << std::setw(13) << err << "   " << std::fixed
-                  << std::setprecision(2) << std::setw(8) << res.execution_time
-                  << "s" << std::endl;
-        if (res.iterations >= iters)
-          stopped_by_max_iter++;
-        else if (!true_converged)
-          incorrect_early_stop++;
-        if (true_converged)
+                  << std::setw(6) << dim << std::setw(8) << ppr << std::setw(8)
+                  << iters << "   " << std::scientific << std::setprecision(4)
+                  << std::setw(13) << fval << "   " << std::setw(13) << err
+                  << "   " << std::fixed << std::setprecision(2) << std::setw(8)
+                  << res.execution_time << "s" << std::endl;
+
+        bool stopped_by_maxiter = (res.iterations >= iters);
+        if (stopped_by_maxiter && !true_converged)
+          stopped_by_maxiter_and_incorrect++;
+        if (stopped_by_maxiter && true_converged)
+          stopped_by_maxiter_and_correct++;
+        if (!stopped_by_maxiter && !true_converged)
+          incorrect_when_early_stop++;
+        if (!stopped_by_maxiter && true_converged)
+          correct_when_early_stop++;
+        if (true_converged) {
           correct_total++;
+          functions_converged.push_back(name);
+        }
       }
-    } catch (const std::invalid_argument& e) {
+    } catch (const std::invalid_argument &e) {
       if (rank == 0) {
-        std::cerr << "Configuration Error for " << name << ": " << e.what() << "\n";
+        std::cerr << "Configuration Error for " << name << ": " << e.what()
+                  << "\n";
       }
       MPI_Finalize();
       return 1;
@@ -234,21 +387,57 @@ int main(int argc, char **argv) {
 
   double t_end = MPI_Wtime();
   if (rank == 0) {
+    // --- machine-readable summary line (same format as topology) ---
     std::cout << "\nRESULT,"
               << "version=dpso,"
               << "time=" << (t_end - t_start) << ","
-              << "conv=" << correct_total << "," // <-- usa correct_total!
+              << "conv=" << correct_total << ","
               << "total=" << number_of_functions << ","
               << "\n";
+
+    // --- human-readable summary ---
     std::cout << "\n=== ALL BENCHMARKS COMPLETED ===" << std::endl;
-    std::cout << "Tempo totale esecuzione: " << (t_end - t_start) << " s"
+    std::cout << "Total execution time: " << (t_end - t_start) << " s"
               << std::endl;
-    std::cout << "Convergence rate: " << correct_total << "/"
+    std::cout << "Stopped by max iter and incorrect: "
+              << stopped_by_maxiter_and_incorrect << std::endl;
+    std::cout << "Stopped by max iter and correct: "
+              << stopped_by_maxiter_and_correct << std::endl;
+    std::cout << "Incorrect when early stop: " << incorrect_when_early_stop
+              << std::endl;
+    std::cout << "Correct when early stop: " << correct_when_early_stop
+              << std::endl;
+    std::cout << "Correct total: " << correct_total << "/"
               << number_of_functions << std::endl;
-    std::cout << "Stopped by max iter: " << stopped_by_max_iter << std::endl;
-    std::cout << "Incorrect when early stop: " << incorrect_early_stop
-              << std::endl;
-    std::cout << "Correct total: " << correct_total << std::endl;
+
+    std::unordered_set<std::string> converged_set(functions_converged.begin(),
+                                                  functions_converged.end());
+    std::cout << "Converged by typology:" << std::endl;
+    for (const auto &cat :
+         {std::string("Unimodal"), std::string("Multimodal"),
+          std::string("Separable"), std::string("Non-separable"),
+          std::string("Differentiable"), std::string("Non-differentiable"),
+          std::string("Flat"), std::string("Coupled")}) {
+      const auto &cat_fns = categories.at(cat);
+      int cat_total = 0, cat_conv = 0;
+      for (const auto &fn : cat_fns) {
+        bool in_test = (std::find(function_names.begin(), function_names.end(),
+                                  fn) != function_names.end());
+        if (in_test) {
+          cat_total++;
+          if (converged_set.count(fn))
+            cat_conv++;
+        }
+      }
+      std::cout << "  - " << cat << ": " << cat_conv << "/" << cat_total
+                << std::endl;
+    }
+
+    std::cout << std::endl;
+    for (const auto &fn : function_names) {
+      if (!converged_set.count(fn))
+        std::cout << "Function " << fn << " did not converge." << std::endl;
+    }
   }
 
   MPI_Finalize();

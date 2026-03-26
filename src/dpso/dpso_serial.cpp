@@ -144,23 +144,6 @@ static void apply_harmony_search_serial(
 /**
  * @brief Executes one local best (lbest) PSO + HS iteration on a sub-swarm.
  *
- * @param swarm Reference to the swarm.
- * @param start Start index of the sub-swarm.
- * @param end End index of the sub-swarm (exclusive).
- * @param dim Number of dimensions of the search space.
- * @param lb Vector of lower bounds.
- * @param ub Vector of upper bounds.
- * @param v_max Vector of maximum velocities.
- * @param params Algorithm parameters.
- * @param f The test function to optimize.
- * @param gen PRNG instance.
- * @param iter Current iteration number.
- * @param max_iter Maximum number of iterations.
- * @param hs_buffer Reusable buffer for harmony search.
- */
-/**
- * @brief Executes one local best (lbest) PSO + HS iteration on a sub-swarm.
- *
  * @param pos Swarm positions (SoA).
  * @param vel Swarm velocities (SoA).
  * @param pbest_pos Swarm personal best positions (SoA).
@@ -237,12 +220,6 @@ static void process_sub_swarm_serial(
 }
 
 /**
- * @brief Shuffles the particles in the swarm to regroup sub-swarms.
- *
- * @param swarm Reference to the swarm.
- * @param g PRNG instance.
- */
-/**
  * @brief Shuffles the particles in the swarm to regroup sub-swarms in SoA.
  *
  * @param pos Swarm positions.
@@ -302,7 +279,12 @@ static void regroup_particles_serial(std::vector<double> &pos,
 OutputObject dpso_serial(const TestFunction &f, unsigned int dim,
                          unsigned int n_points_total, int max_iter,
                          const DPSOParameters &params, double convergence_tol) {
-  StoppingCriteriaManager stop_manager(max_iter, 2000, convergence_tol, 1e-3);
+  // Stopping criteria aligned with CPSO:
+  //   iterations_stagnation = max(100, max_iter / 4)
+  //   stagnation_tol        = 1e-8
+  //   diversity_tol         = 1e-6 (default)
+  int scaled_stagnation = std::max(100, max_iter / 4);
+  StoppingCriteriaManager stop_manager(max_iter, scaled_stagnation, 1e-8, 1e-6);
 
   if (n_points_total < (unsigned int)params.sub_swarm_size) {
     throw std::invalid_argument("Error: total particles (" + std::to_string(n_points_total) +
