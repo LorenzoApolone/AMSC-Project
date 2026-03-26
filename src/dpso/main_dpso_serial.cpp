@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
   if (argc < 4) {
     std::cout << "Usage: " << argv[0]
               << " <dim> <total_particles> <max_iter> [convergence_tol] "
-                 "[params_file]\n";
+                 "[params_file] [seed]\n";
     return 1;
   }
 
@@ -183,11 +183,15 @@ int main(int argc, char **argv) {
   unsigned int ppr = total_particles;
   double true_convergence_tol = 1e-4;
   std::string param_file = "";
+  unsigned int seed = 0;
   if (argc >= 5) {
     true_convergence_tol = std::atof(argv[4]);
   }
   if (argc >= 6) {
     param_file = argv[5];
+  }
+  if (argc >= 7) {
+    seed = static_cast<unsigned int>(std::stoul(argv[6]));
   }
 
   std::unordered_map<std::string, DPSOParameters> all_params;
@@ -341,7 +345,7 @@ int main(int argc, char **argv) {
 
     try {
       OutputObject res =
-          dpso_serial(*f_ptr, dim, ppr, iters, current_params, 1e-6);
+          dpso_serial(*f_ptr, dim, ppr, iters, current_params, 1e-6, seed);
       double fval = f_ptr->value(res.x_best);
       double err = f_ptr->error(res.x_best);
       bool true_converged = err < true_convergence_tol;
