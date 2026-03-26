@@ -78,7 +78,8 @@ double euclidean_dist_squared(const std::vector<double> &v1,
  * @param new_harmony Buffer for harmony search results.
  */
 static void apply_harmony_search(
-    const std::vector<double> &pbest_pos, std::vector<double> &pbest_val,
+    std::vector<double> &pos, std::vector<double> &current_val,
+    std::vector<double> &pbest_pos, std::vector<double> &pbest_val,
     int start_idx, int end_idx, int dim, const TestFunction &f,
     std::mt19937 &gen, const std::vector<double> &lower_bound,
     const std::vector<double> &upper_bound, int current_iter, int max_iter,
@@ -398,7 +399,12 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  StoppingCriteriaManager stop_manager(max_iter, 2000, convergence_tol, 1e-3);
+  // Stopping criteria aligned with CPSO:
+  //   iterations_stagnation = max(100, max_iter / 4)
+  //   stagnation_tol        = 1e-8
+  //   diversity_tol         = 1e-6 (default)
+  int scaled_stagnation = std::max(100, max_iter / 4);
+  StoppingCriteriaManager stop_manager(max_iter, scaled_stagnation, 1e-8, 1e-6);
 
   unsigned int n_points_per_rank = n_points_total / size;
   if ((unsigned int)rank < (n_points_total % size)) {
