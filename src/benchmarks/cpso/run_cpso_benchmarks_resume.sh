@@ -207,7 +207,7 @@ for case_line in "${CASE_LINES[@]}"; do
 
   if [[ "$execution_mode" == "serial" ]]; then
     CASE_LABEL="serial"
-    OUT_DIR="$RAW_ROOT/$battery/$suite/$family/$CASE_LABEL/seed_${seed}"
+    OUT_DIR="$RAW_ROOT/$battery/$suite/$family/$case_id"
     CMD=(
       "$TEST_SERIAL_BINARY"
       "$dim"
@@ -218,7 +218,7 @@ for case_line in "${CASE_LINES[@]}"; do
     )
   else
     CASE_LABEL="np_${mpi_processes}"
-    OUT_DIR="$RAW_ROOT/$battery/$suite/$family/$CASE_LABEL/seed_${seed}"
+    OUT_DIR="$RAW_ROOT/$battery/$suite/$family/$case_id"
     CMD=("$MPIEXEC_BIN")
     if [[ -n "$MPIEXEC_ARGS" ]]; then
       read -r -a EXTRA_MPI_ARGS <<< "$MPIEXEC_ARGS"
