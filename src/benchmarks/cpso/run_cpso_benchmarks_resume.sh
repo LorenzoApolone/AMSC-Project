@@ -30,7 +30,7 @@ Usage: run_cpso_benchmarks_resume.sh [options]
 Options:
   --start-index N                  First global case index to execute (1-based, required).
   --end-index N                    Last global case index to execute (inclusive).
-  --battery comparable|cpso|all    Select the benchmark battery to run.
+  --battery comparable|cpso|appendix|all    Select the benchmark battery to run.
   --seeds 123,456,789              Override default seed list.
   --results-root PATH              Directory where raw results are saved.
   --tag NAME                       Custom subdirectory name under results/root.
