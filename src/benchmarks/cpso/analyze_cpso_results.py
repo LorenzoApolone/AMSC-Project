@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -327,6 +327,95 @@ def build_serial_parallel_summary(summary_rows: list[dict[str, Any]]) -> list[di
         })
     return out
 
+
+def finite_values(values: Iterable[float]) -> list[float]:
+    return [value for value in values if math.isfinite(value)]
+
+
+def choose_time_unit(values: Iterable[float]) -> tuple[float, str]:
+    valid = [abs(value) for value in finite_values(values) if not math.isclose(value, 0.0, abs_tol=1e-18)]
+    if not valid:
+        return 1.0, "s"
+    vmax = max(valid)
+    if vmax < 1.0e-3:
+        return 1.0e6, "us"
+    if vmax < 1.0:
+        return 1.0e3, "ms"
+    return 1.0, "s"
+
+
+def scale_time_series(*series: list[float]) -> tuple[str, list[list[float]]]:
+    all_values: list[float] = []
+    for values in series:
+        all_values.extend(finite_values(values))
+    scale, unit = choose_time_unit(all_values)
+    scaled = [
+        [value * scale if math.isfinite(value) else value for value in values]
+        for values in series
+    ]
+    return unit, scaled
+
+
+def apply_focus_axis(axis: Any, values: Iterable[float], include_values: Iterable[float] = ()) -> None:
+    valid = finite_values(list(values) + list(include_values))
+    if not valid:
+        return
+    vmin = min(valid)
+    vmax = max(valid)
+    if math.isclose(vmin, vmax, rel_tol=1e-9, abs_tol=1e-12):
+        pad = max(abs(vmax) * 0.15, 1e-12)
+    else:
+        pad = max((vmax - vmin) * 0.15, abs(vmax) * 0.03, 1e-12)
+    lower = vmin - pad
+    upper = vmax + pad
+    if vmin > 0.0:
+        lower = max(vmin * 0.85, lower)
+    elif vmin >= 0.0:
+        lower = max(0.0, lower)
+    if not (math.isfinite(lower) and math.isfinite(upper)) or upper <= lower:
+        lower, upper = vmin, vmax + max(abs(vmax) * 0.1, 1e-12)
+    axis.set_ylim(lower, upper)
+
+
+def apply_compact_time_axis(axis: Any, values: Iterable[float]) -> None:
+    valid = finite_values(values)
+    if not valid:
+        return
+    axis.ticklabel_format(style="sci", axis="y", scilimits=(-3, 3), useMathText=True)
+    vmin = min(valid)
+    vmax = max(valid)
+    if math.isclose(vmin, vmax, rel_tol=1e-9, abs_tol=1e-12):
+        pad = max(abs(vmax) * 0.2, 1e-12)
+        lower = max(vmin * 0.85, vmin - pad) if vmin > 0.0 else max(0.0, vmin - pad)
+        upper = vmax + pad
+    else:
+        span = vmax - vmin
+        pad = max(span * 0.15, abs(vmax) * 0.05, 1e-12)
+        lower = max(vmin * 0.85, vmin - pad) if vmin > 0.0 else max(0.0, vmin - pad)
+        upper = vmax + pad
+    if not (math.isfinite(lower) and math.isfinite(upper)) or upper <= lower:
+        lower, upper = 0.0, max(1.0, vmax)
+    axis.set_ylim(lower, upper)
+
+
+def apply_positive_axis(axis: Any, values: Iterable[float]) -> None:
+    valid = finite_values(values)
+    if not valid:
+        return
+    apply_focus_axis(axis, valid)
+
+
+def resolve_local_artifact_path(metadata_path: Path, raw_path: Any, fallback_name: str) -> Path:
+    candidates: list[Path] = []
+    if raw_path:
+        candidates.append(Path(str(raw_path)))
+    candidates.append(metadata_path.parent / fallback_name)
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[-1]
+
+
 def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[dict[str, Any]], typology_summary_rows: list[dict[str, Any]], precision_rows: list[dict[str, Any]], function_outcome_rows: list[dict[str, Any]], output_dir: Path) -> None:
     try:
         import matplotlib.pyplot as plt
@@ -351,65 +440,92 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
         efficiencies = [parse_float(row["efficiency"]) for row in rows]
         slug = sanitize_name(f"{group_key[0]}__{group_key[1]}__{group_key[2]}__dim{group_key[3]}__k{group_key[4]}__pps{group_key[5]}__iters{group_key[6]}")
         title_suffix = f"{group_key[2]} | dim={group_key[3]} | k={group_key[4]} | pps={group_key[5]}"
+
+        wall_unit, [wall_times_plot] = scale_time_series(wall_times)
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, wall_times, marker="o")
+        axis.plot(np_values, wall_times_plot, marker="o")
         axis.set_title(f"Wall time vs MPI processes\n{title_suffix}")
         axis.set_xlabel("MPI processes")
-        axis.set_ylabel("Mean suite wall time [s]")
+        axis.set_ylabel(f"Mean suite wall time [{wall_unit}]")
+        apply_compact_time_axis(axis, wall_times_plot)
         axis.grid(True, alpha=0.3)
         figure.tight_layout()
         figure.savefig(plots_dir / f"{slug}__wall_time.png", dpi=150)
         plt.close(figure)
+
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, speedups, marker="o")
+        axis.plot(np_values, speedups, marker="o", label="measured")
+        baseline_np = max(1, int(rows[0]["mpi_processes"]))
+        ideal_speedups = [np_value / baseline_np for np_value in np_values]
+        axis.plot(np_values, ideal_speedups, linestyle="--", color="tab:gray", label="ideal")
         axis.set_title(f"Speedup vs MPI processes\n{title_suffix}")
         axis.set_xlabel("MPI processes")
         axis.set_ylabel("Speedup")
+        apply_focus_axis(axis, speedups, ideal_speedups)
         axis.grid(True, alpha=0.3)
+        axis.legend(loc="best", fontsize="small")
         figure.tight_layout()
         figure.savefig(plots_dir / f"{slug}__speedup.png", dpi=150)
         plt.close(figure)
+
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, efficiencies, marker="o")
+        axis.plot(np_values, efficiencies, marker="o", label="measured")
+        ideal_efficiency = [1.0 for _ in np_values]
+        axis.plot(np_values, ideal_efficiency, linestyle="--", color="tab:gray", label="ideal")
         axis.set_title(f"Efficiency vs MPI processes\n{title_suffix}")
         axis.set_xlabel("MPI processes")
         axis.set_ylabel("Efficiency")
+        apply_focus_axis(axis, efficiencies, ideal_efficiency)
         axis.grid(True, alpha=0.3)
+        axis.legend(loc="best", fontsize="small")
         figure.tight_layout()
         figure.savefig(plots_dir / f"{slug}__efficiency.png", dpi=150)
         plt.close(figure)
+
         comm_totals = [parse_float(row["mean_sum_comm_total_s"]) for row in rows]
         wait_totals = [parse_float(row["mean_sum_wait_total_s"]) for row in rows]
         allgather_totals = [parse_float(row["mean_sum_comm_allgather_s"]) for row in rows]
         bcast_totals = [parse_float(row["mean_sum_comm_bcast_s"]) for row in rows]
         allreduce_totals = [parse_float(row["mean_sum_comm_allreduce_s"]) for row in rows]
         barrier_totals = [parse_float(row["mean_sum_comm_barrier_s"]) for row in rows]
+
+        comm_unit, [comm_totals_plot] = scale_time_series(comm_totals)
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, comm_totals, marker="o")
+        axis.plot(np_values, comm_totals_plot, marker="o")
         axis.set_title(f"Communication time vs MPI processes\n{title_suffix}")
         axis.set_xlabel("MPI processes")
-        axis.set_ylabel("Mean communication time [s]")
+        axis.set_ylabel(f"Mean communication time [{comm_unit}]")
+        apply_compact_time_axis(axis, comm_totals_plot)
         axis.grid(True, alpha=0.3)
         figure.tight_layout()
         figure.savefig(plots_dir / f"{slug}__comm_total.png", dpi=150)
         plt.close(figure)
+
+        wait_unit, [wait_totals_plot] = scale_time_series(wait_totals)
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, wait_totals, marker="o")
+        axis.plot(np_values, wait_totals_plot, marker="o")
         axis.set_title(f"Wait/sync time vs MPI processes\n{title_suffix}")
         axis.set_xlabel("MPI processes")
-        axis.set_ylabel("Mean wait time [s]")
+        axis.set_ylabel(f"Mean wait time [{wait_unit}]")
+        apply_compact_time_axis(axis, wait_totals_plot)
         axis.grid(True, alpha=0.3)
         figure.tight_layout()
         figure.savefig(plots_dir / f"{slug}__wait_total.png", dpi=150)
         plt.close(figure)
+
+        breakdown_unit, breakdown_scaled = scale_time_series(
+            allgather_totals, bcast_totals, allreduce_totals, barrier_totals
+        )
+        allgather_plot, bcast_plot, allreduce_plot, barrier_plot = breakdown_scaled
         figure, axis = plt.subplots(figsize=(8, 4.5))
-        axis.plot(np_values, allgather_totals, marker="o", label="allgather")
-        axis.plot(np_values, bcast_totals, marker="o", label="bcast")
-        axis.plot(np_values, allreduce_totals, marker="o", label="allreduce")
-        axis.plot(np_values, barrier_totals, marker="o", label="barrier")
+        axis.plot(np_values, allgather_plot, marker="o", label="allgather")
+        axis.plot(np_values, bcast_plot, marker="o", label="bcast")
+        axis.plot(np_values, allreduce_plot, marker="o", label="allreduce")
+        axis.plot(np_values, barrier_plot, marker="o", label="barrier")
         axis.set_title(f"Communication breakdown vs MPI processes\n{title_suffix}")
         axis.set_xlabel("MPI processes")
-        axis.set_ylabel("Mean time [s]")
+        axis.set_ylabel(f"Mean time [{breakdown_unit}]")
+        apply_compact_time_axis(axis, allgather_plot + bcast_plot + allreduce_plot + barrier_plot)
         axis.grid(True, alpha=0.3)
         axis.legend(loc="best", fontsize="small")
         figure.tight_layout()
@@ -433,25 +549,39 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
         rel_speedups = [parse_float(row["relative_speedup_vs_serial"]) for row in rows]
         slug = sanitize_name(f"{group_key[0]}__{group_key[1]}__{group_key[2]}__dim{group_key[3]}__k{group_key[4]}__pps{group_key[5]}__iters{group_key[6]}")
         title_suffix = f"{group_key[2]} | dim={group_key[3]} | k={group_key[4]} | pps={group_key[5]}"
+
+        serial_parallel_wall_unit, [wall_times_plot] = scale_time_series(wall_times)
         figure, axis = plt.subplots(figsize=(8, 4.5))
-        axis.plot(positions, wall_times, marker="o")
+        axis.plot(positions, wall_times_plot, marker="o")
         axis.set_xticks(positions, x_labels)
         axis.set_title(f"Serial vs parallel wall time\n{title_suffix}")
         axis.set_xlabel("Execution mode")
-        axis.set_ylabel("Mean suite wall time [s]")
+        axis.set_ylabel(f"Mean suite wall time [{serial_parallel_wall_unit}]")
+        apply_compact_time_axis(axis, wall_times_plot)
         axis.grid(True, alpha=0.3)
         figure.tight_layout()
         figure.savefig(plots_dir / f"{slug}__serial_vs_parallel_wall_time.png", dpi=150)
         plt.close(figure)
+
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, rel_speedups, marker="o")
+        axis.plot(np_values, rel_speedups, marker="o", label="measured")
+        baseline_parallel_time = parse_float(rows[0]["mean_parallel_wall_time_s"])
+        ideal_rel_speedups: list[float] = []
+        if math.isfinite(serial_time) and math.isfinite(baseline_parallel_time) and baseline_parallel_time > 0.0:
+            baseline_np = max(1, np_values[0])
+            serial_to_parallel_baseline = serial_time / baseline_parallel_time
+            ideal_rel_speedups = [serial_to_parallel_baseline * (np_value / baseline_np) for np_value in np_values]
+            axis.plot(np_values, ideal_rel_speedups, linestyle="--", color="tab:gray", label="ideal")
         axis.set_title(f"Relative speedup vs serial reference\n{title_suffix}")
         axis.set_xlabel("MPI processes")
         axis.set_ylabel("serial_time / parallel_time")
+        apply_focus_axis(axis, rel_speedups, ideal_rel_speedups)
         axis.grid(True, alpha=0.3)
+        axis.legend(loc="best", fontsize="small")
         figure.tight_layout()
         figure.savefig(plots_dir / f"{slug}__relative_speedup_vs_serial.png", dpi=150)
         plt.close(figure)
+
         figure, axis = plt.subplots(figsize=(8, 4.5))
         axis.plot(positions, conv_rates, marker="o")
         axis.set_xticks(positions, x_labels)
@@ -473,23 +603,30 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
         if len(dims) < 2 or len(labels) < 2:
             continue
         slug = sanitize_name("__".join(family_key))
+        wall_by_dim_scale, wall_by_dim_unit = choose_time_unit(parse_float(row["mean_suite_wall_time_s"]) for row in rows)
+
         figure, axis = plt.subplots(figsize=(8, 4.5))
         has_data = False
+        plotted_values: list[float] = []
         for execution_mode, mpi_processes in labels:
             label_rows = sorted([row for row in rows if row["execution_mode"] == execution_mode and int(row["mpi_processes"]) == mpi_processes], key=lambda item: int(item["dim"]))
             if not label_rows:
                 continue
+            y_values = [parse_float(row["mean_suite_wall_time_s"]) * wall_by_dim_scale for row in label_rows]
             has_data = True
-            axis.plot([int(row["dim"]) for row in label_rows], [parse_float(row["mean_suite_wall_time_s"]) for row in label_rows], marker="o", label=run_label(execution_mode, mpi_processes))
+            plotted_values.extend(y_values)
+            axis.plot([int(row["dim"]) for row in label_rows], y_values, marker="o", label=run_label(execution_mode, mpi_processes))
         if has_data:
             axis.set_title(f"Wall time vs dimension\n{family_key[2]}")
             axis.set_xlabel("Problem dimension")
-            axis.set_ylabel("Mean suite wall time [s]")
+            axis.set_ylabel(f"Mean suite wall time [{wall_by_dim_unit}]")
+            apply_compact_time_axis(axis, plotted_values)
             axis.grid(True, alpha=0.3)
             axis.legend(loc="best", fontsize="small")
             figure.tight_layout()
             figure.savefig(plots_dir / f"{slug}__wall_time_by_dim.png", dpi=150)
         plt.close(figure)
+
         figure, axis = plt.subplots(figsize=(8, 4.5))
         has_data = False
         for execution_mode, mpi_processes in labels:
@@ -508,6 +645,7 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
             figure.tight_layout()
             figure.savefig(plots_dir / f"{slug}__convergence_by_dim.png", dpi=150)
         plt.close(figure)
+
     typology_groups: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for row in typology_summary_rows:
         typology_groups[(row["battery"], row["suite"], row["family"], row["dim"])].append(row)
@@ -598,7 +736,6 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
         figure.savefig(plots_dir / f"{slug}__function_outcomes.png", dpi=150)
         plt.close(figure)
 
-
 def main() -> None:
     args = parse_args()
     results_root = Path(args.results_root).resolve()
@@ -614,7 +751,8 @@ def main() -> None:
         execution_mode = metadata.get("execution_mode", "parallel")
         mpi_processes = int(metadata.get("mpi_processes", 0))
         current_label = run_label(execution_mode, mpi_processes)
-        stdout_log = Path(metadata["stdout_log"])
+        stdout_log = resolve_local_artifact_path(metadata_path, metadata.get("stdout_log"), "stdout.log")
+        stderr_log = resolve_local_artifact_path(metadata_path, metadata.get("stderr_log"), "stderr.log")
         parsed = {"functions": [], "typologies": [], "non_converged_lines": []}
         if stdout_log.exists():
             parsed = parse_stdout_log(stdout_log)
@@ -632,7 +770,7 @@ def main() -> None:
             "sum_comm_allreduce_s": sum(item.get("comm_allreduce_s", 0.0) for item in parsed["functions"]), "sum_comm_barrier_s": sum(item.get("comm_barrier_s", 0.0) for item in parsed["functions"]),
             "sum_wait_total_s": sum(item.get("wait_total_s", 0.0) for item in parsed["functions"]),
             "functions_total": total_functions, "converged_functions": converged, "convergence_rate": converged / total_functions if total_functions else math.nan,
-            "run_outcome": run_outcome, "last_completed_function": last_completed_function, "return_code": metadata["return_code"], "stdout_log": metadata["stdout_log"], "stderr_log": metadata["stderr_log"],
+            "run_outcome": run_outcome, "last_completed_function": last_completed_function, "return_code": metadata["return_code"], "stdout_log": str(stdout_log), "stderr_log": str(stderr_log),
         })
         if run_outcome == "failure":
             failure_rows.append({
@@ -640,7 +778,7 @@ def main() -> None:
                 "execution_mode": execution_mode, "run_label": current_label, "mpi_processes": mpi_processes,
                 "dim": metadata["dim"], "k_subswarms": metadata["k_subswarms"], "particles_per_swarm": metadata["particles_per_swarm"], "max_iters": metadata["max_iters"], "seed": metadata["seed"],
                 "suite_wall_time_s": metadata["suite_wall_time_s"], "completed_functions": total_functions, "last_completed_function": last_completed_function,
-                "return_code": metadata["return_code"], "stdout_log": metadata["stdout_log"], "stderr_log": metadata["stderr_log"],
+                "return_code": metadata["return_code"], "stdout_log": str(stdout_log), "stderr_log": str(stderr_log),
             })
         for item in parsed["functions"]:
             function_rows.append({

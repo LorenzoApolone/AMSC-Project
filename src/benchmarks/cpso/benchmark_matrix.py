@@ -167,6 +167,71 @@ def build_comparable_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
     return cases
 
 
+def build_appendix_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
+    appendix_definitions = (
+        {
+            "family": "appendix_fixedk28_dim64_pps16",
+            "suite": "fixed_k28_owner_transition",
+            "dim": 64,
+            "k": 28,
+            "particles_per_swarm": 16,
+            "max_iters": 10000,
+            "description": (
+                "Appendice CPSO: problema totale fisso con k=28, "
+                "varia solo il numero di processi per osservare la transizione "
+                "verso il caso np=28 in cui ogni rank possiede un solo sottoswarm."
+            ),
+        },
+        {
+            "family": "appendix_fixedk28_dim128_pps8",
+            "suite": "fixed_k28_owner_transition",
+            "dim": 128,
+            "k": 28,
+            "particles_per_swarm": 8,
+            "max_iters": 20000,
+            "description": (
+                "Appendice CPSO: problema totale fisso con k=28, "
+                "varia solo il numero di processi per osservare la transizione "
+                "verso il caso np=28 in cui ogni rank possiede un solo sottoswarm."
+            ),
+        },
+    )
+
+    cases: list[BenchmarkCase] = []
+    for definition in appendix_definitions:
+        for seed in seeds:
+            common = dict(
+                battery="appendix",
+                suite=definition["suite"],
+                family=definition["family"],
+                dim=definition["dim"],
+                k_subswarms=definition["k"],
+                particles_per_swarm=definition["particles_per_swarm"],
+                max_iters=definition["max_iters"],
+                seed=seed,
+            )
+            cases.append(
+                _make_serial_case(
+                    **common,
+                    description=(
+                        definition["description"]
+                        + " Riferimento seriale con la stessa decomposizione algoritmica."
+                    ),
+                )
+            )
+            for mpi_processes in DEFAULT_PROCESSES:
+                if mpi_processes > definition["k"]:
+                    continue
+                cases.append(
+                    _make_parallel_case(
+                        **common,
+                        mpi_processes=mpi_processes,
+                        description=definition["description"],
+                    )
+                )
+    return cases
+
+
 def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
     cases: list[BenchmarkCase] = []
 
@@ -324,6 +389,8 @@ def build_cases(battery: str, seeds: Sequence[int]) -> list[BenchmarkCase]:
 
     if selected in {"all", "comparable"}:
         cases.extend(build_comparable_cases(seeds))
+    if selected == "appendix":
+        cases.extend(build_appendix_cases(seeds))
     if selected in {"all", "cpso"}:
         cases.extend(build_cpso_only_cases(seeds))
     if not cases:
@@ -374,7 +441,7 @@ def main() -> None:
     parser.add_argument(
         "--battery",
         default="all",
-        choices=("all", "comparable", "cpso"),
+        choices=("all", "comparable", "cpso", "appendix"),
         help="Which battery to emit.",
     )
     parser.add_argument(
