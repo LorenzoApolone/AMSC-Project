@@ -145,13 +145,13 @@ echo "[run] Total cases: $TOTAL_CASES"
 CASE_INDEX=0
 for case_line in "${CASE_LINES[@]}"; do
   CASE_INDEX=$((CASE_INDEX + 1))
-  IFS=$'	' read -r battery suite family case_id execution_mode mpi_processes dim total_particles max_iters seed description <<< "$case_line"
+  IFS=$'\t' read -r battery suite family case_id execution_mode mpi_processes dim total_particles max_iters seed w c1 c2 regrouping_period sub_swarm_size hmcr par_min par_max description <<< "$case_line"
 
   if [[ "$execution_mode" == "serial" ]]; then
     CASE_LABEL="serial"
     OUT_DIR="$RAW_ROOT/$battery/$suite/$family/$CASE_LABEL/seed_${seed}"
     CMD=(
-      "$TEST_SERIAL_BINARY" "$dim" "$total_particles" "$max_iters" "1e-6" "" "$seed"
+      "$TEST_SERIAL_BINARY" "$dim" "$total_particles" "$max_iters" "1e-6" "$OUT_DIR/params.txt" "$seed"
     )
   else
     CASE_LABEL="np_${mpi_processes}"
@@ -168,12 +168,25 @@ for case_line in "${CASE_LINES[@]}"; do
       "$total_particles"
       "$max_iters"
       "1e-6"
-      ""
+      "$OUT_DIR/params.txt"
       "$seed"
     )
   fi
 
   mkdir -p "$OUT_DIR"
+  
+  cat <<EOF > "$OUT_DIR/params.txt"
+[GLOBAL]
+w $w
+c1 $c1
+c2 $c2
+regrouping_period $regrouping_period
+sub_swarm_size $sub_swarm_size
+hmcr $hmcr
+par_min $par_min
+par_max $par_max
+EOF
+
   printf '%q ' "${CMD[@]}" > "$OUT_DIR/command.sh"
   printf '
 ' >> "$OUT_DIR/command.sh"
@@ -224,6 +237,14 @@ metadata = {
     "total_particles": int("$total_particles"),
     "max_iters": int("$max_iters"),
     "seed": int("$seed"),
+    "w": float("$w"),
+    "c1": float("$c1"),
+    "c2": float("$c2"),
+    "regrouping_period": int("$regrouping_period"),
+    "sub_swarm_size": int("$sub_swarm_size"),
+    "hmcr": float("$hmcr"),
+    "par_min": float("$par_min"),
+    "par_max": float("$par_max"),
     "description": "$description",
     "command": open("$OUT_DIR/command.sh", "r", encoding="utf-8").read().strip(),
     "stdout_log": "$OUT_DIR/stdout.log",
