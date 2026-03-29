@@ -17,7 +17,7 @@ usage() {
     "Options:" \
     "  --host HOST                    SSH host for the cluster/login node." \
     "  --remote-src PATH              Absolute remote path of the src/ directory." \
-    "  --battery comparable|cpso|appendix|all  Select the benchmark battery." \
+    "  --battery comparable|cpso|appendix|validation|all  Select the benchmark battery." \
     "  --seeds 123,456,789            Override default seed list." \
     "  --tag NAME                     Custom run tag forwarded to the remote runner." \
     "  --remote-results-root PATH     Remote results root (default: REMOTE_SRC/benchmarks/cpso/results)." \

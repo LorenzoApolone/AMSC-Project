@@ -232,6 +232,68 @@ def build_appendix_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
     return cases
 
 
+def build_validation_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
+    validation_definitions = (
+        {
+            "family": "validation_fixedk28_dim64_pps16",
+            "suite": "k28_consistency_check",
+            "dim": 64,
+            "k": 28,
+            "particles_per_swarm": 16,
+            "max_iters": 10000,
+            "description": (
+                "Micro-benchmark CPSO di validazione: controlla la stabilita' dei risultati "
+                "nel caso k=28 confrontando seriale, np=1, np=4 e np=28 sul problema dim=64."
+            ),
+        },
+        {
+            "family": "validation_fixedk28_dim128_pps8",
+            "suite": "k28_consistency_check",
+            "dim": 128,
+            "k": 28,
+            "particles_per_swarm": 8,
+            "max_iters": 20000,
+            "description": (
+                "Micro-benchmark CPSO di validazione: controlla la stabilita' dei risultati "
+                "nel caso k=28 confrontando seriale, np=1, np=4 e np=28 sul problema dim=128."
+            ),
+        },
+    )
+    validation_processes = (1, 4, 28)
+
+    cases: list[BenchmarkCase] = []
+    for definition in validation_definitions:
+        for seed in seeds:
+            common = dict(
+                battery="validation",
+                suite=definition["suite"],
+                family=definition["family"],
+                dim=definition["dim"],
+                k_subswarms=definition["k"],
+                particles_per_swarm=definition["particles_per_swarm"],
+                max_iters=definition["max_iters"],
+                seed=seed,
+            )
+            cases.append(
+                _make_serial_case(
+                    **common,
+                    description=(
+                        definition["description"]
+                        + " Riferimento seriale per il controllo del relativo speedup vs serial."
+                    ),
+                )
+            )
+            for mpi_processes in validation_processes:
+                cases.append(
+                    _make_parallel_case(
+                        **common,
+                        mpi_processes=mpi_processes,
+                        description=definition["description"],
+                    )
+                )
+    return cases
+
+
 def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
     cases: list[BenchmarkCase] = []
 
@@ -391,6 +453,8 @@ def build_cases(battery: str, seeds: Sequence[int]) -> list[BenchmarkCase]:
         cases.extend(build_comparable_cases(seeds))
     if selected == "appendix":
         cases.extend(build_appendix_cases(seeds))
+    if selected == "validation":
+        cases.extend(build_validation_cases(seeds))
     if selected in {"all", "cpso"}:
         cases.extend(build_cpso_only_cases(seeds))
     if not cases:
@@ -441,7 +505,7 @@ def main() -> None:
     parser.add_argument(
         "--battery",
         default="all",
-        choices=("all", "comparable", "cpso", "appendix"),
+        choices=("all", "comparable", "cpso", "appendix", "validation"),
         help="Which battery to emit.",
     )
     parser.add_argument(
