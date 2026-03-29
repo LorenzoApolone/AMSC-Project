@@ -24,6 +24,14 @@ class BenchmarkCase:
     total_particles: int
     max_iters: int
     seed: int
+    w: float = 0.729
+    c1: float = 1.49445
+    c2: float = 1.49445
+    regrouping_period: int = 5
+    sub_swarm_size: int = 5
+    hmcr: float = 0.98
+    par_min: float = 0.01
+    par_max: float = 0.99
     description: str
 
 
@@ -44,6 +52,14 @@ def _make_case(
     total_particles: int,
     max_iters: int,
     seed: int,
+    w: float = 0.729,
+    c1: float = 1.49445,
+    c2: float = 1.49445,
+    regrouping_period: int = 5,
+    sub_swarm_size: int = 5,
+    hmcr: float = 0.98,
+    par_min: float = 0.01,
+    par_max: float = 0.99,
     description: str,
 ) -> BenchmarkCase:
     if execution_mode == "serial":
@@ -61,6 +77,14 @@ def _make_case(
         total_particles=total_particles,
         max_iters=max_iters,
         seed=seed,
+        w=w,
+        c1=c1,
+        c2=c2,
+        regrouping_period=regrouping_period,
+        sub_swarm_size=sub_swarm_size,
+        hmcr=hmcr,
+        par_min=par_min,
+        par_max=par_max,
         description=description,
     )
 
@@ -311,8 +335,8 @@ def build_cases(battery: str, seeds: Sequence[int]) -> list[BenchmarkCase]:
 def emit_tsv(cases: Iterable[BenchmarkCase], include_header: bool) -> None:
     if include_header:
         print(
-            "battery	suite	family	case_id	execution_mode	mpi_processes	dim	total_particles"
-            "	max_iters	seed	description"
+            "battery\tsuite\tfamily\tcase_id\texecution_mode\tmpi_processes\tdim\ttotal_particles"
+            "\tmax_iters\tseed\tw\tc1\tc2\tregrouping_period\tsub_swarm_size\thmcr\tpar_min\tpar_max\tdescription"
         )
     for case in cases:
         print(
@@ -328,6 +352,14 @@ def emit_tsv(cases: Iterable[BenchmarkCase], include_header: bool) -> None:
                     str(case.total_particles),
                     str(case.max_iters),
                     str(case.seed),
+                    str(case.w),
+                    str(case.c1),
+                    str(case.c2),
+                    str(case.regrouping_period),
+                    str(case.sub_swarm_size),
+                    str(case.hmcr),
+                    str(case.par_min),
+                    str(case.par_max),
                     case.description,
                 ]
             )
