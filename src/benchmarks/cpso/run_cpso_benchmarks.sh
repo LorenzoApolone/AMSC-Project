@@ -26,7 +26,7 @@ usage() {
 Usage: run_cpso_benchmarks.sh [options]
 
 Options:
-  --battery comparable|cpso|appendix|all   Select the benchmark battery to run.
+  --battery comparable|cpso|appendix|validation|all   Select the benchmark battery to run.
   --seeds 123,456,789             Override default seed list.
   --results-root PATH             Directory where raw results are saved.
   --tag NAME                      Custom subdirectory name under results/root.
