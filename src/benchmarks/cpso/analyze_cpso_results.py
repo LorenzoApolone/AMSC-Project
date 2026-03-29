@@ -381,7 +381,7 @@ def apply_compact_time_axis(axis: Any, values: Iterable[float]) -> None:
     valid = finite_values(values)
     if not valid:
         return
-    axis.ticklabel_format(style="sci", axis="y", scilimits=(-3, 3), useMathText=True)
+    axis.ticklabel_format(style="plain", axis="y", useOffset=False)
     vmin = min(valid)
     vmax = max(valid)
     if math.isclose(vmin, vmax, rel_tol=1e-9, abs_tol=1e-12):
@@ -416,37 +416,92 @@ def resolve_local_artifact_path(metadata_path: Path, raw_path: Any, fallback_nam
     return candidates[-1]
 
 
+def safe_ratio(numerator: float, denominator: float) -> float:
+    if math.isfinite(numerator) and math.isfinite(denominator) and denominator > 0.0:
+        return numerator / denominator
+    return math.nan
+
+
+def propagated_ratio_error(numerator: float, numerator_std: float, denominator: float, denominator_std: float) -> float:
+    ratio = safe_ratio(numerator, denominator)
+    if not math.isfinite(ratio):
+        return math.nan
+    rel_terms: list[float] = []
+    if math.isfinite(numerator_std) and numerator_std > 0.0 and numerator > 0.0:
+        rel_terms.append((numerator_std / numerator) ** 2)
+    if math.isfinite(denominator_std) and denominator_std > 0.0 and denominator > 0.0:
+        rel_terms.append((denominator_std / denominator) ** 2)
+    if not rel_terms:
+        return 0.0
+    return abs(ratio) * math.sqrt(sum(rel_terms))
+
+
+def pretty_family_label(battery: str, suite: str, family: str) -> str:
+    suite_labels = {
+        ('comparable', 'strong_scaling_fixed_algorithm'): 'Reference strong scaling',
+        ('cpso', 'weak_particles_per_process_constant'): 'Weak scaling with constant particles per process',
+        ('cpso', 'weak_dimension_per_process_constant'): 'Weak scaling with constant dimension per process',
+        ('cpso', 'weak_local_load_constant'): 'Weak scaling with constant local load',
+        ('cpso', 'dimension_sweep_fixed_np8'): 'Dimension sweep with np=8',
+        ('appendix', 'fixed_k28_owner_transition'): 'Fixed k=28 owner transition',
+        ('validation', 'k28_consistency_check'): 'Fixed k=28 consistency check',
+    }
+    return suite_labels.get((battery, suite), family)
+
+
 def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[dict[str, Any]], typology_summary_rows: list[dict[str, Any]], precision_rows: list[dict[str, Any]], function_outcome_rows: list[dict[str, Any]], output_dir: Path) -> None:
     try:
         import matplotlib.pyplot as plt
     except ImportError:
-        print("[warn] matplotlib not available; skipping plots.")
+        print('[warn] matplotlib not available; skipping plots.')
         return
-    plots_dir = output_dir / "plots"
+    plots_dir = output_dir / 'plots'
     plots_dir.mkdir(parents=True, exist_ok=True)
+    for stale_png in plots_dir.glob('*.png'):
+        stale_png.unlink()
+
+    summary_lookup: dict[tuple[Any, ...], dict[str, Any]] = {}
+    for row in summary_rows:
+        key = (
+            row['battery'], row['suite'], row['family'], row['execution_mode'], int(row['mpi_processes']),
+            row['dim'], row['k_subswarms'], row['particles_per_swarm'], row['max_iters'],
+        )
+        summary_lookup[key] = row
+
+    def lookup_summary_row(group_key: tuple[Any, ...], execution_mode: str, mpi_processes: int) -> dict[str, Any] | None:
+        return summary_lookup.get((
+            group_key[0], group_key[1], group_key[2], execution_mode, mpi_processes,
+            group_key[3], group_key[4], group_key[5], group_key[6],
+        ))
+
+    def lookup_std(group_key: tuple[Any, ...], execution_mode: str, mpi_processes: int) -> float:
+        row = lookup_summary_row(group_key, execution_mode, mpi_processes)
+        return parse_float(row['std_suite_wall_time_s']) if row else math.nan
 
     parallel_groups: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for row in summary_rows:
-        if row["execution_mode"] == "parallel":
+        if row['execution_mode'] == 'parallel':
             parallel_groups[config_key(row)].append(row)
     for group_key, rows in parallel_groups.items():
-        rows = sorted(rows, key=lambda item: int(item["mpi_processes"]))
-        rows = [row for row in rows if int(row.get("completed_runs", 0)) > 0 and math.isfinite(parse_float(row["mean_suite_wall_time_s"]))]
+        rows = sorted(rows, key=lambda item: int(item['mpi_processes']))
+        rows = [row for row in rows if int(row.get('completed_runs', 0)) > 0 and math.isfinite(parse_float(row['mean_suite_wall_time_s']))]
         if not rows:
             continue
-        np_values = [int(row["mpi_processes"]) for row in rows]
-        wall_times = [parse_float(row["mean_suite_wall_time_s"]) for row in rows]
-        speedups = [parse_float(row["speedup"]) for row in rows]
-        efficiencies = [parse_float(row["efficiency"]) for row in rows]
+        np_values = [int(row['mpi_processes']) for row in rows]
+        wall_times = [parse_float(row['mean_suite_wall_time_s']) for row in rows]
+        wall_stds = [lookup_std(group_key, 'parallel', np_value) for np_value in np_values]
+        speedups = [parse_float(row['speedup']) for row in rows]
+        efficiencies = [parse_float(row['efficiency']) for row in rows]
         slug = sanitize_name(f"{group_key[0]}__{group_key[1]}__{group_key[2]}__dim{group_key[3]}__k{group_key[4]}__pps{group_key[5]}__iters{group_key[6]}")
-        title_suffix = f"{group_key[2]} | dim={group_key[3]} | k={group_key[4]} | pps={group_key[5]}"
+        title_suffix = f"{pretty_family_label(group_key[0], group_key[1], group_key[2])} | dim={group_key[3]} | k={group_key[4]} | pps={group_key[5]}"
 
-        wall_unit, [wall_times_plot] = scale_time_series(wall_times)
+        wall_unit, scaled_wall = scale_time_series(wall_times, wall_stds)
+        wall_times_plot, wall_stds_plot = scaled_wall
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, wall_times_plot, marker="o")
+        axis.errorbar(np_values, wall_times_plot, yerr=wall_stds_plot, marker='o', capsize=4)
         axis.set_title(f"Wall time vs MPI processes\n{title_suffix}")
-        axis.set_xlabel("MPI processes")
-        axis.set_ylabel(f"Mean suite wall time [{wall_unit}]")
+        axis.set_xlabel('MPI processes')
+        axis.set_ylabel(f'Mean suite wall time [{wall_unit}]')
         apply_compact_time_axis(axis, wall_times_plot)
         axis.grid(True, alpha=0.3)
         figure.tight_layout()
@@ -454,47 +509,47 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
         plt.close(figure)
 
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, speedups, marker="o", label="measured")
-        baseline_np = max(1, int(rows[0]["mpi_processes"]))
+        axis.plot(np_values, speedups, marker='o', label='measured')
+        baseline_np = max(1, int(rows[0]['mpi_processes']))
         ideal_speedups = [np_value / baseline_np for np_value in np_values]
-        axis.plot(np_values, ideal_speedups, linestyle="--", color="tab:gray", label="ideal")
-        axis.set_title(f"Speedup vs MPI processes\n{title_suffix}")
-        axis.set_xlabel("MPI processes")
-        axis.set_ylabel("Speedup")
+        axis.plot(np_values, ideal_speedups, linestyle='--', color='tab:gray', label='ideal')
+        axis.set_title(f"Speedup vs MPI processes (baseline: parallel np={baseline_np})\n{title_suffix}")
+        axis.set_xlabel('MPI processes')
+        axis.set_ylabel('parallel baseline time / parallel time')
         apply_focus_axis(axis, speedups, ideal_speedups)
         axis.grid(True, alpha=0.3)
-        axis.legend(loc="best", fontsize="small")
+        axis.legend(loc='best', fontsize='small')
         figure.tight_layout()
-        figure.savefig(plots_dir / f"{slug}__speedup.png", dpi=150)
+        figure.savefig(plots_dir / f"{slug}__speedup_vs_parallel_baseline.png", dpi=150)
         plt.close(figure)
 
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, efficiencies, marker="o", label="measured")
+        axis.plot(np_values, efficiencies, marker='o', label='measured')
         ideal_efficiency = [1.0 for _ in np_values]
-        axis.plot(np_values, ideal_efficiency, linestyle="--", color="tab:gray", label="ideal")
-        axis.set_title(f"Efficiency vs MPI processes\n{title_suffix}")
-        axis.set_xlabel("MPI processes")
-        axis.set_ylabel("Efficiency")
+        axis.plot(np_values, ideal_efficiency, linestyle='--', color='tab:gray', label='ideal')
+        axis.set_title(f"Efficiency vs MPI processes (baseline: parallel np={baseline_np})\n{title_suffix}")
+        axis.set_xlabel('MPI processes')
+        axis.set_ylabel('Speedup / MPI processes')
         apply_focus_axis(axis, efficiencies, ideal_efficiency)
         axis.grid(True, alpha=0.3)
-        axis.legend(loc="best", fontsize="small")
+        axis.legend(loc='best', fontsize='small')
         figure.tight_layout()
-        figure.savefig(plots_dir / f"{slug}__efficiency.png", dpi=150)
+        figure.savefig(plots_dir / f"{slug}__efficiency_vs_parallel_baseline.png", dpi=150)
         plt.close(figure)
 
-        comm_totals = [parse_float(row["mean_sum_comm_total_s"]) for row in rows]
-        wait_totals = [parse_float(row["mean_sum_wait_total_s"]) for row in rows]
-        allgather_totals = [parse_float(row["mean_sum_comm_allgather_s"]) for row in rows]
-        bcast_totals = [parse_float(row["mean_sum_comm_bcast_s"]) for row in rows]
-        allreduce_totals = [parse_float(row["mean_sum_comm_allreduce_s"]) for row in rows]
-        barrier_totals = [parse_float(row["mean_sum_comm_barrier_s"]) for row in rows]
+        comm_totals = [parse_float(row['mean_sum_comm_total_s']) for row in rows]
+        wait_totals = [parse_float(row['mean_sum_wait_total_s']) for row in rows]
+        allgather_totals = [parse_float(row['mean_sum_comm_allgather_s']) for row in rows]
+        bcast_totals = [parse_float(row['mean_sum_comm_bcast_s']) for row in rows]
+        allreduce_totals = [parse_float(row['mean_sum_comm_allreduce_s']) for row in rows]
+        barrier_totals = [parse_float(row['mean_sum_comm_barrier_s']) for row in rows]
 
         comm_unit, [comm_totals_plot] = scale_time_series(comm_totals)
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, comm_totals_plot, marker="o")
+        axis.plot(np_values, comm_totals_plot, marker='o')
         axis.set_title(f"Communication time vs MPI processes\n{title_suffix}")
-        axis.set_xlabel("MPI processes")
-        axis.set_ylabel(f"Mean communication time [{comm_unit}]")
+        axis.set_xlabel('MPI processes')
+        axis.set_ylabel(f'Mean communication time [{comm_unit}]')
         apply_compact_time_axis(axis, comm_totals_plot)
         axis.grid(True, alpha=0.3)
         figure.tight_layout()
@@ -503,91 +558,124 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
 
         wait_unit, [wait_totals_plot] = scale_time_series(wait_totals)
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, wait_totals_plot, marker="o")
+        axis.plot(np_values, wait_totals_plot, marker='o')
         axis.set_title(f"Wait/sync time vs MPI processes\n{title_suffix}")
-        axis.set_xlabel("MPI processes")
-        axis.set_ylabel(f"Mean wait time [{wait_unit}]")
+        axis.set_xlabel('MPI processes')
+        axis.set_ylabel(f'Mean wait time [{wait_unit}]')
         apply_compact_time_axis(axis, wait_totals_plot)
         axis.grid(True, alpha=0.3)
         figure.tight_layout()
         figure.savefig(plots_dir / f"{slug}__wait_total.png", dpi=150)
         plt.close(figure)
 
-        breakdown_unit, breakdown_scaled = scale_time_series(
-            allgather_totals, bcast_totals, allreduce_totals, barrier_totals
-        )
+        breakdown_unit, breakdown_scaled = scale_time_series(allgather_totals, bcast_totals, allreduce_totals, barrier_totals)
         allgather_plot, bcast_plot, allreduce_plot, barrier_plot = breakdown_scaled
         figure, axis = plt.subplots(figsize=(8, 4.5))
-        axis.plot(np_values, allgather_plot, marker="o", label="allgather")
-        axis.plot(np_values, bcast_plot, marker="o", label="bcast")
-        axis.plot(np_values, allreduce_plot, marker="o", label="allreduce")
-        axis.plot(np_values, barrier_plot, marker="o", label="barrier")
+        axis.plot(np_values, allgather_plot, marker='o', label='allgather')
+        axis.plot(np_values, bcast_plot, marker='o', label='bcast')
+        axis.plot(np_values, allreduce_plot, marker='o', label='allreduce')
+        axis.plot(np_values, barrier_plot, marker='o', label='barrier')
         axis.set_title(f"Communication breakdown vs MPI processes\n{title_suffix}")
-        axis.set_xlabel("MPI processes")
-        axis.set_ylabel(f"Mean time [{breakdown_unit}]")
+        axis.set_xlabel('MPI processes')
+        axis.set_ylabel(f'Mean time [{breakdown_unit}]')
         apply_compact_time_axis(axis, allgather_plot + bcast_plot + allreduce_plot + barrier_plot)
         axis.grid(True, alpha=0.3)
-        axis.legend(loc="best", fontsize="small")
+        axis.legend(loc='best', fontsize='small')
         figure.tight_layout()
         figure.savefig(plots_dir / f"{slug}__comm_breakdown.png", dpi=150)
         plt.close(figure)
 
     serial_groups: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for row in serial_parallel_rows:
-        serial_groups[(row["battery"], row["suite"], row["family"], row["dim"], row["k_subswarms"], row["particles_per_swarm"], row["max_iters"])].append(row)
+        serial_groups[(row['battery'], row['suite'], row['family'], row['dim'], row['k_subswarms'], row['particles_per_swarm'], row['max_iters'])].append(row)
     for group_key, rows in serial_groups.items():
-        rows = sorted(rows, key=lambda item: int(item["mpi_processes"]))
-        serial_time = parse_float(rows[0]["mean_serial_wall_time_s"])
+        rows = sorted(rows, key=lambda item: int(item['mpi_processes']))
+        serial_time = parse_float(rows[0]['mean_serial_wall_time_s'])
         if not math.isfinite(serial_time):
             continue
-        serial_conv = parse_float(rows[0]["mean_serial_convergence_rate"])
-        x_labels = ["serial"] + [row["run_label"] for row in rows]
+        serial_std = lookup_std(group_key, 'serial', 0)
+        serial_conv = parse_float(rows[0]['mean_serial_convergence_rate'])
+        x_labels = ['serial'] + [row['run_label'] for row in rows]
         positions = list(range(len(x_labels)))
-        wall_times = [serial_time] + [parse_float(row["mean_parallel_wall_time_s"]) for row in rows]
-        conv_rates = [serial_conv] + [parse_float(row["mean_parallel_convergence_rate"]) for row in rows]
-        np_values = [int(row["mpi_processes"]) for row in rows]
-        rel_speedups = [parse_float(row["relative_speedup_vs_serial"]) for row in rows]
+        np_values = [int(row['mpi_processes']) for row in rows]
+        parallel_wall_times = [parse_float(row['mean_parallel_wall_time_s']) for row in rows]
+        parallel_stds = [lookup_std(group_key, 'parallel', np_value) for np_value in np_values]
+        wall_times = [serial_time] + parallel_wall_times
+        wall_stds = [serial_std] + parallel_stds
+        conv_rates = [serial_conv] + [parse_float(row['mean_parallel_convergence_rate']) for row in rows]
+        speedups_vs_serial = [safe_ratio(serial_time, wall_time) for wall_time in parallel_wall_times]
+        efficiencies_vs_serial = [safe_ratio(speedup, np_value) for speedup, np_value in zip(speedups_vs_serial, np_values)]
+        wall_ratios_vs_serial = [safe_ratio(wall_time, serial_time) for wall_time in parallel_wall_times]
+        wall_ratio_stds = [
+            propagated_ratio_error(wall_time, wall_std, serial_time, serial_std)
+            for wall_time, wall_std in zip(parallel_wall_times, parallel_stds)
+        ]
         slug = sanitize_name(f"{group_key[0]}__{group_key[1]}__{group_key[2]}__dim{group_key[3]}__k{group_key[4]}__pps{group_key[5]}__iters{group_key[6]}")
-        title_suffix = f"{group_key[2]} | dim={group_key[3]} | k={group_key[4]} | pps={group_key[5]}"
+        title_suffix = f"{pretty_family_label(group_key[0], group_key[1], group_key[2])} | dim={group_key[3]} | k={group_key[4]} | pps={group_key[5]}"
 
-        serial_parallel_wall_unit, [wall_times_plot] = scale_time_series(wall_times)
+        serial_parallel_wall_unit, scaled_wall = scale_time_series(wall_times, wall_stds)
+        wall_times_plot, wall_stds_plot = scaled_wall
         figure, axis = plt.subplots(figsize=(8, 4.5))
-        axis.plot(positions, wall_times_plot, marker="o")
+        axis.errorbar(positions, wall_times_plot, yerr=wall_stds_plot, marker='o', capsize=4)
         axis.set_xticks(positions, x_labels)
-        axis.set_title(f"Serial vs parallel wall time\n{title_suffix}")
-        axis.set_xlabel("Execution mode")
-        axis.set_ylabel(f"Mean suite wall time [{serial_parallel_wall_unit}]")
+        axis.set_title(f"Serial and parallel wall time\n{title_suffix}")
+        axis.set_xlabel('Execution mode')
+        axis.set_ylabel(f'Mean suite wall time [{serial_parallel_wall_unit}]')
         apply_compact_time_axis(axis, wall_times_plot)
         axis.grid(True, alpha=0.3)
         figure.tight_layout()
-        figure.savefig(plots_dir / f"{slug}__serial_vs_parallel_wall_time.png", dpi=150)
+        figure.savefig(plots_dir / f"{slug}__serial_parallel_wall_time.png", dpi=150)
         plt.close(figure)
 
         figure, axis = plt.subplots(figsize=(7, 4))
-        axis.plot(np_values, rel_speedups, marker="o", label="measured")
-        baseline_parallel_time = parse_float(rows[0]["mean_parallel_wall_time_s"])
-        ideal_rel_speedups: list[float] = []
-        if math.isfinite(serial_time) and math.isfinite(baseline_parallel_time) and baseline_parallel_time > 0.0:
-            baseline_np = max(1, np_values[0])
-            serial_to_parallel_baseline = serial_time / baseline_parallel_time
-            ideal_rel_speedups = [serial_to_parallel_baseline * (np_value / baseline_np) for np_value in np_values]
-            axis.plot(np_values, ideal_rel_speedups, linestyle="--", color="tab:gray", label="ideal")
-        axis.set_title(f"Relative speedup vs serial reference\n{title_suffix}")
-        axis.set_xlabel("MPI processes")
-        axis.set_ylabel("serial_time / parallel_time")
-        apply_focus_axis(axis, rel_speedups, ideal_rel_speedups)
+        axis.plot(np_values, speedups_vs_serial, marker='o', label='measured')
+        ideal_speedups = [float(np_value) for np_value in np_values]
+        axis.plot(np_values, ideal_speedups, linestyle='--', color='tab:gray', label='ideal')
+        axis.set_title(f"Speedup vs serial reference\n{title_suffix}")
+        axis.set_xlabel('MPI processes')
+        axis.set_ylabel('serial time / parallel time')
+        apply_focus_axis(axis, speedups_vs_serial, ideal_speedups)
         axis.grid(True, alpha=0.3)
-        axis.legend(loc="best", fontsize="small")
+        axis.legend(loc='best', fontsize='small')
         figure.tight_layout()
-        figure.savefig(plots_dir / f"{slug}__relative_speedup_vs_serial.png", dpi=150)
+        figure.savefig(plots_dir / f"{slug}__speedup_vs_serial.png", dpi=150)
+        plt.close(figure)
+
+        figure, axis = plt.subplots(figsize=(7, 4))
+        axis.plot(np_values, efficiencies_vs_serial, marker='o', label='measured')
+        ideal_efficiencies = [1.0 for _ in np_values]
+        axis.plot(np_values, ideal_efficiencies, linestyle='--', color='tab:gray', label='ideal')
+        axis.set_title(f"Efficiency vs serial reference\n{title_suffix}")
+        axis.set_xlabel('MPI processes')
+        axis.set_ylabel('(serial speedup) / MPI processes')
+        apply_focus_axis(axis, efficiencies_vs_serial, ideal_efficiencies)
+        axis.grid(True, alpha=0.3)
+        axis.legend(loc='best', fontsize='small')
+        figure.tight_layout()
+        figure.savefig(plots_dir / f"{slug}__efficiency_vs_serial.png", dpi=150)
+        plt.close(figure)
+
+        figure, axis = plt.subplots(figsize=(7, 4))
+        axis.errorbar(np_values, wall_ratios_vs_serial, yerr=wall_ratio_stds, marker='o', capsize=4, label='measured')
+        ideal_ratios = [1.0 / np_value for np_value in np_values]
+        axis.plot(np_values, ideal_ratios, linestyle='--', color='tab:gray', label='ideal')
+        axis.axhline(1.0, linestyle=':', color='tab:red', linewidth=1.2, label='serial parity')
+        axis.set_title(f"Parallel wall time normalized by serial\n{title_suffix}")
+        axis.set_xlabel('MPI processes')
+        axis.set_ylabel('parallel time / serial time')
+        apply_focus_axis(axis, wall_ratios_vs_serial, ideal_ratios + [1.0])
+        axis.grid(True, alpha=0.3)
+        axis.legend(loc='best', fontsize='small')
+        figure.tight_layout()
+        figure.savefig(plots_dir / f"{slug}__parallel_to_serial_wall_ratio.png", dpi=150)
         plt.close(figure)
 
         figure, axis = plt.subplots(figsize=(8, 4.5))
-        axis.plot(positions, conv_rates, marker="o")
+        axis.plot(positions, conv_rates, marker='o')
         axis.set_xticks(positions, x_labels)
         axis.set_title(f"Serial vs parallel convergence ratio\n{title_suffix}")
-        axis.set_xlabel("Execution mode")
-        axis.set_ylabel("Mean convergence ratio")
+        axis.set_xlabel('Execution mode')
+        axis.set_ylabel('Mean convergence ratio')
         axis.set_ylim(0.0, 1.05)
         axis.grid(True, alpha=0.3)
         figure.tight_layout()
@@ -596,33 +684,34 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
 
     family_dim_summary: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for row in summary_rows:
-        family_dim_summary[(row["battery"], row["suite"], row["family"])].append(row)
+        family_dim_summary[(row['battery'], row['suite'], row['family'])].append(row)
     for family_key, rows in family_dim_summary.items():
-        dims = sorted({int(row["dim"]) for row in rows})
-        labels = sorted({(row["execution_mode"], int(row["mpi_processes"])) for row in rows}, key=lambda item: mode_sort_key(item[0], item[1]))
+        dims = sorted({int(row['dim']) for row in rows})
+        labels = sorted({(row['execution_mode'], int(row['mpi_processes'])) for row in rows}, key=lambda item: mode_sort_key(item[0], item[1]))
         if len(dims) < 2 or len(labels) < 2:
             continue
-        slug = sanitize_name("__".join(family_key))
-        wall_by_dim_scale, wall_by_dim_unit = choose_time_unit(parse_float(row["mean_suite_wall_time_s"]) for row in rows)
+        slug = sanitize_name('__'.join(family_key))
+        wall_by_dim_scale, wall_by_dim_unit = choose_time_unit(parse_float(row['mean_suite_wall_time_s']) for row in rows)
+        pretty_label = pretty_family_label(*family_key)
 
         figure, axis = plt.subplots(figsize=(8, 4.5))
         has_data = False
         plotted_values: list[float] = []
         for execution_mode, mpi_processes in labels:
-            label_rows = sorted([row for row in rows if row["execution_mode"] == execution_mode and int(row["mpi_processes"]) == mpi_processes], key=lambda item: int(item["dim"]))
+            label_rows = sorted([row for row in rows if row['execution_mode'] == execution_mode and int(row['mpi_processes']) == mpi_processes], key=lambda item: int(item['dim']))
             if not label_rows:
                 continue
-            y_values = [parse_float(row["mean_suite_wall_time_s"]) * wall_by_dim_scale for row in label_rows]
+            y_values = [parse_float(row['mean_suite_wall_time_s']) * wall_by_dim_scale for row in label_rows]
             has_data = True
             plotted_values.extend(y_values)
-            axis.plot([int(row["dim"]) for row in label_rows], y_values, marker="o", label=run_label(execution_mode, mpi_processes))
+            axis.plot([int(row['dim']) for row in label_rows], y_values, marker='o', label=run_label(execution_mode, mpi_processes))
         if has_data:
-            axis.set_title(f"Wall time vs dimension\n{family_key[2]}")
-            axis.set_xlabel("Problem dimension")
-            axis.set_ylabel(f"Mean suite wall time [{wall_by_dim_unit}]")
+            axis.set_title(f"Wall time vs dimension\n{pretty_label}")
+            axis.set_xlabel('Problem dimension')
+            axis.set_ylabel(f'Mean suite wall time [{wall_by_dim_unit}]')
             apply_compact_time_axis(axis, plotted_values)
             axis.grid(True, alpha=0.3)
-            axis.legend(loc="best", fontsize="small")
+            axis.legend(loc='best', fontsize='small')
             figure.tight_layout()
             figure.savefig(plots_dir / f"{slug}__wall_time_by_dim.png", dpi=150)
         plt.close(figure)
@@ -630,30 +719,30 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
         figure, axis = plt.subplots(figsize=(8, 4.5))
         has_data = False
         for execution_mode, mpi_processes in labels:
-            label_rows = sorted([row for row in rows if row["execution_mode"] == execution_mode and int(row["mpi_processes"]) == mpi_processes], key=lambda item: int(item["dim"]))
+            label_rows = sorted([row for row in rows if row['execution_mode'] == execution_mode and int(row['mpi_processes']) == mpi_processes], key=lambda item: int(item['dim']))
             if not label_rows:
                 continue
             has_data = True
-            axis.plot([int(row["dim"]) for row in label_rows], [parse_float(row["mean_convergence_rate"]) for row in label_rows], marker="o", label=run_label(execution_mode, mpi_processes))
+            axis.plot([int(row['dim']) for row in label_rows], [parse_float(row['mean_convergence_rate']) for row in label_rows], marker='o', label=run_label(execution_mode, mpi_processes))
         if has_data:
-            axis.set_title(f"Convergence ratio vs dimension\n{family_key[2]}")
-            axis.set_xlabel("Problem dimension")
-            axis.set_ylabel("Mean convergence ratio")
+            axis.set_title(f"Convergence ratio vs dimension\n{pretty_label}")
+            axis.set_xlabel('Problem dimension')
+            axis.set_ylabel('Mean convergence ratio')
             axis.set_ylim(0.0, 1.05)
             axis.grid(True, alpha=0.3)
-            axis.legend(loc="best", fontsize="small")
+            axis.legend(loc='best', fontsize='small')
             figure.tight_layout()
             figure.savefig(plots_dir / f"{slug}__convergence_by_dim.png", dpi=150)
         plt.close(figure)
 
     typology_groups: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for row in typology_summary_rows:
-        typology_groups[(row["battery"], row["suite"], row["family"], row["dim"])].append(row)
+        typology_groups[(row['battery'], row['suite'], row['family'], row['dim'])].append(row)
     for family_key, rows in typology_groups.items():
-        labels = sorted({(row["execution_mode"], int(row["mpi_processes"])) for row in rows}, key=lambda item: mode_sort_key(item[0], item[1]))
+        labels = sorted({(row['execution_mode'], int(row['mpi_processes'])) for row in rows}, key=lambda item: mode_sort_key(item[0], item[1]))
         by_typology: dict[str, dict[tuple[str, int], float]] = defaultdict(dict)
         for row in rows:
-            by_typology[row["typology"]][(row["execution_mode"], int(row["mpi_processes"]))] = parse_float(row["mean_convergence_ratio"])
+            by_typology[row['typology']][(row['execution_mode'], int(row['mpi_processes']))] = parse_float(row['mean_convergence_ratio'])
         if not by_typology:
             continue
         x_labels = [run_label(mode, np_value) for mode, np_value in labels]
@@ -665,17 +754,17 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
             if not any(math.isfinite(value) for value in ratios):
                 continue
             has_data = True
-            axis.plot(positions, ratios, marker="o", label=typology)
+            axis.plot(positions, ratios, marker='o', label=typology)
         if not has_data:
             plt.close(figure)
             continue
         axis.set_xticks(positions, x_labels)
-        axis.set_title(f"Convergence ratio by typology\n{family_key[2]} | dim={family_key[3]}")
-        axis.set_xlabel("Execution mode")
-        axis.set_ylabel("Mean convergence ratio")
+        axis.set_title(f"Convergence ratio by typology\n{pretty_family_label(family_key[0], family_key[1], family_key[2])} | dim={family_key[3]}")
+        axis.set_xlabel('Execution mode')
+        axis.set_ylabel('Mean convergence ratio')
         axis.set_ylim(0.0, 1.05)
         axis.grid(True, alpha=0.3)
-        axis.legend(loc="best", fontsize="small")
+        axis.legend(loc='best', fontsize='small')
         figure.tight_layout()
         slug = sanitize_name(f"{family_key[0]}__{family_key[1]}__{family_key[2]}__dim{family_key[3]}")
         figure.savefig(plots_dir / f"{slug}__typology_convergence_ratio.png", dpi=150)
@@ -683,28 +772,28 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
 
     precision_groups: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for row in precision_rows:
-        precision_groups[(row["battery"], row["suite"], row["family"], row["dim"])].append(row)
+        precision_groups[(row['battery'], row['suite'], row['family'], row['dim'])].append(row)
     for family_key, rows in precision_groups.items():
-        labels = sorted({(row["execution_mode"], int(row["mpi_processes"])) for row in rows}, key=lambda item: mode_sort_key(item[0], item[1]))
+        labels = sorted({(row['execution_mode'], int(row['mpi_processes'])) for row in rows}, key=lambda item: mode_sort_key(item[0], item[1]))
         figure, axis = plt.subplots(figsize=(8.5, 4.8))
         has_data = False
         for execution_mode, mpi_processes in labels:
-            label_rows = sorted([row for row in rows if row["execution_mode"] == execution_mode and int(row["mpi_processes"]) == mpi_processes], key=lambda item: float(item["threshold"]))
+            label_rows = sorted([row for row in rows if row['execution_mode'] == execution_mode and int(row['mpi_processes']) == mpi_processes], key=lambda item: float(item['threshold']))
             if not label_rows:
                 continue
             has_data = True
-            axis.plot([float(row["threshold"]) for row in label_rows], [parse_float(row["mean_convergence_ratio"]) for row in label_rows], marker="o", label=run_label(execution_mode, mpi_processes))
+            axis.plot([float(row['threshold']) for row in label_rows], [parse_float(row['mean_convergence_ratio']) for row in label_rows], marker='o', label=run_label(execution_mode, mpi_processes))
         if not has_data:
             plt.close(figure)
             continue
-        axis.set_xscale("log")
+        axis.set_xscale('log')
         axis.invert_xaxis()
-        axis.set_title(f"Precision sweep convergence ratio\n{family_key[2]} | dim={family_key[3]}")
-        axis.set_xlabel("Error threshold")
-        axis.set_ylabel("Mean convergence ratio")
+        axis.set_title(f"Precision sweep convergence ratio\n{pretty_family_label(family_key[0], family_key[1], family_key[2])} | dim={family_key[3]}")
+        axis.set_xlabel('Error threshold')
+        axis.set_ylabel('Mean convergence ratio')
         axis.set_ylim(0.0, 1.05)
         axis.grid(True, alpha=0.3)
-        axis.legend(loc="best", fontsize="small")
+        axis.legend(loc='best', fontsize='small')
         figure.tight_layout()
         slug = sanitize_name(f"{family_key[0]}__{family_key[1]}__{family_key[2]}__dim{family_key[3]}")
         figure.savefig(plots_dir / f"{slug}__precision_sweep_ratio.png", dpi=150)
@@ -712,29 +801,30 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
 
     outcome_groups: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for row in function_outcome_rows:
-        outcome_groups[(row["battery"], row["suite"], row["family"], row["dim"])].append(row)
+        outcome_groups[(row['battery'], row['suite'], row['family'], row['dim'])].append(row)
     for family_key, rows in outcome_groups.items():
-        rows = sorted(rows, key=lambda item: mode_sort_key(item["execution_mode"], int(item["mpi_processes"])))
-        x_labels = [row["run_label"] for row in rows]
+        rows = sorted(rows, key=lambda item: mode_sort_key(item['execution_mode'], int(item['mpi_processes'])))
+        x_labels = [row['run_label'] for row in rows]
         positions = list(range(len(x_labels)))
-        success_counts = [parse_float(row["mean_success_functions"]) for row in rows]
-        no_conv_counts = [parse_float(row["mean_no_convergence_functions"]) for row in rows]
-        failure_counts = [parse_float(row["mean_failure_functions"]) for row in rows]
+        success_counts = [parse_float(row['mean_success_functions']) for row in rows]
+        no_conv_counts = [parse_float(row['mean_no_convergence_functions']) for row in rows]
+        failure_counts = [parse_float(row['mean_failure_functions']) for row in rows]
         stacked_bottom = [success_counts[idx] + no_conv_counts[idx] for idx in range(len(x_labels))]
         figure, axis = plt.subplots(figsize=(8.5, 4.8))
-        axis.bar(positions, success_counts, label="success")
-        axis.bar(positions, no_conv_counts, bottom=success_counts, label="no_convergence")
-        axis.bar(positions, failure_counts, bottom=stacked_bottom, label="failure")
+        axis.bar(positions, success_counts, label='success')
+        axis.bar(positions, no_conv_counts, bottom=success_counts, label='no_convergence')
+        axis.bar(positions, failure_counts, bottom=stacked_bottom, label='failure')
         axis.set_xticks(positions, x_labels)
-        axis.set_title(f"Function outcomes\n{family_key[2]} | dim={family_key[3]}")
-        axis.set_xlabel("Execution mode")
-        axis.set_ylabel("Mean functions")
-        axis.grid(True, axis="y", alpha=0.3)
-        axis.legend(loc="best", fontsize="small")
+        axis.set_title(f"Function outcomes\n{pretty_family_label(family_key[0], family_key[1], family_key[2])} | dim={family_key[3]}")
+        axis.set_xlabel('Execution mode')
+        axis.set_ylabel('Mean functions')
+        axis.grid(True, axis='y', alpha=0.3)
+        axis.legend(loc='best', fontsize='small')
         figure.tight_layout()
         slug = sanitize_name(f"{family_key[0]}__{family_key[1]}__{family_key[2]}__dim{family_key[3]}")
         figure.savefig(plots_dir / f"{slug}__function_outcomes.png", dpi=150)
         plt.close(figure)
+
 
 def main() -> None:
     args = parse_args()
