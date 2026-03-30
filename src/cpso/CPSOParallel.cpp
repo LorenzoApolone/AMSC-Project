@@ -7,7 +7,9 @@
 #include "SubSwarmOwnershipUtils.hpp"
 #include "SwarmMetrics.hpp"
 #include <algorithm>
+#include <cctype>
 #include <chrono>
+#include <cstdlib>
 #include <limits>
 #include <numeric>
 #include <stdexcept>
@@ -299,6 +301,28 @@ bool any_rank_has_candidate(const std::vector<int> &flags) {
                      [](int flag) { return flag != 0; });
 }
 
+bool env_flag_enabled(const char *name) {
+  const char *raw_value = std::getenv(name);
+  if (raw_value == nullptr || *raw_value == '\0') {
+    return false;
+  }
+
+  std::string value(raw_value);
+  std::transform(value.begin(), value.end(), value.begin(),
+                 [](unsigned char ch) {
+                   return static_cast<char>(std::tolower(ch));
+                 });
+  return value == "1" || value == "true" || value == "yes" ||
+         value == "on";
+}
+
+bool skip_parallel_greedy_merge_fallback() {
+  static const bool disabled =
+      env_flag_enabled("CPSO_MPI_DISABLE_GREEDY_MERGE") ||
+      env_flag_enabled("CPSO_PARALLEL_DISABLE_GREEDY_MERGE");
+  return disabled;
+}
+
 // Incremental merge based on best-evaluated local deltas
 ParallelMergeResult parallel_greedy_merge(
     const TestFunction &f, const std::vector<double> &base_context,
@@ -488,6 +512,8 @@ CpsoRunArtifacts CPSOParallel::run_optimization_loop(
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 #endif
+  const bool disable_greedy_merge_fallback =
+      skip_parallel_greedy_merge_fallback();
 
   // mpi_timings accumulates time spent in MPI primitives.
   // optimization_start anchors the wall-clock duration of the run.
@@ -872,7 +898,7 @@ CpsoRunArtifacts CPSOParallel::run_optimization_loop(
 
           if (final_fitness < base_fitness) {
             context.set_full_vector(final_salvaged_vector, final_fitness);
-          } else {
+          } else if (!disable_greedy_merge_fallback) {
             ParallelMergeResult merge_result = parallel_greedy_merge(
                 f, base_context, base_fitness, swarms, swarm_ranges, b,
                 local_salvaged_delta, local_has_salvaged_candidate != 0,
@@ -882,6 +908,10 @@ CpsoRunArtifacts CPSOParallel::run_optimization_loop(
             }
             context.set_full_vector(merge_result.context,
                                     merge_result.fitness);
+          } else {
+            // Experimental communication-light mode: keep the current shared
+            // context when both full and salvaged merges fail, instead of
+            // entering the extra greedy synchronization rounds.
           }
         }
 #else
