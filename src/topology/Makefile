@@ -1,8 +1,8 @@
 CXX = mpic++
 CXXFLAGS = -O2 -std=gnu++17
 
-TARGET = a
-TARGET_SERIAL = a_serial
+TARGET = topology_parallel
+TARGET_SERIAL = topology_serial
 SRCS = main_topology.cpp create_network.cpp confront.cpp pso_serial_topology.cpp pso_topology.cpp ../interfaces.cpp ../pso_mpi.cpp ../pso_serial.cpp 
 SRCS_SERIAL = main_topology_serial.cpp create_network.cpp confront.cpp pso_serial_topology.cpp pso_topology.cpp ../interfaces.cpp ../pso_mpi.cpp ../pso_serial.cpp 
 
