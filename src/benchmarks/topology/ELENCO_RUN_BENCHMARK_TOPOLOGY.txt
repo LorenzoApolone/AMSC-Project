@@ -1,331 +1,333 @@
-0.0001 errore hardcorato
 
 ELENCO COMPLETO RUN BATTERIA TOPOLOGY
-Assunzione: esecuzione dalla root src del progetto.
-Numero run totale: 305
+Numero run totale: 140 ufficilai, weak scaling ancora da valutare 
 
-STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 32, K 32, PPS 8
+Formato Input seriale  : ./topology/a_serial DIM N_PARTICELLE MAX_ITER ERRORE SEED
+Formato Outputseriale: <RESULT> <TOPOLOGIA> <DIM> <N_PARTICELLE> <MAX_ITER> <ERRORE> <SEED> <TEMPO_TOTALE> 
+                       <TEMPO_MPI_OVERHEAD> <NUM_FUNZIONI_CONVERGENTI> <NUM_FUNZIONI>
+
+Formato Input parallelo: ./topology/a DIM N_PARTICELLE MAX_ITER ERRORE SEED
+Formato Output parallelo: <RESULT> <TOPOLOGIA> <DIM> <N_PARTICELLE> <MAX_ITER> <ERRORE> <SEED> <TEMPO_TOTALE> 
+                         <TEMPO_MPI_OVERHEAD> <NUM_FUNZIONI_CONVERGENTI> <NUM_FUNZIONI>
+
+L'erroe è fissato in quasi tutti i test a 0.0001 in modo da essere coerente con i test di cpso e dpso
+I seed sono 123, 456, 789, 2024, 4242
+
+STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 32, K 32, PPS 8 
+Cosa plottare: tempo totale, speedup, efficienza
 Numero run: 35
-./topology/a_serial 32 256 10000 0.0001 123
-mpirun -np 1 ./topology/a 32 256 10000 0.0001 123
-mpirun -np 2 ./topology/a 32 256 10000 0.0001 123
-mpirun -np 4 ./topology/a 32 256 10000 0.0001 123
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 123
-mpirun -np 16 ./topology/a 32 256 10000 0.0001 123
-mpirun -np 28 ./topology/a 32 256 10000 0.0001 123
-./topology/a_serial 32 256 10000 0.0001 456
-mpirun -np 1 ./topology/a 32 256 10000 0.0001 456
-mpirun -np 2 ./topology/a 32 256 10000 0.0001 456
-mpirun -np 4 ./topology/a 32 256 10000 0.0001 456
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 456
-mpirun -np 16 ./topology/a 32 256 10000 0.0001 456
-mpirun -np 28 ./topology/a 32 256 10000 0.0001 456
-./topology/a_serial 32 256 10000 0.0001 789
-mpirun -np 1 ./topology/a 32 256 10000 0.0001 789
-mpirun -np 2 ./topology/a 32 256 10000 0.0001 789
-mpirun -np 4 ./topology/a 32 256 10000 0.0001 789
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 789
-mpirun -np 16 ./topology/a 32 256 10000 0.0001 789
-mpirun -np 28 ./topology/a 32 256 10000 0.0001 789
-./topology/a_serial 32 256 10000 0.0001 2024
-mpirun -np 1 ./topology/a 32 256 10000 0.0001 2024
-mpirun -np 2 ./topology/a 32 256 10000 0.0001 2024
-mpirun -np 4 ./topology/a 32 256 10000 0.0001 2024
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 2024
-mpirun -np 16 ./topology/a 32 256 10000 0.0001 2024
-mpirun -np 28 ./topology/a 32 256 10000 0.0001 2024
-./topology/a_serial 32 256 10000 0.0001 4242
-mpirun -np 1 ./topology/a 32 256 10000 0.0001 4242
-mpirun -np 2 ./topology/a 32 256 10000 0.0001 4242
-mpirun -np 4 ./topology/a 32 256 10000 0.0001 4242
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 4242
-mpirun -np 16 ./topology/a 32 256 10000 0.0001 4242
-mpirun -np 28 ./topology/a 32 256 10000 0.0001 4242
+        ./topology/a_serial 32 256 10000 0.0001 123
+        mpirun -np 1 ./topology/a 32 256 10000 0.0001 123
+        mpirun -np 2 ./topology/a 32 256 10000 0.0001 123
+        mpirun -np 4 ./topology/a 32 256 10000 0.0001 123
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 123
+        mpirun -np 16 ./topology/a 32 256 10000 0.0001 123
+        mpirun -np 28 ./topology/a 32 256 10000 0.0001 123
+
+        ./topology/a_serial 32 256 10000 0.0001 456
+        mpirun -np 1 ./topology/a 32 256 10000 0.0001 456
+        mpirun -np 2 ./topology/a 32 256 10000 0.0001 456
+        mpirun -np 4 ./topology/a 32 256 10000 0.0001 456
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 456
+        mpirun -np 16 ./topology/a 32 256 10000 0.0001 456
+        mpirun -np 28 ./topology/a 32 256 10000 0.0001 456
+
+        ./topology/a_serial 32 256 10000 0.0001 789
+        mpirun -np 1 ./topology/a 32 256 10000 0.0001 789
+        mpirun -np 2 ./topology/a 32 256 10000 0.0001 789
+        mpirun -np 4 ./topology/a 32 256 10000 0.0001 789
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 789
+        mpirun -np 16 ./topology/a 32 256 10000 0.0001 789
+        mpirun -np 28 ./topology/a 32 256 10000 0.0001 789
+
+        ./topology/a_serial 32 256 10000 0.0001 2024
+        mpirun -np 1 ./topology/a 32 256 10000 0.0001 2024
+        mpirun -np 2 ./topology/a 32 256 10000 0.0001 2024
+        mpirun -np 4 ./topology/a 32 256 10000 0.0001 2024
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 2024
+        mpirun -np 16 ./topology/a 32 256 10000 0.0001 2024
+        mpirun -np 28 ./topology/a 32 256 10000 0.0001 2024
+
+        ./topology/a_serial 32 256 10000 0.0001 4242
+        mpirun -np 1 ./topology/a 32 256 10000 0.0001 4242
+        mpirun -np 2 ./topology/a 32 256 10000 0.0001 4242
+        mpirun -np 4 ./topology/a 32 256 10000 0.0001 4242
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 4242
+        mpirun -np 16 ./topology/a 32 256 10000 0.0001 4242
+        mpirun -np 28 ./topology/a 32 256 10000 0.0001 4242
+
 
 STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 64, K 32, PPS 8
+Cosa plottare: tempo totale, speedup, efficienza
 Numero run: 35
-./topology/a_serial 64 256 10000 0.0001 123
-mpirun -np 1 ./topology/a 64 256 10000 0.0001 123
-mpirun -np 2 ./topology/a 64 256 10000 0.0001 123
-mpirun -np 4 ./topology/a 64 256 10000 0.0001 123
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 123
-mpirun -np 16 ./topology/a 64 256 10000 0.0001 123
-mpirun -np 28 ./topology/a 64 256 10000 0.0001 123
-./topology/a_serial 64 256 10000 0.0001 456
-mpirun -np 1 ./topology/a 64 256 10000 0.0001 456
-mpirun -np 2 ./topology/a 64 256 10000 0.0001 456
-mpirun -np 4 ./topology/a 64 256 10000 0.0001 456
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 456
-mpirun -np 16 ./topology/a 64 256 10000 0.0001 456
-mpirun -np 28 ./topology/a 64 256 10000 0.0001 456
-./topology/a_serial 64 256 10000 0.0001 789
-mpirun -np 1 ./topology/a 64 256 10000 0.0001 789
-mpirun -np 2 ./topology/a 64 256 10000 0.0001 789
-mpirun -np 4 ./topology/a 64 256 10000 0.0001 789
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 789
-mpirun -np 16 ./topology/a 64 256 10000 0.0001 789
-mpirun -np 28 ./topology/a 64 256 10000 0.0001 789
-./topology/a_serial 64 256 10000 0.0001 2024
-mpirun -np 1 ./topology/a 64 256 10000 0.0001 2024
-mpirun -np 2 ./topology/a 64 256 10000 0.0001 2024
-mpirun -np 4 ./topology/a 64 256 10000 0.0001 2024
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 2024
-mpirun -np 16 ./topology/a 64 256 10000 0.0001 2024
-mpirun -np 28 ./topology/a 64 256 10000 0.0001 2024
-./topology/a_serial 64 256 10000 0.0001 4242
-mpirun -np 1 ./topology/a 64 256 10000 0.0001 4242
-mpirun -np 2 ./topology/a 64 256 10000 0.0001 4242
-mpirun -np 4 ./topology/a 64 256 10000 0.0001 4242
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 4242
-mpirun -np 16 ./topology/a 64 256 10000 0.0001 4242
-mpirun -np 28 ./topology/a 64 256 10000 0.0001 4242
+
+        ./topology/a_serial 64 256 10000 0.0001 123
+        mpirun -np 1 ./topology/a 64 256 10000 0.0001 123
+        mpirun -np 2 ./topology/a 64 256 10000 0.0001 123
+        mpirun -np 4 ./topology/a 64 256 10000 0.0001 123
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 123
+        mpirun -np 16 ./topology/a 64 256 10000 0.0001 123
+        mpirun -np 28 ./topology/a 64 256 10000 0.0001 123
+
+        ./topology/a_serial 64 256 10000 0.0001 456
+        mpirun -np 1 ./topology/a 64 256 10000 0.0001 456
+        mpirun -np 2 ./topology/a 64 256 10000 0.0001 456
+        mpirun -np 4 ./topology/a 64 256 10000 0.0001 456
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 456
+        mpirun -np 16 ./topology/a 64 256 10000 0.0001 456
+        mpirun -np 28 ./topology/a 64 256 10000 0.0001 456
+
+        ./topology/a_serial 64 256 10000 0.0001 789
+        mpirun -np 1 ./topology/a 64 256 10000 0.0001 789
+        mpirun -np 2 ./topology/a 64 256 10000 0.0001 789
+        mpirun -np 4 ./topology/a 64 256 10000 0.0001 789
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 789
+        mpirun -np 16 ./topology/a 64 256 10000 0.0001 789
+        mpirun -np 28 ./topology/a 64 256 10000 0.0001 789
+
+        ./topology/a_serial 64 256 10000 0.0001 2024
+        mpirun -np 1 ./topology/a 64 256 10000 0.0001 2024
+        mpirun -np 2 ./topology/a 64 256 10000 0.0001 2024
+        mpirun -np 4 ./topology/a 64 256 10000 0.0001 2024
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 2024
+        mpirun -np 16 ./topology/a 64 256 10000 0.0001 2024
+        mpirun -np 28 ./topology/a 64 256 10000 0.0001 2024
+
+        ./topology/a_serial 64 256 10000 0.0001 4242
+        mpirun -np 1 ./topology/a 64 256 10000 0.0001 4242
+        mpirun -np 2 ./topology/a 64 256 10000 0.0001 4242
+        mpirun -np 4 ./topology/a 64 256 10000 0.0001 4242
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 4242
+        mpirun -np 16 ./topology/a 64 256 10000 0.0001 4242
+        mpirun -np 28 ./topology/a 64 256 10000 0.0001 4242
+
+
 
 STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 128, K 32, PPS 8
+Cosa plottare: tempo totale, speedup, efficienza
 Numero run: 35
-./topology/a_serial 128 256 20000 0.0001 123
-mpirun -np 1 ./topology/a 128 256 20000 0.0001 123
-mpirun -np 2 ./topology/a 128 256 20000 0.0001 123
-mpirun -np 4 ./topology/a 128 256 20000 0.0001 123
-mpirun -np 8 ./topology/a 128 256 20000 0.0001 123
-mpirun -np 16 ./topology/a 128 256 20000 0.0001 123
-mpirun -np 28 ./topology/a 128 256 20000 0.0001 123
-./topology/a_serial 128 256 20000 0.0001 456
-mpirun -np 1 ./topology/a 128 256 20000 0.0001 456
-mpirun -np 2 ./topology/a 128 256 20000 0.0001 456
-mpirun -np 4 ./topology/a 128 256 20000 0.0001 456
-mpirun -np 8 ./topology/a 128 256 20000 0.0001 456
-mpirun -np 16 ./topology/a 128 256 20000 0.0001 456
-mpirun -np 28 ./topology/a 128 256 20000 0.0001 456
-./topology/a_serial 128 256 20000 0.0001 789
-mpirun -np 1 ./topology/a 128 256 20000 0.0001 789
-mpirun -np 2 ./topology/a 128 256 20000 0.0001 789
-mpirun -np 4 ./topology/a 128 256 20000 0.0001 789
-mpirun -np 8 ./topology/a 128 256 20000 0.0001 789
-mpirun -np 16 ./topology/a 128 256 20000 0.0001 789
-mpirun -np 28 ./topology/a 128 256 20000 0.0001 789
-./topology/a_serial 128 256 20000 0.0001 2024
-mpirun -np 1 ./topology/a 128 256 20000 0.0001 2024
-mpirun -np 2 ./topology/a 128 256 20000 0.0001 2024
-mpirun -np 4 ./topology/a 128 256 20000 0.0001 2024
-mpirun -np 8 ./topology/a 128 256 20000 0.0001 2024
-mpirun -np 16 ./topology/a 128 256 20000 0.0001 2024
-mpirun -np 28 ./topology/a 128 256 20000 0.0001 2024
-./topology/a_serial 128 256 20000 0.0001 4242
-mpirun -np 1 ./topology/a 128 256 20000 0.0001 4242
-mpirun -np 2 ./topology/a 128 256 20000 0.0001 4242
-mpirun -np 4 ./topology/a 128 256 20000 0.0001 4242
-mpirun -np 8 ./topology/a 128 256 20000 0.0001 4242
-mpirun -np 16 ./topology/a 128 256 20000 0.0001 4242
-mpirun -np 28 ./topology/a 128 256 20000 0.0001 4242
+
+        ./topology/a_serial 128 256 20000 0.0001 123
+        mpirun -np 1 ./topology/a 128 256 20000 0.0001 123
+        mpirun -np 2 ./topology/a 128 256 20000 0.0001 123
+        mpirun -np 4 ./topology/a 128 256 20000 0.0001 123
+        mpirun -np 8 ./topology/a 128 256 20000 0.0001 123
+        mpirun -np 16 ./topology/a 128 256 20000 0.0001 123
+        mpirun -np 28 ./topology/a 128 256 20000 0.0001 123
+
+        ./topology/a_serial 128 256 20000 0.0001 456
+        mpirun -np 1 ./topology/a 128 256 20000 0.0001 456
+        mpirun -np 2 ./topology/a 128 256 20000 0.0001 456
+        mpirun -np 4 ./topology/a 128 256 20000 0.0001 456
+        mpirun -np 8 ./topology/a 128 256 20000 0.0001 456
+        mpirun -np 16 ./topology/a 128 256 20000 0.0001 456
+        mpirun -np 28 ./topology/a 128 256 20000 0.0001 456
+
+        ./topology/a_serial 128 256 20000 0.0001 789
+        mpirun -np 1 ./topology/a 128 256 20000 0.0001 789
+        mpirun -np 2 ./topology/a 128 256 20000 0.0001 789
+        mpirun -np 4 ./topology/a 128 256 20000 0.0001 789
+        mpirun -np 8 ./topology/a 128 256 20000 0.0001 789
+        mpirun -np 16 ./topology/a 128 256 20000 0.0001 789
+        mpirun -np 28 ./topology/a 128 256 20000 0.0001 789
+
+        ./topology/a_serial 128 256 20000 0.0001 2024
+        mpirun -np 1 ./topology/a 128 256 20000 0.0001 2024
+        mpirun -np 2 ./topology/a 128 256 20000 0.0001 2024
+        mpirun -np 4 ./topology/a 128 256 20000 0.0001 2024
+        mpirun -np 8 ./topology/a 128 256 20000 0.0001 2024
+        mpirun -np 16 ./topology/a 128 256 20000 0.0001 2024
+        mpirun -np 28 ./topology/a 128 256 20000 0.0001 2024
+
+        ./topology/a_serial 128 256 20000 0.0001 4242
+        mpirun -np 1 ./topology/a 128 256 20000 0.0001 4242
+        mpirun -np 2 ./topology/a 128 256 20000 0.0001 4242
+        mpirun -np 4 ./topology/a 128 256 20000 0.0001 4242
+        mpirun -np 8 ./topology/a 128 256 20000 0.0001 4242
+        mpirun -np 16 ./topology/a 128 256 20000 0.0001 4242
+        mpirun -np 28 ./topology/a 128 256 20000 0.0001 4242
 
 WEAK SCALING - PARTICELLE PER PROCESSO COSTANTI - DIM 64, PPS 32, K = NP
-Numero run: 60
-./topology/a_serial 64 32 10000 0.0001 123
-mpirun -np 1 ./topology/a 64 32 10000 0.0001 123
-./topology/a_serial 64 64 10000 0.0001 123
-mpirun -np 2 ./topology/a 64 64 10000 0.0001 123
-./topology/a_serial 64 128 10000 0.0001 123
-mpirun -np 4 ./topology/a 64 128 10000 0.0001 123
-./topology/a_serial 64 256 10000 0.0001 123
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 123
-./topology/a_serial 64 512 10000 0.0001 123
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 123
-./topology/a_serial 64 896 10000 0.0001 123
-mpirun -np 28 ./topology/a 64 896 10000 0.0001 123
-./topology/a_serial 64 32 10000 0.0001 456
-mpirun -np 1 ./topology/a 64 32 10000 0.0001 456
-./topology/a_serial 64 64 10000 0.0001 456
-mpirun -np 2 ./topology/a 64 64 10000 0.0001 456
-./topology/a_serial 64 128 10000 0.0001 456
-mpirun -np 4 ./topology/a 64 128 10000 0.0001 456
-./topology/a_serial 64 256 10000 0.0001 456
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 456
-./topology/a_serial 64 512 10000 0.0001 456
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 456
-./topology/a_serial 64 896 10000 0.0001 456
-mpirun -np 28 ./topology/a 64 896 10000 0.0001 456
-./topology/a_serial 64 32 10000 0.0001 789
-mpirun -np 1 ./topology/a 64 32 10000 0.0001 789
-./topology/a_serial 64 64 10000 0.0001 789
-mpirun -np 2 ./topology/a 64 64 10000 0.0001 789
-./topology/a_serial 64 128 10000 0.0001 789
-mpirun -np 4 ./topology/a 64 128 10000 0.0001 789
-./topology/a_serial 64 256 10000 0.0001 789
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 789
-./topology/a_serial 64 512 10000 0.0001 789
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 789
-./topology/a_serial 64 896 10000 0.0001 789
-mpirun -np 28 ./topology/a 64 896 10000 0.0001 789
-./topology/a_serial 64 32 10000 0.0001 2024
-mpirun -np 1 ./topology/a 64 32 10000 0.0001 2024
-./topology/a_serial 64 64 10000 0.0001 2024
-mpirun -np 2 ./topology/a 64 64 10000 0.0001 2024
-./topology/a_serial 64 128 10000 0.0001 2024
-mpirun -np 4 ./topology/a 64 128 10000 0.0001 2024
-./topology/a_serial 64 256 10000 0.0001 2024
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 2024
-./topology/a_serial 64 512 10000 0.0001 2024
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 2024
-./topology/a_serial 64 896 10000 0.0001 2024
-mpirun -np 28 ./topology/a 64 896 10000 0.0001 2024
-./topology/a_serial 64 32 10000 0.0001 4242
-mpirun -np 1 ./topology/a 64 32 10000 0.0001 4242
-./topology/a_serial 64 64 10000 0.0001 4242
-mpirun -np 2 ./topology/a 64 64 10000 0.0001 4242
-./topology/a_serial 64 128 10000 0.0001 4242
-mpirun -np 4 ./topology/a 64 128 10000 0.0001 4242
-./topology/a_serial 64 256 10000 0.0001 4242
-mpirun -np 8 ./topology/a 64 256 10000 0.0001 4242
-./topology/a_serial 64 512 10000 0.0001 4242
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 4242
-./topology/a_serial 64 896 10000 0.0001 4242
-mpirun -np 28 ./topology/a 64 896 10000 0.0001 4242
+Cosa plottare: tempo totale, speedup, efficienza
+Numero run: 35
+
+        ./topology/a_serial 64 32 10000 0.0001 123
+        mpirun -np 1 ./topology/a 64 32 10000 0.0001 123
+        mpirun -np 2 ./topology/a 64 64 10000 0.0001 123
+        mpirun -np 4 ./topology/a 64 128 10000 0.0001 123
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 123
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 123
+        mpirun -np 28 ./topology/a 64 896 10000 0.0001 123
+
+        ./topology/a_serial 64 32 10000 0.0001 456
+        mpirun -np 1 ./topology/a 64 32 10000 0.0001 456
+        mpirun -np 2 ./topology/a 64 64 10000 0.0001 456
+        mpirun -np 4 ./topology/a 64 128 10000 0.0001 456
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 456
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 456
+        mpirun -np 28 ./topology/a 64 896 10000 0.0001 456
+
+        ./topology/a_serial 64 32 10000 0.0001 789
+        mpirun -np 1 ./topology/a 64 32 10000 0.0001 789
+        mpirun -np 2 ./topology/a 64 64 10000 0.0001 789
+        mpirun -np 4 ./topology/a 64 128 10000 0.0001 789
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 789
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 789
+        mpirun -np 28 ./topology/a 64 896 10000 0.0001 789
+
+        ./topology/a_serial 64 32 10000 0.0001 2024
+        mpirun -np 1 ./topology/a 64 32 10000 0.0001 2024
+        mpirun -np 2 ./topology/a 64 64 10000 0.0001 2024
+        mpirun -np 4 ./topology/a 64 128 10000 0.0001 2024
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 2024
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 2024
+        mpirun -np 28 ./topology/a 64 896 10000 0.0001 2024
+
+        ./topology/a_serial 64 32 10000 0.0001 4242
+        mpirun -np 1 ./topology/a 64 32 10000 0.0001 4242
+        mpirun -np 2 ./topology/a 64 64 10000 0.0001 4242
+        mpirun -np 4 ./topology/a 64 128 10000 0.0001 4242
+        mpirun -np 8 ./topology/a 64 256 10000 0.0001 4242
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 4242
+        mpirun -np 28 ./topology/a 64 896 10000 0.0001 4242
+
+
+
+AL MOMENTO RUNNA FINO A QUI
 
 WEAK SCALING - DIMENSIONE PER PROCESSO COSTANTE - LOCAL DIM 8, PARTICELLE TOTALI 224, K = NP
-Numero run: 60
-./topology/a_serial 8 224 10000 0.0001 123
-mpirun -np 1 ./topology/a 8 224 10000 0.0001 123
-./topology/a_serial 16 224 10000 0.0001 123
-mpirun -np 2 ./topology/a 16 224 10000 0.0001 123
-./topology/a_serial 32 224 10000 0.0001 123
-mpirun -np 4 ./topology/a 32 224 10000 0.0001 123
-./topology/a_serial 64 224 10000 0.0001 123
-mpirun -np 8 ./topology/a 64 224 10000 0.0001 123
-./topology/a_serial 128 224 20000 0.0001 123
-mpirun -np 16 ./topology/a 128 224 20000 0.0001 123
-./topology/a_serial 224 224 20000 0.0001 123
-mpirun -np 28 ./topology/a 224 224 20000 0.0001 123
-./topology/a_serial 8 224 10000 0.0001 456
-mpirun -np 1 ./topology/a 8 224 10000 0.0001 456
-./topology/a_serial 16 224 10000 0.0001 456
-mpirun -np 2 ./topology/a 16 224 10000 0.0001 456
-./topology/a_serial 32 224 10000 0.0001 456
-mpirun -np 4 ./topology/a 32 224 10000 0.0001 456
-./topology/a_serial 64 224 10000 0.0001 456
-mpirun -np 8 ./topology/a 64 224 10000 0.0001 456
-./topology/a_serial 128 224 20000 0.0001 456
-mpirun -np 16 ./topology/a 128 224 20000 0.0001 456
-./topology/a_serial 224 224 20000 0.0001 456
-mpirun -np 28 ./topology/a 224 224 20000 0.0001 456
-./topology/a_serial 8 224 10000 0.0001 789
-mpirun -np 1 ./topology/a 8 224 10000 0.0001 789
-./topology/a_serial 16 224 10000 0.0001 789
-mpirun -np 2 ./topology/a 16 224 10000 0.0001 789
-./topology/a_serial 32 224 10000 0.0001 789
-mpirun -np 4 ./topology/a 32 224 10000 0.0001 789
-./topology/a_serial 64 224 10000 0.0001 789
-mpirun -np 8 ./topology/a 64 224 10000 0.0001 789
-./topology/a_serial 128 224 20000 0.0001 789
-mpirun -np 16 ./topology/a 128 224 20000 0.0001 789
-./topology/a_serial 224 224 20000 0.0001 789
-mpirun -np 28 ./topology/a 224 224 20000 0.0001 789
-./topology/a_serial 8 224 10000 0.0001 2024
-mpirun -np 1 ./topology/a 8 224 10000 0.0001 2024
-./topology/a_serial 16 224 10000 0.0001 2024
-mpirun -np 2 ./topology/a 16 224 10000 0.0001 2024
-./topology/a_serial 32 224 10000 0.0001 2024
-mpirun -np 4 ./topology/a 32 224 10000 0.0001 2024
-./topology/a_serial 64 224 10000 0.0001 2024
-mpirun -np 8 ./topology/a 64 224 10000 0.0001 2024
-./topology/a_serial 128 224 20000 0.0001 2024
-mpirun -np 16 ./topology/a 128 224 20000 0.0001 2024
-./topology/a_serial 224 224 20000 0.0001 2024
-mpirun -np 28 ./topology/a 224 224 20000 0.0001 2024
-./topology/a_serial 8 224 10000 0.0001 4242
-mpirun -np 1 ./topology/a 8 224 10000 0.0001 4242
-./topology/a_serial 16 224 10000 0.0001 4242
-mpirun -np 2 ./topology/a 16 224 10000 0.0001 4242
-./topology/a_serial 32 224 10000 0.0001 4242
-mpirun -np 4 ./topology/a 32 224 10000 0.0001 4242
-./topology/a_serial 64 224 10000 0.0001 4242
-mpirun -np 8 ./topology/a 64 224 10000 0.0001 4242
-./topology/a_serial 128 224 20000 0.0001 4242
-mpirun -np 16 ./topology/a 128 224 20000 0.0001 4242
-./topology/a_serial 224 224 20000 0.0001 4242
-mpirun -np 28 ./topology/a 224 224 20000 0.0001 4242
+Cosa plottare: tempo totale, speedup, efficienza, convergenza
+Numero run: 35
+        ./topology/a_serial 8 224 10000 0.0001 123
+        mpirun -np 1 ./topology/a 8 224 10000 0.0001 123
+        mpirun -np 2 ./topology/a 16 224 10000 0.0001 123
+        mpirun -np 4 ./topology/a 32 224 10000 0.0001 123
+        mpirun -np 8 ./topology/a 64 224 10000 0.0001 123
+        mpirun -np 16 ./topology/a 128 224 20000 0.0001 123
+        mpirun -np 28 ./topology/a 224 224 20000 0.0001 123
+
+
+        ./topology/a_serial 8 224 10000 0.0001 456
+        mpirun -np 1 ./topology/a 8 224 10000 0.0001 456
+        mpirun -np 2 ./topology/a 16 224 10000 0.0001 456
+        mpirun -np 4 ./topology/a 32 224 10000 0.0001 456
+        mpirun -np 8 ./topology/a 64 224 10000 0.0001 456
+        mpirun -np 16 ./topology/a 128 224 20000 0.0001 456
+        mpirun -np 28 ./topology/a 224 224 20000 0.0001 456
+
+        ./topology/a_serial 8 224 10000 0.0001 789
+        mpirun -np 1 ./topology/a 8 224 10000 0.0001 789
+        mpirun -np 2 ./topology/a 16 224 10000 0.0001 789
+        mpirun -np 4 ./topology/a 32 224 10000 0.0001 789
+        mpirun -np 8 ./topology/a 64 224 10000 0.0001 789
+        mpirun -np 16 ./topology/a 128 224 20000 0.0001 789
+        mpirun -np 28 ./topology/a 224 224 20000 0.0001 789
+
+        ./topology/a_serial 8 224 10000 0.0001 2024
+        mpirun -np 1 ./topology/a 8 224 10000 0.0001 2024
+        mpirun -np 2 ./topology/a 16 224 10000 0.0001 2024
+        mpirun -np 4 ./topology/a 32 224 10000 0.0001 2024
+        mpirun -np 8 ./topology/a 64 224 10000 0.0001 2024
+        mpirun -np 16 ./topology/a 128 224 20000 0.0001 2024
+        mpirun -np 28 ./topology/a 224 224 20000 0.0001 2024
+
+        ./topology/a_serial 8 224 10000 0.0001 4242
+        mpirun -np 1 ./topology/a 8 224 10000 0.0001 4242
+        mpirun -np 2 ./topology/a 16 224 10000 0.0001 4242
+        mpirun -np 4 ./topology/a 32 224 10000 0.0001 4242
+        mpirun -np 8 ./topology/a 64 224 10000 0.0001 4242
+        mpirun -np 16 ./topology/a 128 224 20000 0.0001 4242
+        mpirun -np 28 ./topology/a 224 224 20000 0.0001 4242
+
+
 
 WEAK SCALING - CARICO LOCALE COSTANTE - 32 PARTICELLE/SOTTOSWARM, 4 DIM/SOTTOSWARM, K = NP
-Numero run: 30
-mpirun -np 1 ./topology/a 4 32 10000 0.0001 123
-mpirun -np 2 ./topology/a 8 64 10000 0.0001 123
-mpirun -np 4 ./topology/a 16 128 10000 0.0001 123
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 123
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 123
-mpirun -np 28 ./topology/a 112 896 20000 0.0001 123
-mpirun -np 1 ./topology/a 4 32 10000 0.0001 456
-mpirun -np 2 ./topology/a 8 64 10000 0.0001 456
-mpirun -np 4 ./topology/a 16 128 10000 0.0001 456
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 456
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 456
-mpirun -np 28 ./topology/a 112 896 20000 0.0001 456
-mpirun -np 1 ./topology/a 4 32 10000 0.0001 789
-mpirun -np 2 ./topology/a 8 64 10000 0.0001 789
-mpirun -np 4 ./topology/a 16 128 10000 0.0001 789
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 789
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 789
-mpirun -np 28 ./topology/a 112 896 20000 0.0001 789
-mpirun -np 1 ./topology/a 4 32 10000 0.0001 2024
-mpirun -np 2 ./topology/a 8 64 10000 0.0001 2024
-mpirun -np 4 ./topology/a 16 128 10000 0.0001 2024
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 2024
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 2024
-mpirun -np 28 ./topology/a 112 896 20000 0.0001 2024
-mpirun -np 1 ./topology/a 4 32 10000 0.0001 4242
-mpirun -np 2 ./topology/a 8 64 10000 0.0001 4242
-mpirun -np 4 ./topology/a 16 128 10000 0.0001 4242
-mpirun -np 8 ./topology/a 32 256 10000 0.0001 4242
-mpirun -np 16 ./topology/a 64 512 10000 0.0001 4242
-mpirun -np 28 ./topology/a 112 896 20000 0.0001 4242
+Cosa plottare: tempo totale, speedup, efficienza, convergenza
+Numero run: 35
+        
+        ./topology/a_serial 4 32 10000 0.0001 123
+        mpirun -np 1 ./topology/a 4 32 10000 0.0001 123
+        mpirun -np 2 ./topology/a 8 64 10000 0.0001 123
+        mpirun -np 4 ./topology/a 16 128 10000 0.0001 123
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 123
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 123
+        mpirun -np 28 ./topology/a 112 896 20000 0.0001 123
 
-DIMENSION SWEEP - NP 8, K 8, PPS 16
-Numero run: 50
-./topology/a_serial 16 128 10000 0.0001 123
-mpirun -np 8 ./topology/a 16 128 10000 0.0001 123
-./topology/a_serial 32 128 10000 0.0001 123
-mpirun -np 8 ./topology/a 32 128 10000 0.0001 123
-./topology/a_serial 64 128 15000 0.0001 123
-mpirun -np 8 ./topology/a 64 128 15000 0.0001 123
-./topology/a_serial 128 128 20000 0.0001 123
-mpirun -np 8 ./topology/a 128 128 20000 0.0001 123
-./topology/a_serial 256 128 40000 0.0001 123
-mpirun -np 8 ./topology/a 256 128 40000 0.0001 123
-./topology/a_serial 16 128 10000 0.0001 456
-mpirun -np 8 ./topology/a 16 128 10000 0.0001 456
-./topology/a_serial 32 128 10000 0.0001 456
-mpirun -np 8 ./topology/a 32 128 10000 0.0001 456
-./topology/a_serial 64 128 15000 0.0001 456
-mpirun -np 8 ./topology/a 64 128 15000 0.0001 456
-./topology/a_serial 128 128 20000 0.0001 456
-mpirun -np 8 ./topology/a 128 128 20000 0.0001 456
-./topology/a_serial 256 128 40000 0.0001 456
-mpirun -np 8 ./topology/a 256 128 40000 0.0001 456
-./topology/a_serial 16 128 10000 0.0001 789
-mpirun -np 8 ./topology/a 16 128 10000 0.0001 789
-./topology/a_serial 32 128 10000 0.0001 789
-mpirun -np 8 ./topology/a 32 128 10000 0.0001 789
-./topology/a_serial 64 128 15000 0.0001 789
-mpirun -np 8 ./topology/a 64 128 15000 0.0001 789
-./topology/a_serial 128 128 20000 0.0001 789
-mpirun -np 8 ./topology/a 128 128 20000 0.0001 789
-./topology/a_serial 256 128 40000 0.0001 789
-mpirun -np 8 ./topology/a 256 128 40000 0.0001 789
-./topology/a_serial 16 128 10000 0.0001 2024
-mpirun -np 8 ./topology/a 16 128 10000 0.0001 2024
-./topology/a_serial 32 128 10000 0.0001 2024
-mpirun -np 8 ./topology/a 32 128 10000 0.0001 2024
-./topology/a_serial 64 128 15000 0.0001 2024
-mpirun -np 8 ./topology/a 64 128 15000 0.0001 2024
-./topology/a_serial 128 128 20000 0.0001 2024
-mpirun -np 8 ./topology/a 128 128 20000 0.0001 2024
-./topology/a_serial 256 128 40000 0.0001 2024
-mpirun -np 8 ./topology/a 256 128 40000 0.0001 2024
-./topology/a_serial 16 128 10000 0.0001 4242
-mpirun -np 8 ./topology/a 16 128 10000 0.0001 4242
-./topology/a_serial 32 128 10000 0.0001 4242
-mpirun -np 8 ./topology/a 32 128 10000 0.0001 4242
-./topology/a_serial 64 128 15000 0.0001 4242
-mpirun -np 8 ./topology/a 64 128 15000 0.0001 4242
-./topology/a_serial 128 128 20000 0.0001 4242
-mpirun -np 8 ./topology/a 128 128 20000 0.0001 4242
-./topology/a_serial 256 128 40000 0.0001 4242
-mpirun -np 8 ./topology/a 256 128 40000 0.0001 4242
+        ./topology/a_serial 4 32 10000 0.0001 456
+        mpirun -np 1 ./topology/a 4 32 10000 0.0001 456
+        mpirun -np 2 ./topology/a 8 64 10000 0.0001 456
+        mpirun -np 4 ./topology/a 16 128 10000 0.0001 456
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 456
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 456
+        mpirun -np 28 ./topology/a 112 896 20000 0.0001 456
+
+        ./topology/a_serial 4 32 10000 0.0001 789
+        mpirun -np 1 ./topology/a 4 32 10000 0.0001 789
+        mpirun -np 2 ./topology/a 8 64 10000 0.0001 789
+        mpirun -np 4 ./topology/a 16 128 10000 0.0001 789
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 789
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 789
+        mpirun -np 28 ./topology/a 112 896 20000 0.0001 789
+
+        ./topology/a_serial 4 32 10000 0.0001 2024
+        mpirun -np 1 ./topology/a 4 32 10000 0.0001 2024
+        mpirun -np 2 ./topology/a 8 64 10000 0.0001 2024
+        mpirun -np 4 ./topology/a 16 128 10000 0.0001 2024
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 2024
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 2024
+        mpirun -np 28 ./topology/a 112 896 20000 0.0001 2024
+
+        ./topology/a_serial 4 32 10000 0.0001 4242  
+        mpirun -np 1 ./topology/a 4 32 10000 0.0001 4242
+        mpirun -np 2 ./topology/a 8 64 10000 0.0001 4242
+        mpirun -np 4 ./topology/a 16 128 10000 0.0001 4242
+        mpirun -np 8 ./topology/a 32 256 10000 0.0001 4242
+        mpirun -np 16 ./topology/a 64 512 10000 0.0001 4242
+        mpirun -np 28 ./topology/a 112 896 20000 0.0001 4242
+
+
+
+
+DA VOLUTARE BENE, TEST SENSATO A MIO PARETE SE SI VUOLE STUDIARE IL NUMERO 
+DI FUNZIONI CHE CONVERGONO ALL'AUMENTARE DELLA DIMENSIONE OPPURE SE SI 
+VUOLE STUDIARE IL TEMPO RICHIESTO ALL'AUMENTARE DELLA DIMENSIONE MA PER QUESTO 
+NON BISOGNEREBBE VARIARE (A PARER MIO ) IL NUMERO DI MAX_ITER. 
+
+
+DIMENSION SWEEP - NP 8, K 8 
+Numero run: 30
+
+        ./topology/a_serial 16 128 10000 0.0001 123
+        mpirun -np 8 ./topology/a 16 128 10000 0.0001 123
+        mpirun -np 8 ./topology/a 32 128 10000 0.0001 123
+        mpirun -np 8 ./topology/a 64 128 15000 0.0001 123
+        mpirun -np 8 ./topology/a 128 128 20000 0.0001 123
+        mpirun -np 8 ./topology/a 256 128 40000 0.0001 123
+
+        ./topology/a_serial 16 128 10000 0.0001 456
+        mpirun -np 8 ./topology/a 16 128 10000 0.0001 456
+        mpirun -np 8 ./topology/a 32 128 10000 0.0001 456
+        mpirun -np 8 ./topology/a 64 128 15000 0.0001 456
+        mpirun -np 8 ./topology/a 128 128 20000 0.0001 456
+        mpirun -np 8 ./topology/a 256 128 40000 0.0001 456
+
+        ./topology/a_serial 16 128 10000 0.0001 789
+        mpirun -np 8 ./topology/a 16 128 10000 0.0001 789
+        mpirun -np 8 ./topology/a 32 128 10000 0.0001 789
+        mpirun -np 8 ./topology/a 64 128 15000 0.0001 789
+        mpirun -np 8 ./topology/a 128 128 20000 0.0001 789
+        mpirun -np 8 ./topology/a 256 128 40000 0.0001 789
+
+        ./topology/a_serial 16 128 10000 0.0001 2024
+        mpirun -np 8 ./topology/a 16 128 10000 0.0001 2024
+        mpirun -np 8 ./topology/a 32 128 10000 0.0001 2024
+        mpirun -np 8 ./topology/a 64 128 15000 0.0001 2024
+        mpirun -np 8 ./topology/a 128 128 20000 0.0001 2024
+        mpirun -np 8 ./topology/a 256 128 40000 0.0001 2024
+
+        ./topology/a_serial 16 128 10000 0.0001 4242
+        mpirun -np 8 ./topology/a 16 128 10000 0.0001 4242
+        mpirun -np 8 ./topology/a 32 128 10000 0.0001 4242
+        mpirun -np 8 ./topology/a 64 128 15000 0.0001 4242
+        mpirun -np 8 ./topology/a 128 128 20000 0.0001 4242
+        mpirun -np 8 ./topology/a 256 128 40000 0.0001 4242
