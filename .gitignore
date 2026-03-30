@@ -65,6 +65,11 @@ docbook/
 __pycache__/
 *.py[cod]
 
+src/topology/a_serial
+src/topology/topology_parallel
+src/topology/topology_serial
+
+src/Makefile.mpi_only
 # Local build and generated benchmark outputs
 build/
 src/benchmarks/cpso/results/
