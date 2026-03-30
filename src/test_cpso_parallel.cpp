@@ -2,6 +2,8 @@
 #include "cpso/CPSOParallel.hpp"
 #include "interfaces/StoppingCriteriaManager.hpp"
 #include <algorithm>
+#include <cctype>
+#include <cstdlib>
 #include <iostream>
 #include <mpi.h>
 #include <string>
@@ -32,6 +34,23 @@ int main(int argc, char **argv) {
   unsigned int seed =
       argc > 7 ? static_cast<unsigned int>(std::stoul(argv[7]))
                : CPSOBase::DEFAULT_SEED;
+  auto env_flag_enabled = [](const char *name) {
+    const char *raw_value = std::getenv(name);
+    if (raw_value == nullptr || *raw_value == '\0') {
+      return false;
+    }
+
+    std::string value(raw_value);
+    std::transform(value.begin(), value.end(), value.begin(),
+                   [](unsigned char ch) {
+                     return static_cast<char>(std::tolower(ch));
+                   });
+    return value == "1" || value == "true" || value == "yes" ||
+           value == "on";
+  };
+  const bool disable_greedy_merge =
+      env_flag_enabled("CPSO_MPI_DISABLE_GREEDY_MERGE") ||
+      env_flag_enabled("CPSO_PARALLEL_DISABLE_GREEDY_MERGE");
 
   auto factory = cpso_benchmark::build_factory();
   cpso_benchmark::BenchmarkSummary summary;
@@ -42,7 +61,10 @@ int main(int argc, char **argv) {
               << ", max_iters=" << max_iters
               << ", shuffle_freq=" << shuffle_freq
               << ", stagnation_patience=" << stagnation_patience
-              << ", seed=" << seed << "\n\n";
+              << ", seed=" << seed
+              << ", greedy_merge_fallback="
+              << (disable_greedy_merge ? "disabled" : "enabled")
+              << "\n\n";
   }
 
   for (const auto &name : cpso_benchmark::get_test_names()) {

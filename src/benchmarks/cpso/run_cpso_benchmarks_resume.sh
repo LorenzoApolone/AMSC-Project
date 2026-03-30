@@ -30,7 +30,7 @@ Usage: run_cpso_benchmarks_resume.sh [options]
 Options:
   --start-index N                  First global case index to execute (1-based, required).
   --end-index N                    Last global case index to execute (inclusive).
-  --battery comparable|cpso|appendix|validation|all    Select the benchmark battery to run.
+  --battery comparable|cpso|appendix|validation|communication|all    Select the benchmark battery to run.
   --seeds 123,456,789              Override default seed list.
   --results-root PATH              Directory where raw results are saved.
   --tag NAME                       Custom subdirectory name under results/root.
@@ -203,12 +203,37 @@ for case_line in "${CASE_LINES[@]}"; do
   fi
 
   EXECUTED_INDEX=$((EXECUTED_INDEX + 1))
-  IFS=$'\t' read -r battery suite family case_id execution_mode mpi_processes dim k_subswarms particles_per_swarm max_iters shuffle_freq stagnation_patience seed description <<< "$case_line"
+  IFS=$'	' read -r battery suite family case_id execution_mode mpi_processes dim k_subswarms particles_per_swarm max_iters shuffle_freq stagnation_patience seed runtime_profile env_overrides description <<< "$case_line"
+
+  ENV_PREFIX=()
+  MPI_ENV_EXPORT_ARGS=()
+  if [[ "$env_overrides" == "-" ]]; then
+    env_overrides=""
+  fi
+  if [[ -n "$env_overrides" ]]; then
+    IFS=';' read -r -a RAW_ENV_ASSIGNMENTS <<< "$env_overrides"
+    for env_assignment in "${RAW_ENV_ASSIGNMENTS[@]}"; do
+      if [[ -z "$env_assignment" ]]; then
+        continue
+      fi
+      ENV_PREFIX+=("$env_assignment")
+      if [[ "$execution_mode" == "parallel" ]]; then
+        env_name="${env_assignment%%=*}"
+        if [[ -n "$env_name" ]]; then
+          MPI_ENV_EXPORT_ARGS+=(-x "$env_name")
+        fi
+      fi
+    done
+  fi
 
   if [[ "$execution_mode" == "serial" ]]; then
     CASE_LABEL="serial"
     OUT_DIR="$RAW_ROOT/$battery/$suite/$family/$case_id"
-    CMD=(
+    CMD=()
+    if [[ ${#ENV_PREFIX[@]} -gt 0 ]]; then
+      CMD+=(env "${ENV_PREFIX[@]}")
+    fi
+    CMD+=(
       "$TEST_SERIAL_BINARY"
       "$dim"
       "$k_subswarms"
@@ -219,10 +244,17 @@ for case_line in "${CASE_LINES[@]}"; do
   else
     CASE_LABEL="np_${mpi_processes}"
     OUT_DIR="$RAW_ROOT/$battery/$suite/$family/$case_id"
-    CMD=("$MPIEXEC_BIN")
+    CMD=()
+    if [[ ${#ENV_PREFIX[@]} -gt 0 ]]; then
+      CMD+=(env "${ENV_PREFIX[@]}")
+    fi
+    CMD+=("$MPIEXEC_BIN")
     if [[ -n "$MPIEXEC_ARGS" ]]; then
       read -r -a EXTRA_MPI_ARGS <<< "$MPIEXEC_ARGS"
       CMD+=("${EXTRA_MPI_ARGS[@]}")
+    fi
+    if [[ ${#MPI_ENV_EXPORT_ARGS[@]} -gt 0 ]]; then
+      CMD+=("${MPI_ENV_EXPORT_ARGS[@]}")
     fi
     CMD+=(
       -np "$mpi_processes"
@@ -249,8 +281,8 @@ for case_line in "${CASE_LINES[@]}"; do
   fi
 
   printf '\n[%s] [run %d/%d | global %d/%d] %s\n' "$(timestamp)" "$EXECUTED_INDEX" "$SELECTED_CASES" "$CASE_INDEX" "$TOTAL_CASES" "$case_id"
-  printf '[%s]          mode=%s | suite=%s | family=%s | np=%s | dim=%s | k=%s | pps=%s | max_iters=%s | seed=%s\n' \
-    "$(timestamp)" "$execution_mode" "$suite" "$family" "$mpi_processes" "$dim" "$k_subswarms" "$particles_per_swarm" "$max_iters" "$seed"
+  printf '[%s]          mode=%s | suite=%s | family=%s | profile=%s | np=%s | dim=%s | k=%s | pps=%s | max_iters=%s | seed=%s\n' \
+    "$(timestamp)" "$execution_mode" "$suite" "$family" "$runtime_profile" "$mpi_processes" "$dim" "$k_subswarms" "$particles_per_swarm" "$max_iters" "$seed"
   printf '[%s]          command: %s\n' "$(timestamp)" "$(cat "$OUT_DIR/command.sh")"
 
   START_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -287,6 +319,8 @@ metadata = {
     "shuffle_freq": int("$shuffle_freq"),
     "stagnation_patience": int("$stagnation_patience"),
     "seed": int("$seed"),
+    "runtime_profile": "$runtime_profile",
+    "env_overrides": "$env_overrides",
     "description": "$description",
     "command": open("$OUT_DIR/command.sh", "r", encoding="utf-8").read().strip(),
     "stdout_log": "$OUT_DIR/stdout.log",

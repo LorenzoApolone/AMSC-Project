@@ -27,6 +27,8 @@ class BenchmarkCase:
     shuffle_freq: int
     stagnation_patience: int
     seed: int
+    runtime_profile: str
+    env_overrides: str
     description: str
 
 
@@ -49,6 +51,8 @@ def _make_case(
     max_iters: int,
     seed: int,
     description: str,
+    runtime_profile: str = "default",
+    env_overrides: str = "-",
     shuffle_freq: int = DEFAULT_SHUFFLE_FREQ,
     stagnation_patience: int = DEFAULT_STAGNATION_PATIENCE,
 ) -> BenchmarkCase:
@@ -76,6 +80,8 @@ def _make_case(
         shuffle_freq=shuffle_freq,
         stagnation_patience=stagnation_patience,
         seed=seed,
+        runtime_profile=runtime_profile,
+        env_overrides=env_overrides,
         description=description,
     )
 
@@ -294,6 +300,96 @@ def build_validation_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
     return cases
 
 
+def build_communication_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
+    communication_processes = (8, 16, 28)
+    communication_definitions = (
+        {
+            "family": "comm_baseline_dim64_k32_pps8",
+            "suite": "greedy_merge_ablation",
+            "dim": 64,
+            "k": 32,
+            "particles_per_swarm": 8,
+            "max_iters": 10000,
+            "runtime_profile": "baseline",
+            "env_overrides": "-",
+            "description": (
+                "Ablation CPSO sulla cooperazione MPI: configurazione baseline "
+                "con fallback greedy completo per misurare wall time, costo di comunicazione "
+                "e convergenza ai processi medio-alti."
+            ),
+        },
+        {
+            "family": "comm_no_greedy_dim64_k32_pps8",
+            "suite": "greedy_merge_ablation",
+            "dim": 64,
+            "k": 32,
+            "particles_per_swarm": 8,
+            "max_iters": 10000,
+            "runtime_profile": "no_greedy_merge_fallback",
+            "env_overrides": "CPSO_MPI_DISABLE_GREEDY_MERGE=1",
+            "description": (
+                "Ablation CPSO sulla cooperazione MPI: stessa configurazione baseline "
+                "ma senza il fallback greedy nel loop principale, per stimare quanto "
+                "pesa la cooperazione globale extra."
+            ),
+        },
+        {
+            "family": "comm_baseline_dim128_k32_pps8",
+            "suite": "greedy_merge_ablation",
+            "dim": 128,
+            "k": 32,
+            "particles_per_swarm": 8,
+            "max_iters": 20000,
+            "runtime_profile": "baseline",
+            "env_overrides": "-",
+            "description": (
+                "Ablation CPSO sulla cooperazione MPI: configurazione baseline "
+                "con fallback greedy completo per misurare wall time, costo di comunicazione "
+                "e convergenza ai processi medio-alti."
+            ),
+        },
+        {
+            "family": "comm_no_greedy_dim128_k32_pps8",
+            "suite": "greedy_merge_ablation",
+            "dim": 128,
+            "k": 32,
+            "particles_per_swarm": 8,
+            "max_iters": 20000,
+            "runtime_profile": "no_greedy_merge_fallback",
+            "env_overrides": "CPSO_MPI_DISABLE_GREEDY_MERGE=1",
+            "description": (
+                "Ablation CPSO sulla cooperazione MPI: stessa configurazione baseline "
+                "ma senza il fallback greedy nel loop principale, per stimare quanto "
+                "pesa la cooperazione globale extra."
+            ),
+        },
+    )
+
+    cases: list[BenchmarkCase] = []
+    for definition in communication_definitions:
+        for seed in seeds:
+            for mpi_processes in communication_processes:
+                if mpi_processes > definition["k"]:
+                    continue
+                cases.append(
+                    _make_parallel_case(
+                        battery="communication",
+                        suite=definition["suite"],
+                        family=definition["family"],
+                        mpi_processes=mpi_processes,
+                        dim=definition["dim"],
+                        k_subswarms=definition["k"],
+                        particles_per_swarm=definition["particles_per_swarm"],
+                        max_iters=definition["max_iters"],
+                        seed=seed,
+                        runtime_profile=definition["runtime_profile"],
+                        env_overrides=definition["env_overrides"],
+                        description=definition["description"],
+                    )
+                )
+    return cases
+
+
 def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
     cases: list[BenchmarkCase] = []
 
@@ -349,7 +445,7 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
         for mpi_processes in DEFAULT_PROCESSES:
             dim = weak_dimension_local_dim * mpi_processes
             particles_per_swarm = weak_dimension_total_particles // mpi_processes
-            max_iters = 10000 if dim <= 64 else 20000
+            max_iters = 20000
             common = dict(
                 battery="cpso",
                 suite="weak_dimension_per_process_constant",
@@ -365,8 +461,8 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
                     **common,
                     description=(
                         "Benchmark CPSO weak scaling: dimensioni per processo costanti, "
-                        "numero totale di particelle fisso, k uguale al numero di processi. "
-                        "Riferimento seriale con stessa decomposizione del caso parallelo."
+                        "numero totale di particelle fisso, k uguale al numero di processi, "
+                        "budget iterativo costante. Riferimento seriale con stessa decomposizione del caso parallelo."
                     ),
                 )
             )
@@ -376,7 +472,8 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
                     mpi_processes=mpi_processes,
                     description=(
                         "Benchmark CPSO weak scaling: dimensioni per processo costanti, "
-                        "numero totale di particelle fisso, k uguale al numero di processi."
+                        "numero totale di particelle fisso, k uguale al numero di processi, "
+                        "budget iterativo costante."
                     ),
                 )
             )
@@ -384,7 +481,7 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
     for seed in seeds:
         for mpi_processes in DEFAULT_PROCESSES:
             dim = 4 * mpi_processes
-            max_iters = 10000 if dim <= 64 else 20000
+            max_iters = 20000
             cases.append(
                 _make_parallel_case(
                     battery="cpso",
@@ -398,20 +495,16 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
                     seed=seed,
                     description=(
                         "Benchmark CPSO weak scaling: carico locale costante, "
-                        "particelle per sottoswarm costanti e dimensioni per sottoswarm costanti."
+                        "particelle per sottoswarm costanti, dimensioni per sottoswarm costanti "
+                        "e budget iterativo costante."
                     ),
                 )
             )
 
-    dimension_sweep = (
-        (16, 10000),
-        (32, 10000),
-        (64, 15000),
-        (128, 20000),
-        (256, 40000),
-    )
+    dimension_sweep = (16, 32, 64, 128, 256)
+    dimension_sweep_max_iters = 20000
     for seed in seeds:
-        for dim, max_iters in dimension_sweep:
+        for dim in dimension_sweep:
             common = dict(
                 battery="cpso",
                 suite="dimension_sweep_fixed_np8",
@@ -419,7 +512,7 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
                 dim=dim,
                 k_subswarms=8,
                 particles_per_swarm=16,
-                max_iters=max_iters,
+                max_iters=dimension_sweep_max_iters,
                 seed=seed,
             )
             cases.append(
@@ -427,7 +520,7 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
                     **common,
                     description=(
                         "Benchmark specifico CPSO: sweep della dimensione con confronto seriale-vs-parallelo, "
-                        "mantenendo costante la stessa decomposizione algoritmica del caso parallelo."
+                        "decomposizione fissa e budget iterativo costante."
                     ),
                 )
             )
@@ -436,8 +529,8 @@ def build_cpso_only_cases(seeds: Sequence[int]) -> list[BenchmarkCase]:
                     **common,
                     mpi_processes=8,
                     description=(
-                        "Benchmark specifico CPSO: sweep della dimensione con numero di processi e "
-                        "decomposizione fissi per studiare convergenza e costo al crescere del problema."
+                        "Benchmark specifico CPSO: sweep della dimensione con numero di processi, "
+                        "decomposizione e budget iterativo fissi per studiare convergenza e costo al crescere del problema."
                     ),
                 )
             )
@@ -455,6 +548,8 @@ def build_cases(battery: str, seeds: Sequence[int]) -> list[BenchmarkCase]:
         cases.extend(build_appendix_cases(seeds))
     if selected == "validation":
         cases.extend(build_validation_cases(seeds))
+    if selected == "communication":
+        cases.extend(build_communication_cases(seeds))
     if selected in {"all", "cpso"}:
         cases.extend(build_cpso_only_cases(seeds))
     if not cases:
@@ -468,7 +563,7 @@ def emit_tsv(cases: Iterable[BenchmarkCase], include_header: bool) -> None:
         print(
             "battery	suite	family	case_id	execution_mode	mpi_processes	dim	k_subswarms"
             "	particles_per_swarm	max_iters	shuffle_freq	stagnation_patience"
-            "	seed	description"
+            "	seed	runtime_profile	env_overrides	description"
         )
     for case in cases:
         print(
@@ -487,6 +582,8 @@ def emit_tsv(cases: Iterable[BenchmarkCase], include_header: bool) -> None:
                     str(case.shuffle_freq),
                     str(case.stagnation_patience),
                     str(case.seed),
+                    case.runtime_profile,
+                    case.env_overrides,
                     case.description,
                 ]
             )
@@ -505,7 +602,7 @@ def main() -> None:
     parser.add_argument(
         "--battery",
         default="all",
-        choices=("all", "comparable", "cpso", "appendix", "validation"),
+        choices=("all", "comparable", "cpso", "appendix", "validation", "communication"),
         help="Which battery to emit.",
     )
     parser.add_argument(
