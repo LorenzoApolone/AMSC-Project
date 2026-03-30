@@ -138,63 +138,6 @@ int main(int argc, char **argv)
       seed
   );
 
-  ExperimentStats serial_small_stats;
-  ExperimentStats serial_scale_stats;
-  ExperimentStats serial_random_stats;
-/*
-  if (rank == 0) {
-    serial_small_stats = run_serial_topology_experiment(
-        TopologyMode::SMALL_WORLD,
-        dim,
-        n_points,
-        max_iter,
-        delta_x,
-        iterations_stagnation,
-        stagnation_tol,
-        stagnation_rel_tol,
-        diversity_tol,
-        p_rewiring,
-        p_random,
-        m,
-        function_names,
-        factory
-    );
-
-    serial_scale_stats = run_serial_topology_experiment(
-        TopologyMode::SCALE_FREE,
-        dim,
-        n_points,
-        max_iter,
-        delta_x,
-        iterations_stagnation,
-        stagnation_tol,
-        stagnation_rel_tol,
-        diversity_tol,
-        p_rewiring,
-        p_random,
-        m,
-        function_names,
-        factory
-    );
-
-    serial_random_stats = run_serial_topology_experiment(
-        TopologyMode::RANDOM,
-        dim,
-        n_points,
-        max_iter,
-        delta_x,
-        iterations_stagnation,
-        stagnation_tol,
-        stagnation_rel_tol,
-        diversity_tol,
-        p_rewiring,
-        p_random,
-        m,
-        function_names,
-        factory
-    );
-  }
-*/
   if (rank == 0) {
     
     std::array<std::vector<std::string>, 5> all = {
@@ -210,11 +153,6 @@ int main(int argc, char **argv)
     print_experiment_stats("Scale free", scale_stats);
     print_experiment_stats("Random", random_stats);
     print_experiment_stats("Classic", classic_stats);
-    
-
-    print_experiment_stats("Serial small world", serial_small_stats);
-    print_experiment_stats("Serial scale free", serial_scale_stats);
-    print_experiment_stats("Serial random", serial_random_stats);
     */
     int n = not_converged(all, false);
 
@@ -232,15 +170,6 @@ int main(int argc, char **argv)
 
     std::cout << "Total time random network timer version: " << random_stats.t_allgatherv << "/"  << random_stats.total_time << " s\n";
     std::cout << "Convergence rate random network: " << random_stats.number_of_converged << "/" << number_of_functions << std::endl << std::endl;
-
-    std::cout << "Total time serial small-world topology: " << serial_small_stats.total_time << " s\n";
-    std::cout << "Convergence rate serial small-world topology: " << serial_small_stats.number_of_converged << "/" << number_of_functions << std::endl;
-
-    std::cout << "Total time serial scale-free topology: " << serial_scale_stats.total_time << " s\n";
-    std::cout << "Convergence rate serial scale-free topology: " << serial_scale_stats.number_of_converged << "/" << number_of_functions << std::endl;
-
-    std::cout << "Total time serial random topology: " << serial_random_stats.total_time << " s\n";
-    std::cout << "Convergence rate serial random topology: " << serial_random_stats.number_of_converged << "/" << number_of_functions << std::endl;
     */
 
     //uniform output format for benchmarking

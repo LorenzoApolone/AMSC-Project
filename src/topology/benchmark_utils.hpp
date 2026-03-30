@@ -509,4 +509,56 @@ static ExperimentStats run_serial_topology_experiment(
     return stats;
 }
 
+/**
+ * @brief Runs the serial classic PSO experiment on all functions.
+ *
+ * @param[in] dim Dimension of the optimization problem.
+ * @param[in] n_points Number of particles in the swarm.
+ * @param[in] max_iter Maximum number of iterations.
+ * @param[in] delta_x Acceptance tolerance used to determine convergence.
+ * @param[in] iterations_stagnation Maximum number of stagnation iterations.
+ * @param[in] stagnation_tol Tolerance used for stagnation-based stopping.
+ * @param[in] stagnation_rel_tol Relative tolerance used for stagnation-based stopping.
+ * @param[in] diversity_tol Tolerance used for diversity-based stopping.
+ * @param[in] function_names List of benchmark-function names.
+ * @param[in] factory Factory used to instantiate benchmark functions.
+ * @param[in] seed Seed for random generation.
+ *
+ * @return Statistics collected over the serial classic experiment.
+ */
+static ExperimentStats run_serial_classic_experiment(
+    unsigned int dim,
+    unsigned int n_points,
+    unsigned int max_iter,
+    double delta_x,
+    int iterations_stagnation,
+    double stagnation_tol,
+    double stagnation_rel_tol,
+    double diversity_tol,
+    const std::vector<std::string>& function_names,
+    const FunctionFactory& factory,
+    unsigned int seed)
+{
+    double t_start = MPI_Wtime();
+
+    ExperimentStats stats;
+
+    for (const auto& name : function_names) {
+        auto function = factory.at(name)(dim);
+
+        StoppingCriteriaManager stop(max_iter,
+                                     iterations_stagnation,
+                                     stagnation_tol,
+                                     diversity_tol);
+
+        OutputObject result = pso_serial(*function, dim, stop, n_points, seed);
+
+        update_experiment_stats(name, result, *function, delta_x, max_iter, stats);
+    }
+
+    stats.total_time = MPI_Wtime() - t_start;
+
+    return stats;
+}
+
 #endif // BENCHMARK_UTILS_HPP
