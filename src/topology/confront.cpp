@@ -81,7 +81,7 @@ void uniqueness(const std::array<std::vector<std::string>, 5>& vectors){
 
 }
 
-int not_converged(const std::array<std::vector<std::string>, 5>& vectors){
+int not_converged(const std::array<std::vector<std::string>, 5>& vectors, bool print){
 
     const auto& small  = vectors[static_cast<std::size_t>(Topology::Small)];
     const auto& scale  = vectors[static_cast<std::size_t>(Topology::Scale)];
@@ -100,10 +100,14 @@ int not_converged(const std::array<std::vector<std::string>, 5>& vectors){
             scale_set.find(name) == scale_set.end() &&
             random_set.find(name) == random_set.end() &&
             classic_set.find(name) == classic_set.end()) {
-            std::cout << "Function " << name << " did not converge in any topology.\n";
+            if (print) {
+                std::cout << "Function " << name << " did not converge in any topology.\n";
+            }
             count++;
         }
     }
-    std:: cout << std::endl;
+    if (print) {
+        std::cout << std::endl;
+    }
     return count;
 }

@@ -196,7 +196,7 @@ int main(int argc, char **argv)
   }
 */
   if (rank == 0) {
-
+    
     std::array<std::vector<std::string>, 5> all = {
         small_stats.functions_converged,
         scale_stats.functions_converged,
@@ -205,20 +205,22 @@ int main(int argc, char **argv)
         function_names
     };
   
+    /*
     print_experiment_stats("Small world", small_stats);
     print_experiment_stats("Scale free", scale_stats);
     print_experiment_stats("Random", random_stats);
     print_experiment_stats("Classic", classic_stats);
-    /*
+    
+
     print_experiment_stats("Serial small world", serial_small_stats);
     print_experiment_stats("Serial scale free", serial_scale_stats);
     print_experiment_stats("Serial random", serial_random_stats);
     */
-    int n = not_converged(all);
+    int n = not_converged(all, false);
 
 
   // output in human friendly format
-
+    /*
     std::cout << "Total time classic PSO: " << classic_stats.total_time << " s\n";
     std::cout << "Convergence rate classic PSO: " << classic_stats.number_of_converged << "/" << number_of_functions  << std::endl;
 
@@ -230,7 +232,7 @@ int main(int argc, char **argv)
 
     std::cout << "Total time random network timer version: " << random_stats.t_allgatherv << "/"  << random_stats.total_time << " s\n";
     std::cout << "Convergence rate random network: " << random_stats.number_of_converged << "/" << number_of_functions << std::endl << std::endl;
-    /*
+
     std::cout << "Total time serial small-world topology: " << serial_small_stats.total_time << " s\n";
     std::cout << "Convergence rate serial small-world topology: " << serial_small_stats.number_of_converged << "/" << number_of_functions << std::endl;
 
@@ -242,7 +244,7 @@ int main(int argc, char **argv)
     */
 
     //uniform output format for benchmarking
-    std::cout << "\n";
+    //std::cout << "\n";
     
     // Intestazione:
     // std::cout << "RESULT,method,dim,n_points,max_iter,delta_x,seed,time_total,time_comm,converged,total\n";

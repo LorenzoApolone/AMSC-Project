@@ -71,4 +71,4 @@ void uniqueness(const std::array<std::vector<std::string>, 5>& vectors);
  *
  * @warning The function performs output on `std::cout` (side effects).
  */
-int not_converged(const std::array<std::vector<std::string>, 5>& vectors);
+int not_converged(const std::array<std::vector<std::string>, 5>& vectors, bool print = true);
