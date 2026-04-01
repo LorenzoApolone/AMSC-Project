@@ -77,7 +77,6 @@ int main(int argc, char *argv[]) {
   factory["HighCondElliptic"] = [](unsigned int dim) { return std::make_unique<HighCondElliptic>(dim); };
   factory["Discus"] = [](unsigned int dim) { return std::make_unique<Discus>(dim); };
   factory["BentCigar"] = [](unsigned int dim) { return std::make_unique<BentCigar>(dim); };
-  factory["PermdbFunc"] = [](unsigned int dim) { return std::make_unique<PermdbFunc>(dim); };
   factory["Schafferf7Func"] = [](unsigned int dim) { return std::make_unique<Schafferf7Func>(dim); };
   factory["ExpSchafferF6"] = [](unsigned int dim) { return std::make_unique<ExpSchafferF6>(dim); };
   factory["RotatedHyper"] = [](unsigned int dim) { return std::make_unique<RotatedHyper>(dim); };
@@ -125,7 +124,6 @@ int main(int argc, char *argv[]) {
                                              "HighCondElliptic",
                                              "Discus",
                                              "BentCigar",
-                                             "PermdbFunc",
                                              "Schafferf7Func",
                                              "ExpSchafferF6",
                                              "RotatedHyper",

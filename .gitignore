@@ -72,7 +72,7 @@ src/topology/topology_serial
 src/Makefile.mpi_only
 # Local build and generated benchmark outputs
 build/
-src/benchmarks/cpso/results/
+src/benchmarks/cpso/
 
 # Local scratch files
 src/bounds.second

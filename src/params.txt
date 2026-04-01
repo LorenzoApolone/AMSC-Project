@@ -139,12 +139,3 @@ hmcr 0.99
 par_min 0.001
 par_max 0.5
 
-[PermdbFunc]
-w 0.99
-c1 2.5
-c2 0.5
-regrouping_period 2
-sub_swarm_size 2
-hmcr 0.50
-par_min 0.5
-par_max 1.0
