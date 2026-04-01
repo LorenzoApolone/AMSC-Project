@@ -26,7 +26,7 @@ usage() {
 Usage: run_dpso_benchmarks.sh [options]
 
 Options:
-  --battery comparable|dpso|all   Select the benchmark battery to run.
+  --battery NAME                  Select benchmark battery (all, comparable, dpso, dpso_weak_particles, dpso_weak_dimension, dpso_weak_local, dpso_sweep_dim).
   --seeds 123,456,789             Override default seed list.
   --results-root PATH             Directory where raw results are saved.
   --tag NAME                      Custom subdirectory name under results/root.

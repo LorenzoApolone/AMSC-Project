@@ -17,6 +17,15 @@
 #include <vector>
 #include <stdexcept>
 
+namespace {
+template <typename Fn>
+void time_mpi_call(double &accumulator, Fn &&fn) {
+  const double start = MPI_Wtime();
+  fn();
+  accumulator += MPI_Wtime() - start;
+}
+}
+
 /**
  * @brief Generates a random double within [min, max).
  *
@@ -246,11 +255,11 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
                        std::vector<double> &pbest_val,
                        std::vector<double> &current_val, int dim, int rank,
                        int size, std::mt19937 &g, int total_particles,
-                       RegroupContext &ctx) {
+                       RegroupContext &ctx,
+                       double &t_bcast, double &t_alltoall) {
   int local_n = current_val.size();
   int p_data_size = 3 * dim + 2;
 
-  // Compute distribution of particles
   std::vector<int> counts(size);
   std::vector<int> starts(size);
   int current_start = 0;
@@ -263,7 +272,6 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
     current_start += count;
   }
 
-  // Generate / broadcast permutation
   if (rank == 0) {
     ctx.indices.resize(total_particles);
     std::iota(ctx.indices.begin(), ctx.indices.end(), 0);
@@ -271,16 +279,16 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
   } else {
     ctx.indices.resize(total_particles);
   }
-  MPI_Bcast(ctx.indices.data(), total_particles, MPI_INT, 0, MPI_COMM_WORLD);
 
-  // ctx.indices[k] = original global index of the particle that will be at new
-  // global index k
+  time_mpi_call(t_bcast, [&]() {
+    MPI_Bcast(ctx.indices.data(), total_particles, MPI_INT, 0, MPI_COMM_WORLD);
+  });
+
   std::vector<int> inv_indices(total_particles);
   for (int k = 0; k < total_particles; ++k) {
     inv_indices[ctx.indices[k]] = k;
   }
 
-  // Count how many particles we send to and receive from each rank
   ctx.sendcounts.assign(size, 0);
   ctx.recvcounts.assign(size, 0);
 
@@ -315,7 +323,6 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
     ctx.rdispls[i] = ctx.rdispls[i - 1] + ctx.recvcounts[i - 1];
   }
 
-  // Pack send_buffer ordered by destination rank
   ctx.send_buffer.resize(local_n * p_data_size);
   std::vector<int> current_sdispl = ctx.sdispls;
   for (int j = 0; j < local_n; ++j) {
@@ -335,16 +342,15 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
     current_sdispl[d_rank] += p_data_size;
   }
 
-  // Allocate recv_buffer
   ctx.recv_buffer.resize(local_n * p_data_size);
 
-  // Alltoallv to exchange selectively
-  MPI_Alltoallv(ctx.send_buffer.data(), ctx.sendcounts.data(),
-                ctx.sdispls.data(), MPI_DOUBLE, ctx.recv_buffer.data(),
-                ctx.recvcounts.data(), ctx.rdispls.data(), MPI_DOUBLE,
-                MPI_COMM_WORLD);
+  time_mpi_call(t_alltoall, [&]() {
+    MPI_Alltoallv(ctx.send_buffer.data(), ctx.sendcounts.data(),
+                  ctx.sdispls.data(), MPI_DOUBLE, ctx.recv_buffer.data(),
+                  ctx.recvcounts.data(), ctx.rdispls.data(), MPI_DOUBLE,
+                  MPI_COMM_WORLD);
+  });
 
-  // Unpack recv_buffer into our local particles
   std::vector<std::vector<int>> recv_j_by_src(size);
   for (int j = 0; j < local_n; ++j) {
     recv_j_by_src[src_ranks[j]].push_back(j);
@@ -354,8 +360,6 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
     if (recv_j_by_src[s].empty())
       continue;
 
-    // Sort local indices by their original global index so we unpack in the
-    // same order they were packed
     std::sort(recv_j_by_src[s].begin(), recv_j_by_src[s].end(),
               [&](int j1, int j2) {
                 return ctx.indices[starts[rank] + j1] <
@@ -399,10 +403,10 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  // Stopping criteria aligned with CPSO:
-  //   iterations_stagnation = max(100, max_iter / 4)
-  //   stagnation_tol        = 1e-8
-  //   diversity_tol         = 1e-6 (default)
+  double t_bcast = 0.0;
+  double t_allreduce = 0.0;
+  double t_alltoall = 0.0;
+
   int scaled_stagnation = std::max(100, max_iter / 4);
   StoppingCriteriaManager stop_manager(max_iter, scaled_stagnation, 1e-8, 1e-6);
 
@@ -436,7 +440,10 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   if (rank == 0) {
     global_seed = seed == 0 ? rd() : seed;
   }
-  MPI_Bcast(&global_seed, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+  double tb0;
+  time_mpi_call(t_bcast, [&]() {
+    MPI_Bcast(&global_seed, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+  });
   std::mt19937 global_gen(global_seed);
 
   std::vector<double> pos(n_points_per_rank * dim);
@@ -471,7 +478,7 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   while (true) {
     if (iter > 0 && iter % params.regrouping_period == 0)
       regroup_particles(pos, vel, pbest_pos, pbest_val, current_val, dim, rank,
-                        size, global_gen, n_points_total, regroup_ctx);
+                        size, global_gen, n_points_total, regroup_ctx, t_bcast, t_alltoall);
 
     int num_sub_swarms = n_points_per_rank / params.sub_swarm_size;
     int remainder = n_points_per_rank % params.sub_swarm_size;
@@ -503,16 +510,20 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
         local_best_idx = i;
       }
     }
-    MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC,
-                  MPI_COMM_WORLD);
+    time_mpi_call(t_allreduce, [&]() {
+      MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC,
+                    MPI_COMM_WORLD);
+    });
 
     std::vector<double> global_best_pos(dim);
     if (rank == global_min.rank && local_best_idx != -1) {
       for (unsigned int d = 0; d < dim; ++d)
         global_best_pos[d] = pbest_pos[local_best_idx * dim + d];
     }
-    MPI_Bcast(global_best_pos.data(), dim, MPI_DOUBLE, global_min.rank,
-              MPI_COMM_WORLD);
+    time_mpi_call(t_bcast, [&]() {
+      MPI_Bcast(global_best_pos.data(), dim, MPI_DOUBLE, global_min.rank,
+                MPI_COMM_WORLD);
+    });
 
     double local_sum = 0.0;
     for (unsigned int i = 0; i < n_points_per_rank; ++i) {
@@ -525,8 +536,10 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
     }
 
     double global_sum_dist = 0.0;
-    MPI_Allreduce(&local_sum, &global_sum_dist, 1, MPI_DOUBLE, MPI_SUM,
-                  MPI_COMM_WORLD);
+    time_mpi_call(t_allreduce, [&]() {
+      MPI_Allreduce(&local_sum, &global_sum_dist, 1, MPI_DOUBLE, MPI_SUM,
+                    MPI_COMM_WORLD);
+    });
     double global_avg_dist = global_sum_dist / n_points_total;
 
     if (rank == 0)
@@ -540,7 +553,9 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
     if (rank == 0)
       stop_flag =
           stop_manager.should_stop(global_best_val, global_avg_dist) ? 1 : 0;
-    MPI_Bcast(&stop_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    time_mpi_call(t_bcast, [&]() {
+      MPI_Bcast(&stop_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    });
     if (stop_flag)
       break;
   }
@@ -558,14 +573,27 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
       best_local_idx = i;
     }
   }
-  MPI_Allreduce(&loc, &glob, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD);
+  time_mpi_call(t_allreduce, [&]() {
+    MPI_Allreduce(&loc, &glob, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD);
+  });
   if (rank == glob.rank && best_local_idx != -1) {
     for (unsigned int d = 0; d < dim; ++d)
       results.x_best[d] = pbest_pos[best_local_idx * dim + d];
   }
-  MPI_Bcast(results.x_best.data(), dim, MPI_DOUBLE, glob.rank, MPI_COMM_WORLD);
+  time_mpi_call(t_bcast, [&]() {
+    MPI_Bcast(results.x_best.data(), dim, MPI_DOUBLE, glob.rank, MPI_COMM_WORLD);
+  });
   results.f_val = glob.val;
   results.execution_time = MPI_Wtime() - start_time;
   results.iterations = iter;
+  
+  results.comm_bcast_s = t_bcast;
+  results.comm_allreduce_s = t_allreduce;
+  results.comm_allgather_s = t_alltoall;
+  results.comm_barrier_s = 0.0;
+  results.wait_total_s = 0.0;
+  results.comm_total_s = t_bcast + t_allreduce + t_alltoall;
+  results.compute_total_s = results.execution_time - results.comm_total_s;
+  
   return results;
 }
