@@ -1,5 +1,6 @@
 
 ELENCO COMPLETO RUN BATTERIA CPSO
+Rigenerato dalla matrice benchmark aggiornata.
 Assunzione: esecuzione dalla root src del progetto.
 Numero run totale: 305
 
@@ -180,151 +181,151 @@ mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 10000 50 50 4242
 ./cpso/test_cpso 64 28 32 10000 4242
 mpirun -np 28 ./cpso/test_cpso_parallel 64 28 32 10000 50 50 4242
 
-WEAK SCALING - DIMENSIONE PER PROCESSO COSTANTE - LOCAL DIM 8, PARTICELLE TOTALI 224, K = NP
+WEAK SCALING - DIMENSIONE PER PROCESSO COSTANTE - LOCAL DIM 8, PARTICELLE TOTALI 224, K = NP, MAX_ITERS 20000 COSTANTE
 Numero run: 60
-./cpso/test_cpso 8 1 224 10000 123
-mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 10000 50 50 123
-./cpso/test_cpso 16 2 112 10000 123
-mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 10000 50 50 123
-./cpso/test_cpso 32 4 56 10000 123
-mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 10000 50 50 123
-./cpso/test_cpso 64 8 28 10000 123
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 10000 50 50 123
+./cpso/test_cpso 8 1 224 20000 123
+mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 20000 50 50 123
+./cpso/test_cpso 16 2 112 20000 123
+mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 20000 50 50 123
+./cpso/test_cpso 32 4 56 20000 123
+mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 20000 50 50 123
+./cpso/test_cpso 64 8 28 20000 123
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 20000 50 50 123
 ./cpso/test_cpso 128 16 14 20000 123
 mpirun -np 16 ./cpso/test_cpso_parallel 128 16 14 20000 50 50 123
 ./cpso/test_cpso 224 28 8 20000 123
 mpirun -np 28 ./cpso/test_cpso_parallel 224 28 8 20000 50 50 123
-./cpso/test_cpso 8 1 224 10000 456
-mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 10000 50 50 456
-./cpso/test_cpso 16 2 112 10000 456
-mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 10000 50 50 456
-./cpso/test_cpso 32 4 56 10000 456
-mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 10000 50 50 456
-./cpso/test_cpso 64 8 28 10000 456
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 10000 50 50 456
+./cpso/test_cpso 8 1 224 20000 456
+mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 20000 50 50 456
+./cpso/test_cpso 16 2 112 20000 456
+mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 20000 50 50 456
+./cpso/test_cpso 32 4 56 20000 456
+mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 20000 50 50 456
+./cpso/test_cpso 64 8 28 20000 456
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 20000 50 50 456
 ./cpso/test_cpso 128 16 14 20000 456
 mpirun -np 16 ./cpso/test_cpso_parallel 128 16 14 20000 50 50 456
 ./cpso/test_cpso 224 28 8 20000 456
 mpirun -np 28 ./cpso/test_cpso_parallel 224 28 8 20000 50 50 456
-./cpso/test_cpso 8 1 224 10000 789
-mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 10000 50 50 789
-./cpso/test_cpso 16 2 112 10000 789
-mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 10000 50 50 789
-./cpso/test_cpso 32 4 56 10000 789
-mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 10000 50 50 789
-./cpso/test_cpso 64 8 28 10000 789
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 10000 50 50 789
+./cpso/test_cpso 8 1 224 20000 789
+mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 20000 50 50 789
+./cpso/test_cpso 16 2 112 20000 789
+mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 20000 50 50 789
+./cpso/test_cpso 32 4 56 20000 789
+mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 20000 50 50 789
+./cpso/test_cpso 64 8 28 20000 789
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 20000 50 50 789
 ./cpso/test_cpso 128 16 14 20000 789
 mpirun -np 16 ./cpso/test_cpso_parallel 128 16 14 20000 50 50 789
 ./cpso/test_cpso 224 28 8 20000 789
 mpirun -np 28 ./cpso/test_cpso_parallel 224 28 8 20000 50 50 789
-./cpso/test_cpso 8 1 224 10000 2024
-mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 10000 50 50 2024
-./cpso/test_cpso 16 2 112 10000 2024
-mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 10000 50 50 2024
-./cpso/test_cpso 32 4 56 10000 2024
-mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 10000 50 50 2024
-./cpso/test_cpso 64 8 28 10000 2024
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 10000 50 50 2024
+./cpso/test_cpso 8 1 224 20000 2024
+mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 20000 50 50 2024
+./cpso/test_cpso 16 2 112 20000 2024
+mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 20000 50 50 2024
+./cpso/test_cpso 32 4 56 20000 2024
+mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 20000 50 50 2024
+./cpso/test_cpso 64 8 28 20000 2024
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 20000 50 50 2024
 ./cpso/test_cpso 128 16 14 20000 2024
 mpirun -np 16 ./cpso/test_cpso_parallel 128 16 14 20000 50 50 2024
 ./cpso/test_cpso 224 28 8 20000 2024
 mpirun -np 28 ./cpso/test_cpso_parallel 224 28 8 20000 50 50 2024
-./cpso/test_cpso 8 1 224 10000 4242
-mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 10000 50 50 4242
-./cpso/test_cpso 16 2 112 10000 4242
-mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 10000 50 50 4242
-./cpso/test_cpso 32 4 56 10000 4242
-mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 10000 50 50 4242
-./cpso/test_cpso 64 8 28 10000 4242
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 10000 50 50 4242
+./cpso/test_cpso 8 1 224 20000 4242
+mpirun -np 1 ./cpso/test_cpso_parallel 8 1 224 20000 50 50 4242
+./cpso/test_cpso 16 2 112 20000 4242
+mpirun -np 2 ./cpso/test_cpso_parallel 16 2 112 20000 50 50 4242
+./cpso/test_cpso 32 4 56 20000 4242
+mpirun -np 4 ./cpso/test_cpso_parallel 32 4 56 20000 50 50 4242
+./cpso/test_cpso 64 8 28 20000 4242
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 28 20000 50 50 4242
 ./cpso/test_cpso 128 16 14 20000 4242
 mpirun -np 16 ./cpso/test_cpso_parallel 128 16 14 20000 50 50 4242
 ./cpso/test_cpso 224 28 8 20000 4242
 mpirun -np 28 ./cpso/test_cpso_parallel 224 28 8 20000 50 50 4242
 
-WEAK SCALING - CARICO LOCALE COSTANTE - 32 PARTICELLE/SOTTOSWARM, 4 DIM/SOTTOSWARM, K = NP
+WEAK SCALING - CARICO LOCALE COSTANTE - 32 PARTICELLE/SOTTOSWARM, 4 DIM/SOTTOSWARM, K = NP, MAX_ITERS 20000 COSTANTE
 Numero run: 30
-mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 10000 50 50 123
-mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 10000 50 50 123
-mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 10000 50 50 123
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 10000 50 50 123
-mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 10000 50 50 123
+mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 20000 50 50 123
+mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 20000 50 50 123
+mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 20000 50 50 123
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 20000 50 50 123
+mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 20000 50 50 123
 mpirun -np 28 ./cpso/test_cpso_parallel 112 28 32 20000 50 50 123
-mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 10000 50 50 456
-mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 10000 50 50 456
-mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 10000 50 50 456
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 10000 50 50 456
-mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 10000 50 50 456
+mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 20000 50 50 456
+mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 20000 50 50 456
+mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 20000 50 50 456
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 20000 50 50 456
+mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 20000 50 50 456
 mpirun -np 28 ./cpso/test_cpso_parallel 112 28 32 20000 50 50 456
-mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 10000 50 50 789
-mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 10000 50 50 789
-mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 10000 50 50 789
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 10000 50 50 789
-mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 10000 50 50 789
+mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 20000 50 50 789
+mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 20000 50 50 789
+mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 20000 50 50 789
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 20000 50 50 789
+mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 20000 50 50 789
 mpirun -np 28 ./cpso/test_cpso_parallel 112 28 32 20000 50 50 789
-mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 10000 50 50 2024
-mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 10000 50 50 2024
-mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 10000 50 50 2024
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 10000 50 50 2024
-mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 10000 50 50 2024
+mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 20000 50 50 2024
+mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 20000 50 50 2024
+mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 20000 50 50 2024
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 20000 50 50 2024
+mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 20000 50 50 2024
 mpirun -np 28 ./cpso/test_cpso_parallel 112 28 32 20000 50 50 2024
-mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 10000 50 50 4242
-mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 10000 50 50 4242
-mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 10000 50 50 4242
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 10000 50 50 4242
-mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 10000 50 50 4242
+mpirun -np 1 ./cpso/test_cpso_parallel 4 1 32 20000 50 50 4242
+mpirun -np 2 ./cpso/test_cpso_parallel 8 2 32 20000 50 50 4242
+mpirun -np 4 ./cpso/test_cpso_parallel 16 4 32 20000 50 50 4242
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 32 20000 50 50 4242
+mpirun -np 16 ./cpso/test_cpso_parallel 64 16 32 20000 50 50 4242
 mpirun -np 28 ./cpso/test_cpso_parallel 112 28 32 20000 50 50 4242
 
-DIMENSION SWEEP - NP 8, K 8, PPS 16
+DIMENSION SWEEP - NP 8, K 8, PPS 16, MAX_ITERS 20000 COSTANTE
 Numero run: 50
-./cpso/test_cpso 16 8 16 10000 123
-mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 10000 50 50 123
-./cpso/test_cpso 32 8 16 10000 123
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 10000 50 50 123
-./cpso/test_cpso 64 8 16 15000 123
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 15000 50 50 123
+./cpso/test_cpso 16 8 16 20000 123
+mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 20000 50 50 123
+./cpso/test_cpso 32 8 16 20000 123
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 20000 50 50 123
+./cpso/test_cpso 64 8 16 20000 123
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 20000 50 50 123
 ./cpso/test_cpso 128 8 16 20000 123
 mpirun -np 8 ./cpso/test_cpso_parallel 128 8 16 20000 50 50 123
-./cpso/test_cpso 256 8 16 40000 123
-mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 40000 50 50 123
-./cpso/test_cpso 16 8 16 10000 456
-mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 10000 50 50 456
-./cpso/test_cpso 32 8 16 10000 456
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 10000 50 50 456
-./cpso/test_cpso 64 8 16 15000 456
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 15000 50 50 456
+./cpso/test_cpso 256 8 16 20000 123
+mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 20000 50 50 123
+./cpso/test_cpso 16 8 16 20000 456
+mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 20000 50 50 456
+./cpso/test_cpso 32 8 16 20000 456
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 20000 50 50 456
+./cpso/test_cpso 64 8 16 20000 456
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 20000 50 50 456
 ./cpso/test_cpso 128 8 16 20000 456
 mpirun -np 8 ./cpso/test_cpso_parallel 128 8 16 20000 50 50 456
-./cpso/test_cpso 256 8 16 40000 456
-mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 40000 50 50 456
-./cpso/test_cpso 16 8 16 10000 789
-mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 10000 50 50 789
-./cpso/test_cpso 32 8 16 10000 789
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 10000 50 50 789
-./cpso/test_cpso 64 8 16 15000 789
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 15000 50 50 789
+./cpso/test_cpso 256 8 16 20000 456
+mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 20000 50 50 456
+./cpso/test_cpso 16 8 16 20000 789
+mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 20000 50 50 789
+./cpso/test_cpso 32 8 16 20000 789
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 20000 50 50 789
+./cpso/test_cpso 64 8 16 20000 789
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 20000 50 50 789
 ./cpso/test_cpso 128 8 16 20000 789
 mpirun -np 8 ./cpso/test_cpso_parallel 128 8 16 20000 50 50 789
-./cpso/test_cpso 256 8 16 40000 789
-mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 40000 50 50 789
-./cpso/test_cpso 16 8 16 10000 2024
-mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 10000 50 50 2024
-./cpso/test_cpso 32 8 16 10000 2024
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 10000 50 50 2024
-./cpso/test_cpso 64 8 16 15000 2024
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 15000 50 50 2024
+./cpso/test_cpso 256 8 16 20000 789
+mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 20000 50 50 789
+./cpso/test_cpso 16 8 16 20000 2024
+mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 20000 50 50 2024
+./cpso/test_cpso 32 8 16 20000 2024
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 20000 50 50 2024
+./cpso/test_cpso 64 8 16 20000 2024
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 20000 50 50 2024
 ./cpso/test_cpso 128 8 16 20000 2024
 mpirun -np 8 ./cpso/test_cpso_parallel 128 8 16 20000 50 50 2024
-./cpso/test_cpso 256 8 16 40000 2024
-mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 40000 50 50 2024
-./cpso/test_cpso 16 8 16 10000 4242
-mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 10000 50 50 4242
-./cpso/test_cpso 32 8 16 10000 4242
-mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 10000 50 50 4242
-./cpso/test_cpso 64 8 16 15000 4242
-mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 15000 50 50 4242
+./cpso/test_cpso 256 8 16 20000 2024
+mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 20000 50 50 2024
+./cpso/test_cpso 16 8 16 20000 4242
+mpirun -np 8 ./cpso/test_cpso_parallel 16 8 16 20000 50 50 4242
+./cpso/test_cpso 32 8 16 20000 4242
+mpirun -np 8 ./cpso/test_cpso_parallel 32 8 16 20000 50 50 4242
+./cpso/test_cpso 64 8 16 20000 4242
+mpirun -np 8 ./cpso/test_cpso_parallel 64 8 16 20000 50 50 4242
 ./cpso/test_cpso 128 8 16 20000 4242
 mpirun -np 8 ./cpso/test_cpso_parallel 128 8 16 20000 50 50 4242
-./cpso/test_cpso 256 8 16 40000 4242
-mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 40000 50 50 4242
+./cpso/test_cpso 256 8 16 20000 4242
+mpirun -np 8 ./cpso/test_cpso_parallel 256 8 16 20000 50 50 4242
