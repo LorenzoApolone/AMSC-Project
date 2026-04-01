@@ -363,6 +363,13 @@ int main(int argc, char **argv) {
                   << "   " << std::fixed << std::setprecision(2) << std::setw(8)
                   << res.execution_time << "s" << std::endl;
 
+        std::cout << "Comm times: Total " << std::fixed << std::setprecision(4) << res.comm_total_s 
+                  << " s | Compute " << res.compute_total_s 
+                  << " s | Bcast " << res.comm_bcast_s 
+                  << " s | Allreduce " << res.comm_allreduce_s 
+                  << " s | Allgather " << res.comm_allgather_s 
+                  << " s | Wait " << res.wait_total_s << " s" << std::endl;
+
         bool stopped_by_maxiter = (res.iterations >= iters);
         if (stopped_by_maxiter && !true_converged)
           stopped_by_maxiter_and_incorrect++;

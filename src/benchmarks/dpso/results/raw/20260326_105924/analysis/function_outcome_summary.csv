@@ -1,0 +1,1 @@
+battery,suite,family,execution_mode,run_label,mpi_processes,dim,sub_swarm_size,total_particles,max_iters,runs,mean_success_functions,mean_no_convergence_functions,mean_failure_functions,mean_total_functions,mean_success_ratio,mean_no_convergence_ratio,mean_failure_ratio

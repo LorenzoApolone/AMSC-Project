@@ -115,6 +115,16 @@ public:
   int n_cores;                      ///< MPI cores used
   double execution_time;            ///< Execution time (in seconds)
   int iterations;                   ///< Total iterations
+  
+  // MPI Timing tracking for Benchmarks
+  double comm_total_s = 0.0;
+  double compute_total_s = 0.0;
+  double comm_bcast_s = 0.0;
+  double comm_allreduce_s = 0.0;
+  double comm_allgather_s = 0.0; // In DPSO, we map Alltoallv to this for parity
+  double comm_barrier_s = 0.0;
+  double wait_total_s = 0.0;
+
   const StoppingCriteriaManager &stopcriterion;
 
   OutputObject(string function_name_,

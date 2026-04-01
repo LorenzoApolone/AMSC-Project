@@ -32,7 +32,7 @@ class BenchmarkCase:
     hmcr: float = 0.98
     par_min: float = 0.01
     par_max: float = 0.99
-    description: str
+    description: str = ""
 
 
 def parse_seed_list(raw: str | None) -> list[int]:
@@ -60,7 +60,7 @@ def _make_case(
     hmcr: float = 0.98,
     par_min: float = 0.01,
     par_max: float = 0.99,
-    description: str,
+    description: str = "",
 ) -> BenchmarkCase:
     if execution_mode == "serial":
         case_id = f"{family}__serial__dim{dim}__tp{total_particles}__seed{seed}"
@@ -326,6 +326,21 @@ def build_cases(battery: str, seeds: Sequence[int]) -> list[BenchmarkCase]:
         cases.extend(build_comparable_cases(seeds))
     if selected in {"all", "dpso"}:
         cases.extend(build_dpso_only_cases(seeds))
+
+    # Finer splitting to avoid wall time timeouts
+    if selected == "dpso_weak_particles":
+        all_dpso = build_dpso_only_cases(seeds)
+        cases.extend([c for c in all_dpso if c.suite == "weak_particles_per_process_constant"])
+    if selected == "dpso_weak_dimension":
+        all_dpso = build_dpso_only_cases(seeds)
+        cases.extend([c for c in all_dpso if c.suite == "weak_dimension_per_process_constant"])
+    if selected == "dpso_weak_local":
+        all_dpso = build_dpso_only_cases(seeds)
+        cases.extend([c for c in all_dpso if c.suite == "weak_local_load_constant"])
+    if selected == "dpso_sweep_dim":
+        all_dpso = build_dpso_only_cases(seeds)
+        cases.extend([c for c in all_dpso if c.suite == "dimension_sweep_fixed_np8"])
+
     if not cases:
         raise ValueError(f"Unsupported battery selection: {battery}")
 
@@ -378,7 +393,7 @@ def main() -> None:
     parser.add_argument(
         "--battery",
         default="all",
-        choices=("all", "comparable", "dpso"),
+        choices=("all", "comparable", "dpso", "dpso_weak_particles", "dpso_weak_dimension", "dpso_weak_local", "dpso_sweep_dim"),
         help="Which battery to emit.",
     )
     parser.add_argument(
