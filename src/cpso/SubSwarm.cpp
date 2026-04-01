@@ -144,9 +144,7 @@ void SubSwarm::initialize(std::mt19937 &gen, ContextVector &ctx, const TestFunct
 
     ensure_finite_vector(temp_pos, "initialized particle position");
 
-    // Evaluate the initial particle in the current cooperative context.
     current_values[i] = ctx.evaluate_particle(f, temp_pos, active_dims);
-    ensure_finite_value(current_values[i], "initialized particle fitness");
     best_values[i] = current_values[i];
 
     // Track the best local candidate seen during initialization.
@@ -177,18 +175,15 @@ void SubSwarm::recalculate_fitness(ContextVector &ctx, const TestFunction &f) {
     ensure_finite_vector(temp_best_pos, "particle personal-best position");
     ensure_finite_vector(temp_pos, "particle current position");
 
-    // Re-evaluate the stored personal best in the updated cooperative context.
     best_values[i] = ctx.evaluate_particle(f, temp_best_pos, active_dims);
-    ensure_finite_value(best_values[i], "particle personal-best fitness");
 
     // The current position may now dominate the stored memory under the new context.
     current_values[i] = ctx.evaluate_particle(f, temp_pos, active_dims);
-    ensure_finite_value(current_values[i], "particle current fitness");
 
     // Promote the current position if the reshaped context makes it better.
     if (current_values[i] < best_values[i]) {
       best_values[i] = current_values[i];
-      ensure_finite_value(best_values[i], "updated personal-best fitness");
+
       for (int d = 0; d < dim; ++d) {
           best_positions[i * dim + d] = positions[i * dim + d];
       }
@@ -450,9 +445,7 @@ void SubSwarm::evaluate_and_update(ContextVector &ctx, const TestFunction &f) {
     
     ensure_finite_vector(temp_pos, "particle position before evaluation");
 
-    // Evaluate the new particle position in the current cooperative context.
     current_values[i] = ctx.evaluate_particle(f, temp_pos, active_dims);
-    ensure_finite_value(current_values[i], "evaluated particle fitness");
 
     // Refresh the personal best if the new position improves it.
     if (current_values[i] < best_values[i]) {

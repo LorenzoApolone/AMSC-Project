@@ -67,7 +67,7 @@ __pycache__/
 
 # Local build and generated benchmark outputs
 build/
-src/benchmarks/cpso/results/
+src/benchmarks/cpso/
 
 # Local scratch files
 src/bounds.second

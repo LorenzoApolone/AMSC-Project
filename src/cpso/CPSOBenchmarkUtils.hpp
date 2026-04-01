@@ -74,7 +74,6 @@ inline const std::vector<FunctionRegistryEntry> &get_function_registry() {
       {"HighCondElliptic", &make_function<HighCondElliptic>},
       {"Discus", &make_function<Discus>},
       {"BentCigar", &make_function<BentCigar>},
-      {"PermdbFunc", &make_function<PermdbFunc>},
       {"Schafferf7Func", &make_function<Schafferf7Func>},
       {"ExpSchafferF6", &make_function<ExpSchafferF6>},
       {"RotatedHyper", &make_function<RotatedHyper>},

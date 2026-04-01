@@ -430,43 +430,6 @@ public:
   }
 };
 /**
- * @class PermdbFunc
- * @brief Perm (β) function (decomposable variant).
- *        f(x) = Σ_{i=1..D} [ Σ_{j=1..D} (j^{i} + β) ((x_j/j)^{i} − 1) ]^2
- * @note Global minimum at x*_j = j with f(x*) = 0 (for this parameterization).
- */
-
-class PermdbFunc : public TestFunction {
-public:
-  PermdbFunc(unsigned int dim)
-      : TestFunction(dim, "PermBetaFunction",
-                     std::pair<double, double>{-dim, dim}, [dim]() {
-                       std::vector<double> v(dim);
-                       for (unsigned int i = 0; i < dim; ++i)
-                         v[i] = static_cast<double>(i + 1);
-                       return v;
-                     }(), {FunctionTypology::MULTIMODAL, FunctionTypology::NON_SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
-  double value(const std::vector<double> &x) const override {
-    if (x.empty())
-      return 0.0;
-    double beta = 0.5;
-
-    double sum = 0.0;
-    double temp = 0.0;
-    for (std::size_t i = 0; i < dim; ++i) {
-      temp = 0.0;
-      for (std::size_t j = 0; j < dim; ++j) {
-        temp += (std::pow(j + 1, i + 1) + beta) *
-                (std::pow((x[j] / (j + 1)), i + 1) - 1.0);
-      }
-      temp *= temp;
-      sum += temp;
-    }
-
-    return sum;
-  }
-};
-/**
  * @class Schafferf7Func
  * @brief Schaffer F7 (averaged pairwise form).
  *        f(x) = [ (1/(D−1)) Σ_{i=1..D−1} ( √s_i + √s_i·sin^2(50·s_i^{0.2}) )
