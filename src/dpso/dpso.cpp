@@ -14,17 +14,16 @@
 #include <mpi.h>
 #include <numeric>
 #include <random>
-#include <vector>
 #include <stdexcept>
+#include <vector>
 
 namespace {
-template <typename Fn>
-void time_mpi_call(double &accumulator, Fn &&fn) {
+template <typename Fn> void time_mpi_call(double &accumulator, Fn &&fn) {
   const double start = MPI_Wtime();
   fn();
   accumulator += MPI_Wtime() - start;
 }
-}
+} // namespace
 
 /**
  * @brief Generates a random double within [min, max).
@@ -217,8 +216,8 @@ static void process_sub_swarm(
         pbest_pos[i * dim + d] = pos[i * dim + d];
     }
   }
-  apply_harmony_search(pos, current_val, pbest_pos, pbest_val, start, end, dim, f, gen, lb, ub,
-                       iter, max_iter, params, hs_buffer);
+  apply_harmony_search(pos, current_val, pbest_pos, pbest_val, start, end, dim,
+                       f, gen, lb, ub, iter, max_iter, params, hs_buffer);
 }
 
 /**
@@ -255,8 +254,8 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
                        std::vector<double> &pbest_val,
                        std::vector<double> &current_val, int dim, int rank,
                        int size, std::mt19937 &g, int total_particles,
-                       RegroupContext &ctx,
-                       double &t_bcast, double &t_alltoall) {
+                       RegroupContext &ctx, double &t_bcast,
+                       double &t_alltoall) {
   int local_n = current_val.size();
   int p_data_size = 3 * dim + 2;
 
@@ -272,17 +271,9 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
     current_start += count;
   }
 
-  if (rank == 0) {
-    ctx.indices.resize(total_particles);
-    std::iota(ctx.indices.begin(), ctx.indices.end(), 0);
-    std::shuffle(ctx.indices.begin(), ctx.indices.end(), g);
-  } else {
-    ctx.indices.resize(total_particles);
-  }
-
-  time_mpi_call(t_bcast, [&]() {
-    MPI_Bcast(ctx.indices.data(), total_particles, MPI_INT, 0, MPI_COMM_WORLD);
-  });
+  ctx.indices.resize(total_particles);
+  std::iota(ctx.indices.begin(), ctx.indices.end(), 0);
+  std::shuffle(ctx.indices.begin(), ctx.indices.end(), g);
 
   std::vector<int> inv_indices(total_particles);
   for (int k = 0; k < total_particles; ++k) {
@@ -398,7 +389,8 @@ void regroup_particles(std::vector<double> &pos, std::vector<double> &vel,
  */
 OutputObject dpso(const TestFunction &f, unsigned int dim,
                   unsigned int n_points_total, int max_iter,
-                  const DPSOParameters &params, double convergence_tol, unsigned int seed) {
+                  const DPSOParameters &params, double convergence_tol,
+                  unsigned int seed) {
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -416,9 +408,10 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   }
 
   if (n_points_per_rank < (unsigned int)params.sub_swarm_size) {
-    throw std::invalid_argument("Error: particles per rank (" + std::to_string(n_points_per_rank) +
-                                ") less than sub-swarm size (" + std::to_string(params.sub_swarm_size) +
-                                ").");
+    throw std::invalid_argument("Error: particles per rank (" +
+                                std::to_string(n_points_per_rank) +
+                                ") less than sub-swarm size (" +
+                                std::to_string(params.sub_swarm_size) + ").");
   }
 
   const auto &domain = f.get_domain();
@@ -440,7 +433,6 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   if (rank == 0) {
     global_seed = seed == 0 ? rd() : seed;
   }
-  double tb0;
   time_mpi_call(t_bcast, [&]() {
     MPI_Bcast(&global_seed, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
   });
@@ -475,10 +467,15 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   RegroupContext regroup_ctx;
   std::vector<double> hs_buffer(dim);
 
+  const int SYNC_PERIOD = std::max(1, std::min(50, max_iter / 200));
+  std::vector<double> global_best_pos(dim, 0.0);
+  double global_avg_dist = 0.0;
+
   while (true) {
     if (iter > 0 && iter % params.regrouping_period == 0)
       regroup_particles(pos, vel, pbest_pos, pbest_val, current_val, dim, rank,
-                        size, global_gen, n_points_total, regroup_ctx, t_bcast, t_alltoall);
+                        size, global_gen, n_points_total, regroup_ctx, t_bcast,
+                        t_alltoall);
 
     int num_sub_swarms = n_points_per_rank / params.sub_swarm_size;
     int remainder = n_points_per_rank % params.sub_swarm_size;
@@ -497,66 +494,71 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
                         iter, max_iter, hs_buffer);
     }
 
-    struct {
-      double val;
-      int rank;
-    } local_min, global_min;
-    local_min.val = std::numeric_limits<double>::max();
-    local_min.rank = rank;
-    int local_best_idx = -1;
-    for (int i = 0; i < (int)n_points_per_rank; ++i) {
-      if (pbest_val[i] < local_min.val) {
-        local_min.val = pbest_val[i];
-        local_best_idx = i;
+    bool do_sync = (iter % SYNC_PERIOD == 0) || (iter == 0);
+
+    if (do_sync) {
+      struct {
+        double val;
+        int rank;
+      } local_min, global_min;
+      local_min.val = std::numeric_limits<double>::max();
+      local_min.rank = rank;
+      int local_best_idx = -1;
+      for (int i = 0; i < (int)n_points_per_rank; ++i) {
+        if (pbest_val[i] < local_min.val) {
+          local_min.val = pbest_val[i];
+          local_best_idx = i;
+        }
       }
-    }
-    time_mpi_call(t_allreduce, [&]() {
-      MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC,
-                    MPI_COMM_WORLD);
-    });
+      time_mpi_call(t_allreduce, [&]() {
+        MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC,
+                      MPI_COMM_WORLD);
+      });
 
-    std::vector<double> global_best_pos(dim);
-    if (rank == global_min.rank && local_best_idx != -1) {
-      for (unsigned int d = 0; d < dim; ++d)
-        global_best_pos[d] = pbest_pos[local_best_idx * dim + d];
-    }
-    time_mpi_call(t_bcast, [&]() {
-      MPI_Bcast(global_best_pos.data(), dim, MPI_DOUBLE, global_min.rank,
-                MPI_COMM_WORLD);
-    });
-
-    double local_sum = 0.0;
-    for (unsigned int i = 0; i < n_points_per_rank; ++i) {
-      double d_sq = 0.0;
-      for (unsigned int d = 0; d < dim; ++d) {
-        double diff = pos[i * dim + d] - global_best_pos[d];
-        d_sq += diff * diff;
+      if (rank == global_min.rank && local_best_idx != -1) {
+        for (unsigned int d = 0; d < dim; ++d)
+          global_best_pos[d] = pbest_pos[local_best_idx * dim + d];
       }
-      local_sum += std::sqrt(d_sq);
+      time_mpi_call(t_bcast, [&]() {
+        MPI_Bcast(global_best_pos.data(), dim, MPI_DOUBLE, global_min.rank,
+                  MPI_COMM_WORLD);
+      });
+
+      double local_sum = 0.0;
+      for (unsigned int i = 0; i < n_points_per_rank; ++i) {
+        double d_sq = 0.0;
+        for (unsigned int d = 0; d < dim; ++d) {
+          double diff = pos[i * dim + d] - global_best_pos[d];
+          d_sq += diff * diff;
+        }
+        local_sum += std::sqrt(d_sq);
+      }
+      double global_sum_dist = 0.0;
+      time_mpi_call(t_allreduce, [&]() {
+        MPI_Allreduce(&local_sum, &global_sum_dist, 1, MPI_DOUBLE, MPI_SUM,
+                      MPI_COMM_WORLD);
+      });
+      global_avg_dist = global_sum_dist / n_points_total;
+
+      if (rank == 0)
+        results.conv_history.push_back(global_min.val);
+      global_best_val = global_min.val;
+    } else {
+      double local_best = std::numeric_limits<double>::max();
+      for (int i = 0; i < (int)n_points_per_rank; ++i) {
+        if (pbest_val[i] < local_best)
+          local_best = pbest_val[i];
+      }
+      if (local_best < global_best_val)
+        global_best_val = local_best;
     }
-
-    double global_sum_dist = 0.0;
-    time_mpi_call(t_allreduce, [&]() {
-      MPI_Allreduce(&local_sum, &global_sum_dist, 1, MPI_DOUBLE, MPI_SUM,
-                    MPI_COMM_WORLD);
-    });
-    double global_avg_dist = global_sum_dist / n_points_total;
-
-    if (rank == 0)
-      results.conv_history.push_back(global_min.val);
-    global_best_val = global_min.val;
 
     stop_manager.increment_iterations();
     iter++;
 
-    int stop_flag = 0;
-    if (rank == 0)
-      stop_flag =
-          stop_manager.should_stop(global_best_val, global_avg_dist) ? 1 : 0;
-    time_mpi_call(t_bcast, [&]() {
-      MPI_Bcast(&stop_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    });
-    if (stop_flag)
+    if (do_sync && stop_manager.should_stop(global_best_val, global_avg_dist))
+      break;
+    if (iter >= max_iter)
       break;
   }
 
@@ -581,12 +583,13 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
       results.x_best[d] = pbest_pos[best_local_idx * dim + d];
   }
   time_mpi_call(t_bcast, [&]() {
-    MPI_Bcast(results.x_best.data(), dim, MPI_DOUBLE, glob.rank, MPI_COMM_WORLD);
+    MPI_Bcast(results.x_best.data(), dim, MPI_DOUBLE, glob.rank,
+              MPI_COMM_WORLD);
   });
   results.f_val = glob.val;
   results.execution_time = MPI_Wtime() - start_time;
   results.iterations = iter;
-  
+
   results.comm_bcast_s = t_bcast;
   results.comm_allreduce_s = t_allreduce;
   results.comm_allgather_s = t_alltoall;
@@ -594,6 +597,6 @@ OutputObject dpso(const TestFunction &f, unsigned int dim,
   results.wait_total_s = 0.0;
   results.comm_total_s = t_bcast + t_allreduce + t_alltoall;
   results.compute_total_s = results.execution_time - results.comm_total_s;
-  
+
   return results;
 }
