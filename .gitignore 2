@@ -1,0 +1,79 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+*.xlsx
+# Executables
+*.exe
+*.out
+*.app
+
+# Output data
+tests
+plots
+run_parameters.json
+
+
+/src/topology/commented_code.cpp
+
+main_parallel
+main_serial
+main_small
+a
+test_cpso
+test_cpso_parallel
+
+*Zone.Identifier*
+*:Zone.Identifier*.DS_Store
+.DS_Store
+.DS_Store
+src/main_dpso
+src/main_dpso_serial
+
+# Doxygen generated documentation
+doxygen_out/
+html/
+latex/
+man/
+rtf/
+xml/
+docbook/
+# Python cache
+__pycache__/
+*.py[cod]
+
+src/topology/a_serial
+src/topology/topology_parallel
+src/topology/topology_serial
+
+src/Makefile.mpi_only
+# Local build and generated benchmark outputs
+build/
+src/benchmarks/cpso/
+
+# Local scratch files
+src/bounds.second
+
