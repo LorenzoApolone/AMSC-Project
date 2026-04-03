@@ -1,0 +1,18 @@
+#!/bin/bash
+#PBS -N run_strong_dim3
+#PBS -q cpu
+#PBS -l select=1:ncpus=28:mpiprocs=28
+#PBS -l walltime=04:00:00
+#PBS -j oe
+
+# Carica l'ambiente Spack e MPI
+source /software/spack/share/spack/setup-env.sh
+spack load gcc@15.2.0
+spack load openmpi@5.0.8
+
+# Spostati nella cartella corrente in automatico
+cd "/home/u10848893/AMSC-Project/AMSC-Project/src/topology/script_benchmark"
+
+# Dai i permessi ed esegui lo script
+chmod +x run_strong_dim32.sh
+./run_strong_dim32.sh

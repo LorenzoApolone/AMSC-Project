@@ -232,7 +232,6 @@ static FunctionFactory build_factory()
     factory["HighCondElliptic"] = [](unsigned int dim){ return std::make_unique<HighCondElliptic>(dim); };
     factory["Discus"] = [](unsigned int dim){ return std::make_unique<Discus>(dim); };
     factory["BentCigar"] = [](unsigned int dim){ return std::make_unique<BentCigar>(dim); };
-    factory["PermdbFunc"] = [](unsigned int dim){ return std::make_unique<PermdbFunc>(dim); };
     factory["Schafferf7Func"] = [](unsigned int dim){ return std::make_unique<Schafferf7Func>(dim); };
     factory["ExpSchafferF6"] = [](unsigned int dim){ return std::make_unique<ExpSchafferF6>(dim); };
     factory["RotatedHyper"] = [](unsigned int dim){ return std::make_unique<RotatedHyper>(dim); };
@@ -276,7 +275,7 @@ static std::vector<std::string> build_function_names()
     return {
         "Sphere","Ellipsoid","SumOfDiffPowers","DropWave","Weierstrass","Alpine1","Ackley",
         "Griewank","Rastrigin","HappyCat","HGBat","Rosenbrock","HighCondElliptic","Discus",
-        "BentCigar","PermdbFunc","Schafferf7Func","ExpSchafferF6","RotatedHyper","Schwefel",
+        "BentCigar","Schafferf7Func","ExpSchafferF6","RotatedHyper","Schwefel",
         "SumOfDifferentPowers2","XinSheYang1","Schwefel221","Schwefel222","Salomon",
         "ModifiedRidge","Zakharov","ModifiedXinSheYang3","ModifiedXinSheYang5",
         "Levy","Michalewicz","Bohachevsky","Powell","DixonPrice","StyblinskiTang",
