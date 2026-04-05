@@ -1,0 +1,337 @@
+========================================================
+ESECUZIONE: WEAK SCALING - PARTICELLE PER PROCESSO COSTANTI - DIM 64, PPS 32, K = NP
+Avviata il: Fri Apr  3 12:07:57 CEST 2026
+========================================================
+
+========================================================
+>>> RUN PER SEED 123
+========================================================
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: ./topology_serial 64 32 10000 0.0001 123
+RESULT,classic,64,32,10000,0.0001,123,23.1644,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,123,31.9291,0,6,45
+RESULT,small_world,64,32,10000,0.0001,123,42.3039,0,10,45
+RESULT,random,64,32,10000,0.0001,123,52.7726,0,9,45
+RESULT,not_converged,33,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 1 ./topology_parallel 64 32 10000 0.0001 123
+RESULT,classic,64,32,10000,0.0001,123,22.8333,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,123,32.0478,0.154431,6,45
+RESULT,small_world,64,32,10000,0.0001,123,42.0986,0.17584,10,45
+RESULT,random,64,32,10000,0.0001,123,52.5262,0.200957,9,45
+RESULT,not_converged,33,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 2 ./topology_parallel 64 64 10000 0.0001 123
+RESULT,classic,64,64,10000,0.0001,123,23.1289,0,4,45
+RESULT,scale_free,64,64,10000,0.0001,123,34.8605,1.47984,7,45
+RESULT,small_world,64,64,10000,0.0001,123,38.7934,0.565029,18,45
+RESULT,random,64,64,10000,0.0001,123,35.2135,1.4632,8,45
+RESULT,not_converged,27,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 4 ./topology_parallel 64 128 10000 0.0001 123
+RESULT,classic,64,128,10000,0.0001,123,24.631,0,4,45
+RESULT,scale_free,64,128,10000,0.0001,123,38.6938,3.70737,12,45
+RESULT,small_world,64,128,10000,0.0001,123,40.9879,0.975964,17,45
+RESULT,random,64,128,10000,0.0001,123,37.902,3.87811,12,45
+RESULT,not_converged,26,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 123
+RESULT,classic,64,256,10000,0.0001,123,25.4228,0,7,45
+RESULT,scale_free,64,256,10000,0.0001,123,43.9291,7.52025,13,45
+RESULT,small_world,64,256,10000,0.0001,123,43.1526,1.25671,21,45
+RESULT,random,64,256,10000,0.0001,123,43.7097,8.67925,10,45
+RESULT,not_converged,23,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 16 ./topology_parallel 64 512 10000 0.0001 123
+RESULT,classic,64,512,10000,0.0001,123,28.4197,0,5,45
+RESULT,scale_free,64,512,10000,0.0001,123,54.947,16.2101,18,45
+RESULT,small_world,64,512,10000,0.0001,123,46.859,1.61339,24,45
+RESULT,random,64,512,10000,0.0001,123,59.5075,21.595,13,45
+RESULT,not_converged,20,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 28 ./topology_parallel 64 896 10000 0.0001 123
+RESULT,classic,64,896,10000,0.0001,123,36.7456,0,6,45
+RESULT,scale_free,64,896,10000,0.0001,123,86.3123,35.7917,20,45
+RESULT,small_world,64,896,10000,0.0001,123,58.269,2.20046,23,45
+RESULT,random,64,896,10000,0.0001,123,123.825,74.0656,12,45
+RESULT,not_converged,21,45
+
+
+========================================================
+>>> RUN PER SEED 456
+========================================================
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: ./topology_serial 64 32 10000 0.0001 456
+RESULT,classic,64,32,10000,0.0001,456,23.3272,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,456,32.1065,0,5,45
+RESULT,small_world,64,32,10000,0.0001,456,35.5491,0,8,45
+RESULT,random,64,32,10000,0.0001,456,54.9029,0,7,45
+RESULT,not_converged,35,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 1 ./topology_parallel 64 32 10000 0.0001 456
+RESULT,classic,64,32,10000,0.0001,456,22.6838,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,456,31.5833,0.181083,5,45
+RESULT,small_world,64,32,10000,0.0001,456,34.806,0.196142,8,45
+RESULT,random,64,32,10000,0.0001,456,53.658,0.240896,7,45
+RESULT,not_converged,35,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 2 ./topology_parallel 64 64 10000 0.0001 456
+RESULT,classic,64,64,10000,0.0001,456,23.6691,0,2,45
+RESULT,scale_free,64,64,10000,0.0001,456,33.7087,1.47406,7,45
+RESULT,small_world,64,64,10000,0.0001,456,36.6667,0.878921,15,45
+RESULT,random,64,64,10000,0.0001,456,48.0991,1.63964,11,45
+RESULT,not_converged,29,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 4 ./topology_parallel 64 128 10000 0.0001 456
+RESULT,classic,64,128,10000,0.0001,456,24.9756,0,4,45
+RESULT,scale_free,64,128,10000,0.0001,456,38.1413,3.61204,10,45
+RESULT,small_world,64,128,10000,0.0001,456,40.0135,1.06772,20,45
+RESULT,random,64,128,10000,0.0001,456,37.8262,3.79836,11,45
+RESULT,not_converged,25,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 456
+RESULT,classic,64,256,10000,0.0001,456,26.171,0,4,45
+RESULT,scale_free,64,256,10000,0.0001,456,42.7065,7.29313,14,45
+RESULT,small_world,64,256,10000,0.0001,456,42.4891,1.48207,22,45
+RESULT,random,64,256,10000,0.0001,456,42.2603,8.84508,10,45
+RESULT,not_converged,22,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 16 ./topology_parallel 64 512 10000 0.0001 456
+RESULT,classic,64,512,10000,0.0001,456,28.9945,0,5,45
+RESULT,scale_free,64,512,10000,0.0001,456,54.7526,15.5248,19,45
+RESULT,small_world,64,512,10000,0.0001,456,47.7273,1.89923,22,45
+RESULT,random,64,512,10000,0.0001,456,57.0024,20.3251,15,45
+RESULT,not_converged,20,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 28 ./topology_parallel 64 896 10000 0.0001 456
+RESULT,classic,64,896,10000,0.0001,456,35.5077,0,10,45
+RESULT,scale_free,64,896,10000,0.0001,456,84.1589,33.7008,19,45
+RESULT,small_world,64,896,10000,0.0001,456,60.5165,2.49973,23,45
+RESULT,random,64,896,10000,0.0001,456,126.016,76.4768,11,45
+RESULT,not_converged,21,45
+
+
+========================================================
+>>> RUN PER SEED 789
+========================================================
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: ./topology_serial 64 32 10000 0.0001 789
+RESULT,classic,64,32,10000,0.0001,789,22.846,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,789,32.1925,0,4,45
+RESULT,small_world,64,32,10000,0.0001,789,38.3162,0,9,45
+RESULT,random,64,32,10000,0.0001,789,52.3504,0,10,45
+RESULT,not_converged,35,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 1 ./topology_parallel 64 32 10000 0.0001 789
+RESULT,classic,64,32,10000,0.0001,789,22.0324,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,789,31.7265,0.107463,4,45
+RESULT,small_world,64,32,10000,0.0001,789,37.6666,0.128161,9,45
+RESULT,random,64,32,10000,0.0001,789,51.1953,0.140104,10,45
+RESULT,not_converged,35,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 2 ./topology_parallel 64 64 10000 0.0001 789
+RESULT,classic,64,64,10000,0.0001,789,22.88,0,4,45
+RESULT,scale_free,64,64,10000,0.0001,789,33.5684,1.45272,6,45
+RESULT,small_world,64,64,10000,0.0001,789,38.6184,0.773585,16,45
+RESULT,random,64,64,10000,0.0001,789,34.0042,1.45439,9,45
+RESULT,not_converged,28,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 4 ./topology_parallel 64 128 10000 0.0001 789
+RESULT,classic,64,128,10000,0.0001,789,25.1102,0,4,45
+RESULT,scale_free,64,128,10000,0.0001,789,39.6916,3.83357,10,45
+RESULT,small_world,64,128,10000,0.0001,789,40.9989,1.05039,19,45
+RESULT,random,64,128,10000,0.0001,789,38.5512,4.18211,13,45
+RESULT,not_converged,25,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 789
+RESULT,classic,64,256,10000,0.0001,789,26.0648,0,5,45
+RESULT,scale_free,64,256,10000,0.0001,789,44.4913,7.58536,16,45
+RESULT,small_world,64,256,10000,0.0001,789,43.3186,1.36252,18,45
+RESULT,random,64,256,10000,0.0001,789,41.8523,8.32103,11,45
+RESULT,not_converged,26,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 16 ./topology_parallel 64 512 10000 0.0001 789
+RESULT,classic,64,512,10000,0.0001,789,27.8887,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,789,54.5632,15.5317,18,45
+RESULT,small_world,64,512,10000,0.0001,789,47.4284,1.85933,22,45
+RESULT,random,64,512,10000,0.0001,789,58.4433,21.0038,12,45
+RESULT,not_converged,20,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 28 ./topology_parallel 64 896 10000 0.0001 789
+RESULT,classic,64,896,10000,0.0001,789,34.2851,0,6,45
+RESULT,scale_free,64,896,10000,0.0001,789,85.9975,34.9625,18,45
+RESULT,small_world,64,896,10000,0.0001,789,61.0329,1.84994,23,45
+RESULT,random,64,896,10000,0.0001,789,125.429,75.9852,10,45
+RESULT,not_converged,21,45
+
+
+========================================================
+>>> RUN PER SEED 2024
+========================================================
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: ./topology_serial 64 32 10000 0.0001 2024
+RESULT,classic,64,32,10000,0.0001,2024,23.2401,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,2024,32.2477,0,5,45
+RESULT,small_world,64,32,10000,0.0001,2024,38.2643,0,11,45
+RESULT,random,64,32,10000,0.0001,2024,52.5711,0,8,45
+RESULT,not_converged,34,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 1 ./topology_parallel 64 32 10000 0.0001 2024
+RESULT,classic,64,32,10000,0.0001,2024,22.7277,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,2024,31.8353,0.10757,5,45
+RESULT,small_world,64,32,10000,0.0001,2024,37.6256,0.126921,11,45
+RESULT,random,64,32,10000,0.0001,2024,51.7632,0.133598,8,45
+RESULT,not_converged,34,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 2 ./topology_parallel 64 64 10000 0.0001 2024
+RESULT,classic,64,64,10000,0.0001,2024,23.257,0,4,45
+RESULT,scale_free,64,64,10000,0.0001,2024,32.898,1.46168,4,45
+RESULT,small_world,64,64,10000,0.0001,2024,38.076,0.528215,14,45
+RESULT,random,64,64,10000,0.0001,2024,34.8789,1.47568,10,45
+RESULT,not_converged,30,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 4 ./topology_parallel 64 128 10000 0.0001 2024
+RESULT,classic,64,128,10000,0.0001,2024,23.9634,0,5,45
+RESULT,scale_free,64,128,10000,0.0001,2024,37.4852,3.50265,9,45
+RESULT,small_world,64,128,10000,0.0001,2024,40.9808,0.835752,18,45
+RESULT,random,64,128,10000,0.0001,2024,37.3209,3.90334,10,45
+RESULT,not_converged,26,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 2024
+RESULT,classic,64,256,10000,0.0001,2024,26.0508,0,4,45
+RESULT,scale_free,64,256,10000,0.0001,2024,44.2115,7.62009,15,45
+RESULT,small_world,64,256,10000,0.0001,2024,42.3907,1.17341,22,45
+RESULT,random,64,256,10000,0.0001,2024,41.4891,8.5109,14,45
+RESULT,not_converged,22,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 16 ./topology_parallel 64 512 10000 0.0001 2024
+RESULT,classic,64,512,10000,0.0001,2024,27.1529,0,5,45
+RESULT,scale_free,64,512,10000,0.0001,2024,54.9488,15.4645,19,45
+RESULT,small_world,64,512,10000,0.0001,2024,46.6771,1.29602,23,45
+RESULT,random,64,512,10000,0.0001,2024,58.7507,21.3714,9,45
+RESULT,not_converged,20,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 28 ./topology_parallel 64 896 10000 0.0001 2024
+RESULT,classic,64,896,10000,0.0001,2024,57.6221,0,8,45
+RESULT,scale_free,64,896,10000,0.0001,2024,121.09,42.749,21,45
+RESULT,small_world,64,896,10000,0.0001,2024,70.5318,2.65978,23,45
+RESULT,random,64,896,10000,0.0001,2024,157.939,81.6296,15,45
+RESULT,not_converged,20,45
+
+
+========================================================
+>>> RUN PER SEED 4242
+========================================================
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: ./topology_serial 64 32 10000 0.0001 4242
+RESULT,classic,64,32,10000,0.0001,4242,22.5932,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,4242,32.3404,0,4,45
+RESULT,small_world,64,32,10000,0.0001,4242,36.5118,0,10,45
+RESULT,random,64,32,10000,0.0001,4242,51.2585,0,9,45
+RESULT,not_converged,34,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 1 ./topology_parallel 64 32 10000 0.0001 4242
+RESULT,classic,64,32,10000,0.0001,4242,37.4859,0,3,45
+RESULT,scale_free,64,32,10000,0.0001,4242,52.2879,0.125709,4,45
+RESULT,small_world,64,32,10000,0.0001,4242,59.147,0.139643,10,45
+RESULT,random,64,32,10000,0.0001,4242,80.1943,0.16044,9,45
+RESULT,not_converged,34,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 2 ./topology_parallel 64 64 10000 0.0001 4242
+RESULT,classic,64,64,10000,0.0001,4242,38.5933,0,4,45
+RESULT,scale_free,64,64,10000,0.0001,4242,53.6772,1.64701,5,45
+RESULT,small_world,64,64,10000,0.0001,4242,61.1528,0.808354,14,45
+RESULT,random,64,64,10000,0.0001,4242,77.5386,1.94547,11,45
+RESULT,not_converged,30,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 4 ./topology_parallel 64 128 10000 0.0001 4242
+RESULT,classic,64,128,10000,0.0001,4242,40.2863,0,4,45
+RESULT,scale_free,64,128,10000,0.0001,4242,60.2589,4.02314,10,45
+RESULT,small_world,64,128,10000,0.0001,4242,64.8907,1.22154,20,45
+RESULT,random,64,128,10000,0.0001,4242,58.8777,4.49541,10,45
+RESULT,not_converged,25,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 4242
+RESULT,classic,64,256,10000,0.0001,4242,40.9956,0,4,45
+RESULT,scale_free,64,256,10000,0.0001,4242,66.3597,8.58023,14,45
+RESULT,small_world,64,256,10000,0.0001,4242,66.9896,1.62769,22,45
+RESULT,random,64,256,10000,0.0001,4242,62.3026,10.2092,9,45
+RESULT,not_converged,22,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 16 ./topology_parallel 64 512 10000 0.0001 4242
+RESULT,classic,64,512,10000,0.0001,4242,47.0309,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,4242,81.976,18.98,15,45
+RESULT,small_world,64,512,10000,0.0001,4242,70.3281,2.05219,21,45
+RESULT,random,64,512,10000,0.0001,4242,83.474,26.6781,10,45
+RESULT,not_converged,22,45
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 28 ./topology_parallel 64 896 10000 0.0001 4242
+RESULT,classic,64,896,10000,0.0001,4242,57.1848,0,5,45
+RESULT,scale_free,64,896,10000,0.0001,4242,117.232,39.7111,18,45
+RESULT,small_world,64,896,10000,0.0001,4242,88.1062,2.74218,23,45
+RESULT,random,64,896,10000,0.0001,4242,150.076,80.2986,11,45
+RESULT,not_converged,21,45
+
+
+========================================================
+ESECUZIONE COMPLETATA

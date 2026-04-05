@@ -2,17 +2,17 @@
 #PBS -N run_weak_dim64
 #PBS -q cpu
 #PBS -l select=1:ncpus=28:mpiprocs=28
-#PBS -l walltime=04:00:00
+#PBS -l walltime=10:00:00
 #PBS -j oe
 
-# Carica l'ambiente Spack e MPI
+# Carica l'ambiente Spack e MPI in modo che coincida con la compilazione
 source /software/spack/share/spack/setup-env.sh
 spack load gcc@15.2.0
 spack load openmpi@5.0.8
 
-# Spostati nella cartella corrente in automatico
+# Spostati nella cartella in cui ti trovi adesso
 cd "/home/u10848893/AMSC-Project/AMSC-Project/src/topology/script_benchmark"
 
 # Dai i permessi ed esegui lo script
-chmod +x run_weak_dim64.sh
-./run_weak_dim64.sh
+chmod +x "run_weak_dim64.sh"
+./"run_weak_dim64.sh"
