@@ -21,35 +21,11 @@ run_cmd() {
     echo "" | tee -a "$OUT_FILE"
 }
 
-# RUN PER SEED 123
-echo "========================================================" | tee -a "$OUT_FILE"
-echo ">>> RUN PER SEED 123" | tee -a "$OUT_FILE"
-echo "========================================================" | tee -a "$OUT_FILE"
-run_cmd "./topology_serial 128 256 20000 0.0001 123"
-run_cmd "mpirun --map-by core --bind-to core -np 1 ./topology_parallel 128 256 20000 0.0001 123"
-run_cmd "mpirun --map-by core --bind-to core -np 2 ./topology_parallel 128 256 20000 0.0001 123"
-run_cmd "mpirun --map-by core --bind-to core -np 4 ./topology_parallel 128 256 20000 0.0001 123"
-run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 128 256 20000 0.0001 123"
-run_cmd "mpirun --map-by core --bind-to core -np 16 ./topology_parallel 128 256 20000 0.0001 123"
-run_cmd "mpirun --map-by core --bind-to core -np 28 ./topology_parallel 128 256 20000 0.0001 123"
 
-# RUN PER SEED 456
-echo "========================================================" | tee -a "$OUT_FILE"
-echo ">>> RUN PER SEED 456" | tee -a "$OUT_FILE"
-echo "========================================================" | tee -a "$OUT_FILE"
-run_cmd "./topology_serial 128 256 20000 0.0001 456"
-run_cmd "mpirun --map-by core --bind-to core -np 1 ./topology_parallel 128 256 20000 0.0001 456"
-run_cmd "mpirun --map-by core --bind-to core -np 2 ./topology_parallel 128 256 20000 0.0001 456"
-run_cmd "mpirun --map-by core --bind-to core -np 4 ./topology_parallel 128 256 20000 0.0001 456"
-run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 128 256 20000 0.0001 456"
-run_cmd "mpirun --map-by core --bind-to core -np 16 ./topology_parallel 128 256 20000 0.0001 456"
-run_cmd "mpirun --map-by core --bind-to core -np 28 ./topology_parallel 128 256 20000 0.0001 456"
-
-# RUN PER SEED 789
 echo "========================================================" | tee -a "$OUT_FILE"
 echo ">>> RUN PER SEED 789" | tee -a "$OUT_FILE"
 echo "========================================================" | tee -a "$OUT_FILE"
-run_cmd "./topology_serial 128 256 20000 0.0001 789"
+
 run_cmd "mpirun --map-by core --bind-to core -np 1 ./topology_parallel 128 256 20000 0.0001 789"
 run_cmd "mpirun --map-by core --bind-to core -np 2 ./topology_parallel 128 256 20000 0.0001 789"
 run_cmd "mpirun --map-by core --bind-to core -np 4 ./topology_parallel 128 256 20000 0.0001 789"

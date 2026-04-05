@@ -146,6 +146,3 @@ RESULT,small_world,128,256,20000,0.0001,789,1553.37,0,18,45
 RESULT,random,128,256,20000,0.0001,789,1000.05,0,5,45
 RESULT,not_converged,27,45
 
-
---------------------------------------------------------
-=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 1 ./topology_parallel 128 256 20000 0.0001 789
