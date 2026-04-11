@@ -154,7 +154,7 @@ int main(int argc, char **argv)
     print_experiment_stats("Random", random_stats);
     print_experiment_stats("Classic", classic_stats);
     */
-    int n = not_converged(all, false);
+    int n = not_converged(all, true);
 
 
   // output in human friendly format

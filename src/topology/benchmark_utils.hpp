@@ -422,7 +422,9 @@ static ExperimentStats run_classic_experiment(
     double t_start = MPI_Wtime();
 
     ExperimentStats stats;
-    std::cout << "\nClassic\n\n";\
+    if (rank == 0) {
+        std::cout << "\nClassic\n\n";
+    }
     for (const auto& name : function_names) {
         auto function = factory.at(name)(dim);
 
