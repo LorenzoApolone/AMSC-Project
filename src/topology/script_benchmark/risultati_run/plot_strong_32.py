@@ -33,9 +33,9 @@ def parse_file(filepath):
     return data
 
 def main():
-    filepath = 'strong_dim32_20260403_120757.txt'
+    filepath = 'strong_dim32_v1.txt'
     if not os.path.exists(filepath):
-        print(f"Errore: {filepath} non trovato.")
+        print(f"Error: {filepath} not found.")
         sys.exit(1)
         
     data = parse_file(filepath)
@@ -61,15 +61,15 @@ def main():
         
         plt.plot(plot_nps, avg_times, marker=markers[i % len(markers)], label=top.replace('_', ' ').title())
         
-    plt.xlabel('Numero di Core (0 = Seriale)')
-    plt.ylabel('Tempo Medio (s)')
-    plt.title('Risultati Benchmark Strong Scaling (Dim=32, Particelle=256)')
+    plt.xlabel('Number of Cores (0 = Serial)')
+    plt.ylabel('Average Time (s)')
+    plt.title('Strong Scaling Benchmark Results (Dim=32, Particles=256)')
     plt.grid(True)
     plt.legend()
     
-    output_png = 'strong_dim32_plot.png'
+    output_png = 'strong_dim32_plot_time.png'
     plt.savefig(output_png, dpi=300)
-    print(f"Plot generato e salvato in: {output_png}")
+    print(f"Plot generated and saved to: {output_png}")
 
 if __name__ == '__main__':
     main()

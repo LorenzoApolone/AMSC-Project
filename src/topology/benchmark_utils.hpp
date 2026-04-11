@@ -139,12 +139,13 @@ static void update_experiment_stats(const std::string& name,
 {
     const double final_fitness = result.get_best_fitness();
     const double f_star = function.value(function.get_true_solution());
-
+    const double diff = std::abs(final_fitness - f_star);
+    std::cout << name << "," << diff << "\n"; 
     for (auto t : function.get_typologies()) {
         stats.total_by_typology[t]++;
     }
 
-    const bool is_correct = (std::abs(final_fitness - f_star) <= delta_x);
+    const bool is_correct = (diff <= delta_x);
     const bool stopped_by_maxiter = (result.iterations >= static_cast<int>(max_iter));
 
     if (is_correct) {
@@ -329,7 +330,19 @@ static ExperimentStats run_topology_experiment(
     double t_start = MPI_Wtime();
 
     ExperimentStats stats;
-
+     if (rank == 0) {
+            switch (mode) {
+                case TopologyMode::SMALL_WORLD:
+                    std::cout << "\nSmall World\n\n";
+                    break;
+                case TopologyMode::SCALE_FREE:
+                    std::cout << "\nScale Free\n\n";
+                    break;
+                case TopologyMode::RANDOM:
+                    std::cout << "\nRandom\n\n";
+                    break;
+            }
+        }
     for (const auto& name : function_names) {
         auto function = factory.at(name)(dim);
         std::vector<std::vector<int>> adjacency_list;
@@ -363,7 +376,7 @@ static ExperimentStats run_topology_experiment(
                                            adjacency_list,
                                            stats.t_allgatherv,
                                            seed);
-
+        
         if (rank == 0) {
             update_experiment_stats(name, result, *function, delta_x, max_iter, stats);
         }
@@ -409,7 +422,7 @@ static ExperimentStats run_classic_experiment(
     double t_start = MPI_Wtime();
 
     ExperimentStats stats;
-
+    std::cout << "\nClassic\n\n";\
     for (const auto& name : function_names) {
         auto function = factory.at(name)(dim);
 

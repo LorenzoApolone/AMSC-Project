@@ -35,7 +35,7 @@ def parse_file(filepath):
 def main():
     filepath = 'weak_dim64_20260403_120757.txt'
     if not os.path.exists(filepath):
-        print(f"Errore: {filepath} non trovato.")
+        print(f"Error: {filepath} not found.")
         sys.exit(1)
         
     data = parse_file(filepath)
@@ -75,15 +75,20 @@ def main():
         
         plt.plot(plot_nps, speedups, marker=markers[i % len(markers)], label=top.replace('_', ' ').title())
         
-    plt.xlabel('Numero di Core (0 = Seriale)')
-    plt.ylabel('Speedup (T_base / T_np)')
-    plt.title('Speedup Benchmark Weak Scaling (Dim=64, Part/Proc=32)')
+    # Ideal speedup line for weak scaling (efficiency = 1)
+    ideal_x = nps
+    ideal_y = [1 for x in nps]
+    plt.plot(ideal_x, ideal_y, 'k--', label='Ideal Speedup')
+
+    plt.xlabel('Number of Cores (0 = Serial)')
+    plt.ylabel('Efficiency')
+    plt.title('Weak Scaling Efficiency (Dim=64, Particles/Proc=32)')
     plt.grid(True)
     plt.legend()
     
     output_png = 'weak_dim64_speedup.png'
     plt.savefig(output_png, dpi=300)
-    print(f"Plot generato e salvato in: {output_png}")
+    print(f"Plot generated and saved to: {output_png}")
 
 if __name__ == '__main__':
     main()

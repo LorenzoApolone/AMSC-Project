@@ -33,9 +33,9 @@ def parse_file(filepath):
     return data
 
 def main():
-    filepath = 'strong_dim32_20260403_120757.txt'
+    filepath = 'strong_dim32_v1.txt'
     if not os.path.exists(filepath):
-        print(f"Errore: {filepath} non trovato.")
+        print(f"Error: {filepath} not found.")
         sys.exit(1)
         
     data = parse_file(filepath)
@@ -74,21 +74,20 @@ def main():
         
         plt.plot(plot_nps, speedups, marker=markers[i % len(markers)], label=top.replace('_', ' ').title())
         
-    # Calcolo speedup ideale per strong scaling: se ho 1, 2, 4 core, l'ideale e' x
-    ideal_x = [x for x in nps if x > 0]
-    if 1 in plot_nps and 0 in plot_nps:
-        # la ratio serial vs 1 core parallelo potrebbe essere diversa, ma idealmente se usiamo "0" come 1
-        pass
+    # Ideal speedup line
+    ideal_x = nps
+    ideal_y = [1 if x == 0 else x for x in nps]
+    plt.plot(ideal_x, ideal_y, 'k--', label='Ideal Speedup')
         
-    plt.xlabel('Numero di Core (0 = Seriale)')
-    plt.ylabel('Speedup (T_base / T_np)')
-    plt.title('Speedup Benchmark Strong Scaling (Dim=32, Particelle=256)')
+    plt.xlabel('Number of Cores (0 = Serial)')
+    plt.ylabel('Speedup')
+    plt.title('Strong Scaling Speedup (Dim=32, Particles=256)')
     plt.grid(True)
     plt.legend()
     
     output_png = 'strong_dim32_speedup.png'
     plt.savefig(output_png, dpi=300)
-    print(f"Plot generato e salvato in: {output_png}")
+    print(f"Plot generated and saved to: {output_png}")
 
 if __name__ == '__main__':
     main()

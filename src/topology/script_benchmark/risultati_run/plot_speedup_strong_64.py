@@ -33,9 +33,9 @@ def parse_file(filepath):
     return data
 
 def main():
-    filepath = 'strong_dim64_20260403_120756.txt'
+    filepath = 'strong_dim64_v1.txt'
     if not os.path.exists(filepath):
-        print(f"Errore: {filepath} non trovato.")
+        print(f"Error: {filepath} not found.")
         sys.exit(1)
         
     data = parse_file(filepath)
@@ -74,15 +74,20 @@ def main():
         
         plt.plot(plot_nps, speedups, marker=markers[i % len(markers)], label=top.replace('_', ' ').title())
         
-    plt.xlabel('Numero di Core (0 = Seriale)')
-    plt.ylabel('Speedup (T_base / T_np)')
-    plt.title('Speedup Benchmark Strong Scaling (Dim=64, Particelle=256)')
+    # Ideal speedup line
+    ideal_x = nps
+    ideal_y = [1 if x == 0 else x for x in nps]
+    plt.plot(ideal_x, ideal_y, 'k--', label='Ideal Speedup')
+
+    plt.xlabel('Number of Cores (0 = Serial)')
+    plt.ylabel('Speedup')
+    plt.title('Strong Scaling Speedup (Dim=64, Particles=256)')
     plt.grid(True)
     plt.legend()
     
     output_png = 'strong_dim64_speedup.png'
     plt.savefig(output_png, dpi=300)
-    print(f"Plot generato e salvato in: {output_png}")
+    print(f"Plot generated and saved to: {output_png}")
 
 if __name__ == '__main__':
     main()

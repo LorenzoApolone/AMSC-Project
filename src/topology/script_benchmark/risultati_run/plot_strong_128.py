@@ -33,7 +33,7 @@ def parse_file(filepath):
     return data
 
 def main():
-    filepath = 'strong_dim64_v1.txt'
+    filepath = 'strong_dim128_v1.txt'
     if not os.path.exists(filepath):
         print(f"Error: {filepath} not found.")
         sys.exit(1)
@@ -63,11 +63,11 @@ def main():
         
     plt.xlabel('Number of Cores (0 = Serial)')
     plt.ylabel('Average Time (s)')
-    plt.title('Strong Scaling Benchmark Results (Dim=64, Particles=256)')
+    plt.title('Strong Scaling Benchmark Results (Dim=128, Particles=256)')
     plt.grid(True)
     plt.legend()
     
-    output_png = 'strong_dim64_plot_time.png'
+    output_png = 'strong_dim128_plot_time.png'
     plt.savefig(output_png, dpi=300)
     print(f"Plot generated and saved to: {output_png}")
 

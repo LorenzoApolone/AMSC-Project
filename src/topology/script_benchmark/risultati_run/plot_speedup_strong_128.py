@@ -33,7 +33,7 @@ def parse_file(filepath):
     return data
 
 def main():
-    filepath = 'strong_dim64_v1.txt'
+    filepath = 'strong_dim128_v1.txt'
     if not os.path.exists(filepath):
         print(f"Error: {filepath} not found.")
         sys.exit(1)
@@ -58,16 +58,34 @@ def main():
                 times = data[np_val][top]
                 avg_times.append(sum(times) / len(times))
                 plot_nps.append(np_val)
+                
+        if len(plot_nps) == 0:
+            continue
+            
+        if 0 in plot_nps:
+            base_idx = plot_nps.index(0)
+        elif 1 in plot_nps:
+            base_idx = plot_nps.index(1)
+        else:
+            continue
+            
+        base_time = avg_times[base_idx]
+        speedups = [base_time / t for t in avg_times]
         
-        plt.plot(plot_nps, avg_times, marker=markers[i % len(markers)], label=top.replace('_', ' ').title())
+        plt.plot(plot_nps, speedups, marker=markers[i % len(markers)], label=top.replace('_', ' ').title())
         
+    # Ideal speedup line
+    ideal_x = nps
+    ideal_y = [1 if x == 0 else x for x in nps]
+    plt.plot(ideal_x, ideal_y, 'k--', label='Ideal Speedup')
+
     plt.xlabel('Number of Cores (0 = Serial)')
-    plt.ylabel('Average Time (s)')
-    plt.title('Strong Scaling Benchmark Results (Dim=64, Particles=256)')
+    plt.ylabel('Speedup')
+    plt.title('Strong Scaling Speedup (Dim=128, Particles=256)')
     plt.grid(True)
     plt.legend()
     
-    output_png = 'strong_dim64_plot_time.png'
+    output_png = 'strong_dim128_speedup.png'
     plt.savefig(output_png, dpi=300)
     print(f"Plot generated and saved to: {output_png}")
 
