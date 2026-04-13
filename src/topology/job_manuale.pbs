@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -N run_manuale
+#PBS -q cpu
+#PBS -l select=1:ncpus=1:mpiprocs=1
+#PBS -l walltime=09:00:00
+#PBS -j oe
+
+# Carica l'ambiente Spack e MPI
+source /software/spack/share/spack/setup-env.sh
+spack load gcc@15.2.0
+spack load openmpi@5.0.8
+
+# Spostati nella cartella del progetto
+cd "$PBS_O_WORKDIR"
+
+# Il primo comando usa ">" per creare il file (o svuotarlo se esiste già)
+echo "=== AVVIO RUN SEED 123 ===" > rerun128.txt
+mpirun --map-by core --bind-to core -np 1 ./topology_parallel 128 256 20000 0.0001 123 >> rerun128.txt 2>&1
+
+# Il secondo usa ">>" per aggiungere il testo in coda al file senza cancellare il precedente
+echo "=== AVVIO RUN SEED 456 ===" >> rerun128.txt
+mpirun --map-by core --bind-to core -np 1 ./topology_parallel 128 256 20000 0.0001 456 >> rerun128.txt 2>&1
+
+echo "=== ESECUZIONE COMPLETATA ===" >> rerun128.txt

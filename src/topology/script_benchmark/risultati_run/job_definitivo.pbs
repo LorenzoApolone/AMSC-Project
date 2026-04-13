@@ -1,0 +1,20 @@
+#!/bin/bash
+#PBS -N err_printing
+#PBS -q cpu
+#PBS -l select=1:ncpus=8:mpiprocs=8
+#PBS -l walltime=10:00:00
+#PBS -j oe
+
+# Carica l'ambiente Spack rigorosamente
+source /software/spack/share/spack/setup-env.sh
+spack load gcc@15.2.0
+spack load openmpi@5.0.8
+
+# Spostati nella directory da cui lanci il lavoro
+cd "$PBS_O_WORKDIR"
+
+# LA SOLUZIONE: Usiamo "source" invece di "./"
+# Questo costringe lo script bash a condividere lo STESSO spazio di memoria 
+# in cui abbiamo appena caricato Spack, rendendo impossibile il caricamento 
+# di librerie MPI sbagliate.
+source ./run_error_printing.sh

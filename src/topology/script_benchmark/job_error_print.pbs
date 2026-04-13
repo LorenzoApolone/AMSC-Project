@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -N err_printing
+#PBS -q cpu
+# Richiediamo 8 CPU perché i tuoi comandi usano -np 8
+#PBS -l select=1:ncpus=8:mpiprocs=8
+#PBS -l walltime=10:00:00
+#PBS -j oe
+
+# Carica l'ambiente Spack e OpenMPI (deve coincidere con la compilazione)
+source /software/spack/share/spack/setup-env.sh
+spack load gcc@15.2.0
+spack load openmpi@5.0.8
+
+# Spostati nella directory dove ti trovi ora
+cd "/home/u10848893/AMSC-Project/AMSC-Project/src/topology/script_benchmark"
+
+# Assicurati che lo script sia eseguibile e lancialo
+chmod +x run_error_printing.sh
+./run_error_printing.sh

@@ -28,32 +28,32 @@ run_cmd() {
 }
 
 # Dimension 5
-run_cmd "mpirun -np 8 ./topology_parallel 5 256 10000 0.0001 123"
-run_cmd "mpirun -np 8 ./topology_parallel 5 256 10000 0.0001 456"
-run_cmd "mpirun -np 8 ./topology_parallel 5 256 10000 0.0001 789"
-run_cmd "mpirun -np 8 ./topology_parallel 5 256 10000 0.0001 2024"
-run_cmd "mpirun -np 8 ./topology_parallel 5 256 10000 0.0001 4242"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 5 256 10000 0.0001 123"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 5 256 10000 0.0001 456"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 5 256 10000 0.0001 789"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 5 256 10000 0.0001 2024"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 5 256 10000 0.0001 4242"
 
 # Dimension 32
-run_cmd "mpirun -np 8 ./topology_parallel 32 256 10000 0.0001 123"
-run_cmd "mpirun -np 8 ./topology_parallel 32 256 10000 0.0001 456"
-run_cmd "mpirun -np 8 ./topology_parallel 32 256 10000 0.0001 789"
-run_cmd "mpirun -np 8 ./topology_parallel 32 256 10000 0.0001 2024"
-run_cmd "mpirun -np 8 ./topology_parallel 32 256 10000 0.0001 4242"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 32 256 10000 0.0001 123"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 32 256 10000 0.0001 456"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 32 256 10000 0.0001 789"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 32 256 10000 0.0001 2024"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 32 256 10000 0.0001 4242"
 
 # Dimension 64
-run_cmd "mpirun -np 8 ./topology_parallel 64 256 10000 0.0001 123"
-run_cmd "mpirun -np 8 ./topology_parallel 64 256 10000 0.0001 456"
-run_cmd "mpirun -np 8 ./topology_parallel 64 256 10000 0.0001 789"
-run_cmd "mpirun -np 8 ./topology_parallel 64 256 10000 0.0001 2024"
-run_cmd "mpirun -np 8 ./topology_parallel 64 256 10000 0.0001 4242"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 123"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 456"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 789"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 2024"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 64 256 10000 0.0001 4242"
 
 # Dimension 128
-run_cmd "mpirun -np 8 ./topology_parallel 128 256 20000 0.0001 123"
-run_cmd "mpirun -np 8 ./topology_parallel 128 256 20000 0.0001 456"
-run_cmd "mpirun -np 8 ./topology_parallel 128 256 20000 0.0001 789"
-run_cmd "mpirun -np 8 ./topology_parallel 128 256 20000 0.0001 2024"
-run_cmd "mpirun -np 8 ./topology_parallel 128 256 20000 0.0001 4242"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 128 256 20000 0.0001 123"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 128 256 20000 0.0001 456"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 128 256 20000 0.0001 789"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 128 256 20000 0.0001 2024"
+run_cmd "mpirun --map-by core --bind-to core -np 8 ./topology_parallel 128 256 20000 0.0001 4242"
 
 echo "========================================================" | tee -a "$OUT_FILE"
 echo "  ESECUZIONE COMPLETATA" | tee -a "$OUT_FILE"

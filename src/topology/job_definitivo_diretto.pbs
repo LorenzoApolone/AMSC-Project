@@ -1,0 +1,50 @@
+#!/bin/bash
+#PBS -N benchmark_final
+#PBS -q cpu
+#PBS -l select=1:ncpus=8:mpiprocs=8
+#PBS -l walltime=10:00:00
+#PBS -j oe
+
+# 1. Caricamento ambiente
+source /software/spack/share/spack/setup-env.sh
+spack load gcc@15.2.0
+spack load openmpi@5.0.8
+
+# 2. Spostamento nella cartella
+cd "/home/u10848893/AMSC-Project/AMSC-Project/src/topology"
+
+# 3. Definizione file di output (come nel tuo script originale)
+mkdir -p risultati_run
+OUT_FILE="risultati_run/benchmark_20260411_162121.txt"
+
+# Funzione interna per loggare
+log_cmd() {
+    echo "--------------------------------------------------------" >> "$OUT_FILE"
+    echo "=> ESECUZIONE: $1" >> "$OUT_FILE"
+    # Esecuzione con mapping esplicito ai core
+    mpirun --map-by core --bind-to core -np 8 $1 >> "$OUT_FILE" 2>&1
+    echo "" >> "$OUT_FILE"
+}
+
+# 4. Esecuzione dei calcoli
+log_cmd "./topology_parallel 5 256 10000 0.0001 123"
+log_cmd "./topology_parallel 32 256 10000 0.0001 123"
+log_cmd "./topology_parallel 64 256 10000 0.0001 123"
+log_cmd "./topology_parallel 128 256 20000 0.0001 123"
+log_cmd "./topology_parallel 5 256 10000 0.0001 456"
+log_cmd "./topology_parallel 32 256 10000 0.0001 456"
+log_cmd "./topology_parallel 64 256 10000 0.0001 456"
+log_cmd "./topology_parallel 128 256 20000 0.0001 456"
+log_cmd "./topology_parallel 5 256 10000 0.0001 789"
+log_cmd "./topology_parallel 32 256 10000 0.0001 1789"
+log_cmd "./topology_parallel 64 256 10000 0.0001 789"
+log_cmd "./topology_parallel 128 256 20000 0.0001 789"
+log_cmd "./topology_parallel 5 256 10000 0.0001 2024"
+log_cmd "./topology_parallel 32 256 10000 0.0001 2024"
+log_cmd "./topology_parallel 64 256 10000 0.0001 2024"
+log_cmd "./topology_parallel 128 256 20000 0.0001 2024"
+log_cmd "./topology_parallel 5 256 10000 0.0001 4242"
+log_cmd "./topology_parallel 32 256 10000 0.0001 4242"
+log_cmd "./topology_parallel 64 256 10000 0.0001 4242"
+log_cmd "./topology_parallel 128 256 20000 0.0001 4242"
+
