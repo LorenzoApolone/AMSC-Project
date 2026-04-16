@@ -7,7 +7,7 @@ import json
 import math
 import re
 
-COMM_RE = re.compile(r"^Comm times: Total ([0-9.]+) s \| Compute ([0-9.]+) s \| Bcast ([0-9.]+) s \| Allreduce ([0-9.]+) s \| Allgather ([0-9.]+) s \| Wait ([0-9.]+) s$")
+COMM_RE = re.compile(r"^Comm times: Total ([0-9.eE+-]+) s \| Compute ([0-9.eE+-]+) s \| Bcast ([0-9.eE+-]+) s \| Allreduce ([0-9.eE+-]+) s \| Allgather ([0-9.eE+-]+) s \| Wait ([0-9.eE+-]+) s$")
 import statistics
 from collections import defaultdict
 from pathlib import Path
@@ -167,6 +167,7 @@ def aggregate_runs(run_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for key, rows in grouped.items():
         execution_mode, mpi_processes = key[3], key[4]
         cfg = (key[0], key[1], key[2], key[5], key[6], key[7], key[8])
+        baseline_cfg = (key[0], key[1], key[2], key[6], key[8])
         completed = [row for row in rows if row["run_outcome"] == "completed"]
         if not completed:
             continue
@@ -174,19 +175,20 @@ def aggregate_runs(run_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if execution_mode == "serial":
             serial_ref[cfg] = current_mean
         else:
-            baseline = parallel_baseline.get(cfg)
+            baseline = parallel_baseline.get(baseline_cfg)
             if baseline is None or mpi_processes < baseline[0]:
-                parallel_baseline[cfg] = (mpi_processes, current_mean)
+                parallel_baseline[baseline_cfg] = (mpi_processes, current_mean)
     summary_rows: list[dict[str, Any]] = []
     for key in sorted(grouped, key=lambda item: (item[0], item[1], item[2], item[5], item[3], item[4])):
         rows = grouped[key]
         execution_mode, mpi_processes = key[3], key[4]
         cfg = (key[0], key[1], key[2], key[5], key[6], key[7], key[8])
+        baseline_cfg = (key[0], key[1], key[2], key[6], key[8])
         completed = [row for row in rows if row["run_outcome"] == "completed"]
         failed_runs = len(rows) - len(completed)
         mean_wall = mean(row["suite_wall_time_s"] for row in completed)
         serial_time = serial_ref.get(cfg, math.nan)
-        baseline = parallel_baseline.get(cfg)
+        baseline = parallel_baseline.get(baseline_cfg)
         baseline_np = baseline[0] if baseline else None
         baseline_time = baseline[1] if baseline else math.nan
         if execution_mode == "parallel" and math.isfinite(mean_wall) and mean_wall > 0.0 and math.isfinite(baseline_time):
@@ -511,7 +513,11 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
         figure, axis = plt.subplots(figsize=(7, 4))
         axis.plot(x_values, speedups, marker='o', label='measured')
         baseline_np = max(1, int(rows[0]['mpi_processes']))
-        ideal_speedups = [x_value / baseline_np for x_value in x_values] if not is_dim_sweep else [1.0 for _ in x_values]
+        is_weak_scaling = "weak" in group_key[1]
+        if is_dim_sweep or is_weak_scaling:
+            ideal_speedups = [1.0 for _ in x_values]
+        else:
+            ideal_speedups = [x_value / baseline_np for x_value in x_values]
         axis.plot(x_values, ideal_speedups, linestyle='--', color='tab:gray', label='ideal')
         axis.set_title(f"Speedup vs {x_label} (baseline: parallel np={baseline_np})\n{title_suffix}")
         axis.set_xlabel(x_label)
@@ -525,7 +531,10 @@ def maybe_plot(summary_rows: list[dict[str, Any]], serial_parallel_rows: list[di
 
         figure, axis = plt.subplots(figsize=(7, 4))
         axis.plot(x_values, efficiencies, marker='o', label='measured')
-        ideal_efficiency = [1.0 for _ in x_values]
+        if is_dim_sweep or is_weak_scaling:
+            ideal_efficiency = [baseline_np / float(x_value) for x_value in x_values]
+        else:
+            ideal_efficiency = [1.0 for _ in x_values]
         axis.plot(x_values, ideal_efficiency, linestyle='--', color='tab:gray', label='ideal')
         axis.set_title(f"Efficiency vs {x_label} (baseline: parallel np={baseline_np})\n{title_suffix}")
         axis.set_xlabel(x_label)
