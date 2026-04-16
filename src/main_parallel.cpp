@@ -181,7 +181,7 @@ int main(int argc, char **argv)
       if (is_correct && !bool_stopped_by_maxiter) {
           correct_when_early_stop++;
       }
-  //    result.terminal_info();
+      result.terminal_info();
   //    result.output_to_file();
       
     }
