@@ -40,13 +40,15 @@ SERIAL_OBJS = $(SERIAL_SRCS:.cpp=.o)
 PARALLEL_SRCS = $(COMMON_SRCS) main_parallel.cpp pso_mpi.cpp
 PARALLEL_OBJS = $(PARALLEL_SRCS:.cpp=.o)
 
-.PHONY = all serial parallel clean distclean $(DEPEND)
+.PHONY = all serial parallel dpso clean distclean $(DEPEND)
 
-all: $(DEPEND) serial parallel
+all: $(DEPEND) serial parallel dpso
 
 serial: $(EXEC_SERIAL)
 
 parallel: $(EXEC_PARALLEL)
+
+dpso: $(EXEC_DPSO) main_dpso_serial
 
 $(EXEC_SERIAL): main_serial.o pso_serial.o interfaces.o dpso/dpso.o
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
