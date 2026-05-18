@@ -1,5 +1,5 @@
 ========================================================
-ESECUZIONE: WEAK SCALING - CARICO LOCALE COSTANTE - 32 PARTICELLE/SOTTOSWARM, 4 DIM/SOTTOSWARM, K = NP
+ESECUZIONE: WEAK SCALING - CARICO LOCALE COSTANTE - DIM/CORE = 4, SWARM/DIM = 8, K = NP
 Avviata il: Mon Apr  6 01:25:38 CEST 2026
 ========================================================
 
