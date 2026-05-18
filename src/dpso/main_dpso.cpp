@@ -355,10 +355,10 @@ int main(int argc, char **argv) {
                   << std::setw(6) << dim << std::setw(8) << ppr << std::setw(8)
                   << iters << "   " << std::scientific << std::setprecision(4)
                   << std::setw(13) << fval << "   " << std::setw(13) << err
-                  << "   " << std::fixed << std::setprecision(2) << std::setw(8)
+                  << "   " << std::fixed << std::setprecision(6) << std::setw(10)
                   << res.execution_time << "s" << std::endl;
 
-        std::cout << "Comm times: Total " << std::fixed << std::setprecision(4) << res.comm_total_s 
+        std::cout << "Comm times: Total " << std::fixed << std::setprecision(9) << res.comm_total_s 
                   << " s | Compute " << res.compute_total_s 
                   << " s | Bcast " << res.comm_bcast_s 
                   << " s | Allreduce " << res.comm_allreduce_s 

@@ -349,8 +349,11 @@ int main(int argc, char **argv) {
                 << std::setw(6) << dim << std::setw(8) << ppr << std::setw(8)
                 << iters << "   " << std::scientific << std::setprecision(4)
                 << std::setw(13) << fval << "   " << std::setw(13) << err
-                << "   " << std::fixed << std::setprecision(2) << std::setw(8)
+                << "   " << std::fixed << std::setprecision(6) << std::setw(10)
                 << res.execution_time << "s" << std::endl;
+
+      std::cout << "Comm times: Total 0.0 s | Compute " << std::fixed << std::setprecision(6) << res.execution_time 
+                << " s | Bcast 0.0 s | Allreduce 0.0 s | Allgather 0.0 s | Wait 0.0 s" << std::endl;
 
       bool stopped_by_maxiter = (res.iterations >= iters);
       if (stopped_by_maxiter && !true_converged)
