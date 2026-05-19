@@ -1,0 +1,1751 @@
+========================================================
+ESECUZIONE: BENCHMARK 16 CORES
+Avviata il: Tue May 19 00:22:19 CEST 2026
+========================================================
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 16 ./topology_parallel 64 512 20000 0.0001 789
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1199.78,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1602.52,9.90013,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1735.66,10.968,25,45
+RESULT,random,64,512,20000,0.0001,789,1480.05,10.1328,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1214.09,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1610.1,9.26074,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1722.92,10.0423,25,45
+RESULT,random,64,512,20000,0.0001,789,1471.3,9.37267,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1210.75,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1594.86,9.55178,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1755.22,10.8951,25,45
+RESULT,random,64,512,20000,0.0001,789,1492.27,9.81903,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1205.97,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1609.55,9.45859,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1754.46,10.6862,25,45
+RESULT,random,64,512,20000,0.0001,789,1507.37,9.98074,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1216.33,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1616.12,9.38643,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1749.21,10.4988,25,45
+RESULT,random,64,512,20000,0.0001,789,1495.86,9.66825,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1246.16,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1612.23,9.22527,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1775.29,10.5118,25,45
+RESULT,random,64,512,20000,0.0001,789,1481.9,9.57415,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1234.23,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1615.11,9.3773,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1770.21,10.5928,25,45
+RESULT,random,64,512,20000,0.0001,789,1502.68,9.90122,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1226.88,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1613.63,9.88538,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1779.72,11.3002,25,45
+RESULT,random,64,512,20000,0.0001,789,1519.75,10.4137,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1205.2,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1636.75,9.26338,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1777.48,10.6019,25,45
+RESULT,random,64,512,20000,0.0001,789,1520.93,10.1649,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1223.83,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1621.97,9.78062,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1787.14,11.2392,25,45
+RESULT,random,64,512,20000,0.0001,789,1514.75,10.4027,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1195.32,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1637.1,9.74514,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1824.36,11.5232,25,45
+RESULT,random,64,512,20000,0.0001,789,1492.61,9.98023,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1213.8,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1652.94,9.89403,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1781.56,11.1346,25,45
+RESULT,random,64,512,20000,0.0001,789,1518.75,10.0258,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1216.48,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1648.16,9.76296,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1775.84,10.7308,25,45
+RESULT,random,64,512,20000,0.0001,789,1528.34,10.2752,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1196.69,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1636.7,9.32827,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1788.5,10.9285,25,45
+RESULT,random,64,512,20000,0.0001,789,1558.64,10.465,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1210.44,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1650.56,9.9257,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1785.08,10.7288,25,45
+RESULT,random,64,512,20000,0.0001,789,1535.16,10.512,14,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,789,1209.05,0,7,45
+RESULT,scale_free,64,512,20000,0.0001,789,1667.45,10.5171,16,45
+RESULT,small_world,64,512,20000,0.0001,789,1799.85,11.355,25,45
+RESULT,random,64,512,20000,0.0001,789,1596.83,11.1252,14,45
+RESULT,not_converged,19,45
+
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun --map-by core --bind-to core -np 16 ./topology_parallel 64 512 10000 0.0001 789
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,594.987,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,877.263,5.20678,20,45
+RESULT,small_world,64,512,10000,0.0001,789,993.377,5.89305,23,45
+RESULT,random,64,512,10000,0.0001,789,804.174,5.05392,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,604.829,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,887.123,5.31749,20,45
+RESULT,small_world,64,512,10000,0.0001,789,991.601,5.8739,23,45
+RESULT,random,64,512,10000,0.0001,789,808.965,5.08957,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,582.895,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,872.5,5.03839,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1001.4,5.9727,23,45
+RESULT,random,64,512,10000,0.0001,789,841.626,5.20632,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,602.94,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,881.867,5.54705,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1000.42,6.33636,23,45
+RESULT,random,64,512,10000,0.0001,789,818.794,5.43956,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,599.699,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,877.535,5.24424,20,45
+RESULT,small_world,64,512,10000,0.0001,789,994.879,6.25558,23,45
+RESULT,random,64,512,10000,0.0001,789,832.14,5.54144,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,597.263,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,891.2,5.33933,20,45
+RESULT,small_world,64,512,10000,0.0001,789,998.716,6.02448,23,45
+RESULT,random,64,512,10000,0.0001,789,826.557,5.48455,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,584.687,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,890.305,5.37128,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1017.39,6.2357,23,45
+RESULT,random,64,512,10000,0.0001,789,826.715,5.346,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,596.957,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,892.862,5.20512,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1005.36,6.07564,23,45
+RESULT,random,64,512,10000,0.0001,789,825.925,5.23742,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,610.824,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,895.666,5.30937,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1004.97,5.84537,23,45
+RESULT,random,64,512,10000,0.0001,789,815.251,5.21753,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,589.603,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,921.645,5.55765,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1008.24,5.89453,23,45
+RESULT,random,64,512,10000,0.0001,789,816.626,5.35657,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,612.045,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,898.818,5.31611,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1005.98,5.88862,23,45
+RESULT,random,64,512,10000,0.0001,789,831.349,5.24153,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,605.123,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,893.911,5.44418,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1016.44,6.3035,23,45
+RESULT,random,64,512,10000,0.0001,789,835.78,5.51865,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,633.655,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,890.143,5.34506,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1008.12,6.1611,23,45
+RESULT,random,64,512,10000,0.0001,789,828.69,5.3352,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,615.587,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,920.187,5.6239,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1019.62,6.34829,23,45
+RESULT,random,64,512,10000,0.0001,789,838.627,5.60668,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,613.476,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,906.84,5.55009,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1043.16,6.53901,23,45
+RESULT,random,64,512,10000,0.0001,789,833.421,5.37267,11,45
+RESULT,not_converged,19,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,789,621.754,0,6,45
+RESULT,scale_free,64,512,10000,0.0001,789,920.121,5.55328,20,45
+RESULT,small_world,64,512,10000,0.0001,789,1008.06,6.39352,23,45
+RESULT,random,64,512,10000,0.0001,789,850.954,5.73631,11,45
+RESULT,not_converged,19,45
+
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun -np 16 ./topology_parallel 64 512 10000 0.0001 456
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,581.336,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,842.627,4.71643,16,45
+RESULT,small_world,64,512,10000,0.0001,456,959.307,5.79081,22,45
+RESULT,random,64,512,10000,0.0001,456,782.906,4.95563,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,617.451,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,832.81,4.82854,16,45
+RESULT,small_world,64,512,10000,0.0001,456,973.862,6.07744,22,45
+RESULT,random,64,512,10000,0.0001,456,765.979,5.02591,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,601.37,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,844.513,4.82213,16,45
+RESULT,small_world,64,512,10000,0.0001,456,971.677,5.71584,22,45
+RESULT,random,64,512,10000,0.0001,456,775.546,4.81011,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,602.911,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,852.43,4.73,16,45
+RESULT,small_world,64,512,10000,0.0001,456,969.011,5.68908,22,45
+RESULT,random,64,512,10000,0.0001,456,776.449,4.82531,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,594.911,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,862.52,4.8417,16,45
+RESULT,small_world,64,512,10000,0.0001,456,968.286,5.64667,22,45
+RESULT,random,64,512,10000,0.0001,456,787.401,4.92953,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,618.106,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,846.65,5.17167,16,45
+RESULT,small_world,64,512,10000,0.0001,456,969.879,6.06536,22,45
+RESULT,random,64,512,10000,0.0001,456,794.525,5.25695,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,611.418,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,864.887,4.99207,16,45
+RESULT,small_world,64,512,10000,0.0001,456,976.331,5.83628,22,45
+RESULT,random,64,512,10000,0.0001,456,780.207,5.01707,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,595.868,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,857.766,5.05835,16,45
+RESULT,small_world,64,512,10000,0.0001,456,978.39,6.06718,22,45
+RESULT,random,64,512,10000,0.0001,456,801.051,5.29432,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,608.464,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,850.007,5.0602,16,45
+RESULT,small_world,64,512,10000,0.0001,456,980.201,6.00307,22,45
+RESULT,random,64,512,10000,0.0001,456,795.125,5.22118,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,609.391,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,853.351,4.86988,16,45
+RESULT,small_world,64,512,10000,0.0001,456,989.758,5.90742,22,45
+RESULT,random,64,512,10000,0.0001,456,787.44,4.81728,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,605.872,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,863.988,4.93744,16,45
+RESULT,small_world,64,512,10000,0.0001,456,981.054,5.73317,22,45
+RESULT,random,64,512,10000,0.0001,456,792.815,5.06692,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,603.22,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,856.716,4.86097,16,45
+RESULT,small_world,64,512,10000,0.0001,456,997.292,5.87961,22,45
+RESULT,random,64,512,10000,0.0001,456,792.068,4.93291,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,606.462,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,882.875,5.27601,16,45
+RESULT,small_world,64,512,10000,0.0001,456,982.437,5.86227,22,45
+RESULT,random,64,512,10000,0.0001,456,805.448,5.2072,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,607.002,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,878.536,5.16403,16,45
+RESULT,small_world,64,512,10000,0.0001,456,998.096,6.08222,22,45
+RESULT,random,64,512,10000,0.0001,456,803.347,5.12502,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,613.885,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,877.636,5.24102,16,45
+RESULT,small_world,64,512,10000,0.0001,456,987.683,5.96012,22,45
+RESULT,random,64,512,10000,0.0001,456,812.876,5.3101,13,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function Powell did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,10000,0.0001,456,621.223,0,7,45
+RESULT,scale_free,64,512,10000,0.0001,456,883.83,5.41147,16,45
+RESULT,small_world,64,512,10000,0.0001,456,991.004,6.29684,22,45
+RESULT,random,64,512,10000,0.0001,456,798.397,5.24905,13,45
+RESULT,not_converged,21,45
+
+
+
+--------------------------------------------------------
+=> ESECUZIONE COMANDO: mpirun -np 16 ./topology_parallel 64 512 20000 0.0001 456
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1178.25,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1673.21,11.7407,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1789.33,11.5761,24,45
+RESULT,random,64,512,20000,0.0001,456,1559.05,11.9954,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1179.78,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1705.78,11.6124,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1776.47,10.9774,24,45
+RESULT,random,64,512,20000,0.0001,456,1571.66,11.7638,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1184.3,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1695.85,11.5455,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1783.45,10.7574,24,45
+RESULT,random,64,512,20000,0.0001,456,1582.57,11.6587,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1198.41,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1690.47,11.8924,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1777.45,11.1683,24,45
+RESULT,random,64,512,20000,0.0001,456,1588.1,12.0766,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1196.86,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1706.87,11.6675,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1775.88,10.7358,24,45
+RESULT,random,64,512,20000,0.0001,456,1583.77,11.6807,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1193.08,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1714.11,12.1795,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1766.89,10.7908,24,45
+RESULT,random,64,512,20000,0.0001,456,1591.48,12.1742,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1197.85,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1714.57,11.7465,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1783.82,11.0882,24,45
+RESULT,random,64,512,20000,0.0001,456,1579.29,11.6345,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1201.82,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1699.04,11.8678,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1785.1,11.0683,24,45
+RESULT,random,64,512,20000,0.0001,456,1599.13,12.2641,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1186.03,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1705.6,11.5746,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1801.43,10.8138,24,45
+RESULT,random,64,512,20000,0.0001,456,1591.97,11.7641,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1179.66,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1718.24,11.3985,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1798.23,10.5263,24,45
+RESULT,random,64,512,20000,0.0001,456,1612.97,12.0201,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1180.85,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1717.4,11.6078,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1816.41,11.2026,24,45
+RESULT,random,64,512,20000,0.0001,456,1598.06,11.722,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1184.33,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1713.55,11.9577,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1814.25,11.2026,24,45
+RESULT,random,64,512,20000,0.0001,456,1604.31,12.0227,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1197.06,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1714.02,12.0362,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1806.61,11.4921,24,45
+RESULT,random,64,512,20000,0.0001,456,1598.94,12.2269,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1184.81,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1709.69,12.1298,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1826.71,11.5089,24,45
+RESULT,random,64,512,20000,0.0001,456,1598.3,12.3318,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1174.91,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1716.07,11.8559,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1834.99,11.5204,24,45
+RESULT,random,64,512,20000,0.0001,456,1594.7,12.027,11,45
+RESULT,not_converged,21,45
+
+Function DropWave did not converge in any topology.
+Function Weierstrass did not converge in any topology.
+Function Alpine1 did not converge in any topology.
+Function Rastrigin did not converge in any topology.
+Function HGBat did not converge in any topology.
+Function Rosenbrock did not converge in any topology.
+Function ExpSchafferF6 did not converge in any topology.
+Function Schwefel did not converge in any topology.
+Function Schwefel222 did not converge in any topology.
+Function Salomon did not converge in any topology.
+Function ModifiedRidge did not converge in any topology.
+Function ModifiedXinSheYang5 did not converge in any topology.
+Function Michalewicz did not converge in any topology.
+Function DixonPrice did not converge in any topology.
+Function StyblinskiTang did not converge in any topology.
+Function Trid did not converge in any topology.
+Function Shubert did not converge in any topology.
+Function Alpine2 did not converge in any topology.
+Function Eggholder did not converge in any topology.
+Function Easom did not converge in any topology.
+Function Vincent did not converge in any topology.
+
+RESULT,classic,64,512,20000,0.0001,456,1188.27,0,6,45
+RESULT,scale_free,64,512,20000,0.0001,456,1723.31,11.9842,17,45
+RESULT,small_world,64,512,20000,0.0001,456,1822.24,11.302,24,45
+RESULT,random,64,512,20000,0.0001,456,1604.7,12.1647,11,45
+RESULT,not_converged,21,45
+
+
+
+========================================================
+ESECUZIONE COMPLETATA
