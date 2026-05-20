@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -148,13 +148,13 @@ for case_line in "${CASE_LINES[@]}"; do
   IFS=$'\t' read -r battery suite family case_id execution_mode mpi_processes dim total_particles max_iters seed w c1 c2 regrouping_period sub_swarm_size hmcr par_min par_max description <<< "$case_line"
 
   if [[ "$execution_mode" == "serial" ]]; then
-    CASE_LABEL="serial"
+    CASE_LABEL="serial_dim${dim}"
     OUT_DIR="$RAW_ROOT/$battery/$suite/$family/$CASE_LABEL/seed_${seed}"
     CMD=(
       "$TEST_SERIAL_BINARY" "$dim" "$total_particles" "$max_iters" "1e-6" "$OUT_DIR/params.txt" "$seed"
     )
   else
-    CASE_LABEL="np_${mpi_processes}"
+    CASE_LABEL="np_${mpi_processes}_dim${dim}"
     OUT_DIR="$RAW_ROOT/$battery/$suite/$family/$CASE_LABEL/seed_${seed}"
     CMD=("$MPIEXEC_BIN")
     if [[ -n "$MPIEXEC_ARGS" ]]; then

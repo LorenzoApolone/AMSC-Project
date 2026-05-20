@@ -163,11 +163,11 @@ def aggregate_runs(run_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         key = (row["battery"], row["suite"], row["family"], row["execution_mode"], row["mpi_processes"], row["dim"], row["sub_swarm_size"], row["total_particles"], row["max_iters"])
         grouped[key].append(row)
     serial_ref: dict[tuple[Any, ...], float] = {}
-    parallel_baseline: dict[tuple[Any, ...], tuple[int, float]] = {}
+    parallel_baseline: dict[tuple[Any, ...], tuple[int, float, float]] = {}
     for key, rows in grouped.items():
-        execution_mode, mpi_processes = key[3], key[4]
+        execution_mode, mpi_processes = key[3], int(key[4])
         cfg = (key[0], key[1], key[2], key[5], key[6], key[7], key[8])
-        baseline_cfg = (key[0], key[1], key[2], key[6], key[8])
+        baseline_cfg = (key[0], key[1], key[2], key[6])
         completed = [row for row in rows if row["run_outcome"] == "completed"]
         if not completed:
             continue
@@ -177,13 +177,13 @@ def aggregate_runs(run_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         else:
             baseline = parallel_baseline.get(baseline_cfg)
             if baseline is None or mpi_processes < baseline[0]:
-                parallel_baseline[baseline_cfg] = (mpi_processes, current_mean)
+                parallel_baseline[baseline_cfg] = (mpi_processes, current_mean, float(key[8]))
     summary_rows: list[dict[str, Any]] = []
-    for key in sorted(grouped, key=lambda item: (item[0], item[1], item[2], item[5], item[3], item[4])):
+    for key in sorted(grouped, key=lambda item: (item[0], item[1], item[2], item[5], item[3], int(item[4]))):
         rows = grouped[key]
-        execution_mode, mpi_processes = key[3], key[4]
+        execution_mode, mpi_processes = key[3], int(key[4])
         cfg = (key[0], key[1], key[2], key[5], key[6], key[7], key[8])
-        baseline_cfg = (key[0], key[1], key[2], key[6], key[8])
+        baseline_cfg = (key[0], key[1], key[2], key[6])
         completed = [row for row in rows if row["run_outcome"] == "completed"]
         failed_runs = len(rows) - len(completed)
         mean_wall = mean(row["suite_wall_time_s"] for row in completed)
@@ -191,8 +191,10 @@ def aggregate_runs(run_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         baseline = parallel_baseline.get(baseline_cfg)
         baseline_np = baseline[0] if baseline else None
         baseline_time = baseline[1] if baseline else math.nan
+        baseline_iters = baseline[2] if baseline else 1.0
         if execution_mode == "parallel" and math.isfinite(mean_wall) and mean_wall > 0.0 and math.isfinite(baseline_time):
-            speedup = baseline_time / mean_wall
+            norm_baseline_time = baseline_time * (float(key[8]) / baseline_iters)
+            speedup = norm_baseline_time / mean_wall
             efficiency = speedup / mpi_processes if mpi_processes > 0 else math.nan
         else:
             speedup = math.nan
