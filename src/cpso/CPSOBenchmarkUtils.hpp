@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "../functions.hpp"
+#include "../interfaces/functions.hpp"
 #include <cmath>
 #include <functional>
 #include <iostream>

@@ -1,1 +1,0 @@
-battery,suite,family,case_id,execution_mode,run_label,mpi_processes,dim,sub_swarm_size,total_particles,max_iters,seed,suite_wall_time_s,completed_functions,last_completed_function,return_code,stdout_log,stderr_log

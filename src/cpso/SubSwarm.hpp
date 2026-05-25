@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "../interfaces.hpp"
+#include "../interfaces/interfaces.hpp"
 #include "ContextVector.hpp"
 #include <limits>
 #include <random>
@@ -16,10 +16,6 @@
  */
 class SubSwarm {
 private:
-  // Marks whether the object stores a real local subswarm or only a 
-  // lightweight metadata placeholder (for MPI cases).
-  enum class StorageMode { FULL, PLACEHOLDER };
-
   int num_particles;
   std::vector<double> positions;
   std::vector<double> velocities;
@@ -34,27 +30,6 @@ private:
   std::vector<std::vector<int>> adjacency_list;
   double bounds_lower;
   double bounds_upper;
-  StorageMode storage_mode;
-
-  /**
-   * @brief Rejects operations that require particle storage on placeholder subswarms.
-   * @param method_name Name of the method requesting full storage.
-   */
-  void ensure_full_storage(const char *method_name) const;
-
-  /**
-   * @brief Internal constructor.
-   * @param num_particles Number of particles stored locally.
-   * @param active_dimensions Global dimensions assigned to the subswarm.
-   * @param lower_bound Lower domain bound for every active dimension.
-   * @param upper_bound Upper domain bound for every active dimension.
-   * @param adj_list Optional neighborhood graph over the local particles.
-   * @param storage_mode Allocation mode used for the subswarm state.
-   */
-  SubSwarm(int num_particles, const std::vector<int> &active_dimensions,
-           double lower_bound, double upper_bound,
-           const std::vector<std::vector<int>> &adj_list,
-           StorageMode storage_mode);
 
 public:
   /**
@@ -68,16 +43,6 @@ public:
   SubSwarm(int num_particles, const std::vector<int> &active_dimensions,
            double lower_bound, double upper_bound,
            const std::vector<std::vector<int>> &adj_list = {});
-
-  /**
-   * @brief Builds a placeholder for a subswarm owned by another rank.
-   * @param active_dimensions Global dimensions assigned to the subswarm.
-   * @param lower_bound Lower domain bound for every active dimension.
-   * @param upper_bound Upper domain bound for every active dimension.
-   * @return A placeholder subswarm that keeps only dimension metadata.
-   */
-  static SubSwarm make_placeholder(const std::vector<int> &active_dimensions,
-                                   double lower_bound, double upper_bound);
 
   SubSwarm(const SubSwarm &) = default;
   SubSwarm &operator=(const SubSwarm &) = default;

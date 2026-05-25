@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "../interfaces.hpp"
+#include "../interfaces/interfaces.hpp"
 #include "../interfaces/StoppingCriteriaManager.hpp"
 #include "CPSORunArtifacts.hpp"
 #include "ContextVector.hpp"
@@ -45,12 +45,6 @@ protected:
     return subswarm_topologies;
   }
   unsigned int get_master_seed() const { return master_seed; }
-
-  /**
-   * @brief Enables ownership-aware swarm construction in the MPI variant.
-   * @return true when only locally owned sub-swarms should allocate state.
-   */
-  virtual bool use_distributed_swarm_ownership() const { return false; }
 
 public:
   /** @brief Default deterministic seed used when no seed is provided. */

@@ -1,4 +1,4 @@
-#include "../interfaces.hpp"
+#include "../interfaces/interfaces.hpp"
 #include "../interfaces/StoppingCriteriaManager.hpp"
 #include "pso_topology.hpp"
 #include <algorithm>
