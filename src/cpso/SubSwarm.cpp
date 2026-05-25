@@ -48,27 +48,18 @@ void validate_adjacency_list(const std::vector<std::vector<int>> &adj_list,
 
 } // namespace
 
-// Fully allocated constructor.
 SubSwarm::SubSwarm(int num_particles, const std::vector<int> &active_dimensions,
                    double lower_bound, double upper_bound,
                    const std::vector<std::vector<int>> &adj_list)
-    : SubSwarm(num_particles, active_dimensions, lower_bound, upper_bound,
-               adj_list, StorageMode::FULL) {}
-
-SubSwarm::SubSwarm(int num_particles,
-                   const std::vector<int> &active_dimensions,
-                   double lower_bound, double upper_bound,
-                   const std::vector<std::vector<int>> &adj_list,
-                   StorageMode storage_mode)
     : num_particles(num_particles), active_dims(active_dimensions),
       gbest_val(std::numeric_limits<double>::infinity()),
       gbest_particle_idx(-1), ignore_gbest_this_iter(false),
       adjacency_list(adj_list), bounds_lower(lower_bound),
-      bounds_upper(upper_bound), storage_mode(storage_mode) {
+      bounds_upper(upper_bound) {
       
   // Safety Checks      
-  if (num_particles < 0) {
-    throw std::invalid_argument("subswarm particle count must be >= 0");
+  if (num_particles <= 0) {
+    throw std::invalid_argument("subswarm must contain at least one particle");
   }
   ensure_finite_value(lower_bound, "subswarm lower bound");
   ensure_finite_value(upper_bound, "subswarm upper bound");
@@ -76,16 +67,7 @@ SubSwarm::SubSwarm(int num_particles,
     throw std::invalid_argument("lower bound must be <= upper bound");
   }
   validate_dimension_set(active_dimensions);
-
-  if (storage_mode == StorageMode::FULL) {
-    if (num_particles == 0) {
-      throw std::invalid_argument("subswarm must contain at least one particle");
-    }
-    validate_adjacency_list(adj_list, num_particles);
-  } else if (!adj_list.empty()) {
-    throw std::invalid_argument(
-        "placeholder subswarms must not own an adjacency list");
-  }
+  validate_adjacency_list(adj_list, num_particles);
 
   int dim = active_dims.size();
   gbest_pos.resize(dim, 0.0);
@@ -97,24 +79,7 @@ SubSwarm::SubSwarm(int num_particles,
   best_values.resize(num_particles, std::numeric_limits<double>::infinity());
 }
 
-SubSwarm SubSwarm::make_placeholder(const std::vector<int> &active_dimensions,
-                                    double lower_bound,
-                                    double upper_bound) {
-  return SubSwarm(0, active_dimensions, lower_bound, upper_bound, {},
-                  StorageMode::PLACEHOLDER);
-}
-
-
-void SubSwarm::ensure_full_storage(const char *method_name) const {
-  if (storage_mode == StorageMode::PLACEHOLDER) {
-    throw std::logic_error(std::string(method_name) +
-                           " cannot be called on a placeholder subswarm");
-  }
-}
-
 void SubSwarm::initialize(std::mt19937 &gen, ContextVector &ctx, const TestFunction &f) {
-  ensure_full_storage("initialize");
-  
   // Initialize positions in the domain with small initial velocities around zero.
   std::uniform_real_distribution<double> dist_pos(bounds_lower, bounds_upper);
   double range = bounds_upper - bounds_lower;
@@ -157,7 +122,6 @@ void SubSwarm::initialize(std::mt19937 &gen, ContextVector &ctx, const TestFunct
 }
 
 void SubSwarm::recalculate_fitness(ContextVector &ctx, const TestFunction &f) {
-  ensure_full_storage("recalculate_fitness");
   gbest_val = std::numeric_limits<double>::infinity();
   gbest_particle_idx = -1;
 
@@ -200,10 +164,6 @@ void SubSwarm::recalculate_fitness(ContextVector &ctx, const TestFunction &f) {
 
 void SubSwarm::update_active_dims(const std::vector<int> &new_dims,
                                   const ContextVector &ctx, std::mt19937 &gen, bool is_owned) {
-  if (is_owned && storage_mode == StorageMode::PLACEHOLDER) {
-    throw std::logic_error("placeholder subswarms cannot become locally owned at runtime");
-  }
-
   if (new_dims.size() != active_dims.size()) {
     throw std::runtime_error("Size mismatch during dimension shuffling");
   }
@@ -247,7 +207,7 @@ void SubSwarm::update_active_dims(const std::vector<int> &new_dims,
         positions[idx] = context_vec[active_dims[d]];
         best_positions[idx] = positions[idx];
         velocities[idx] = 0.0;
-        ensure_finite_value(positions[idx], "placeholder reshuffle position");
+        ensure_finite_value(positions[idx], "non-owned reshuffle position");
       }
     }
     return;
@@ -297,8 +257,6 @@ void SubSwarm::update_active_dims(const std::vector<int> &new_dims,
 
 
 void SubSwarm::inject_velocities(std::mt19937 &gen, bool hard_reset) {
-  ensure_full_storage("inject_velocities");
-
   double range = bounds_upper - bounds_lower;
   std::uniform_real_distribution<double> dist_vel(-0.15 * range, 0.15 * range);
 
@@ -330,13 +288,11 @@ void SubSwarm::inject_velocities(std::mt19937 &gen, bool hard_reset) {
 }
 
 void SubSwarm::reset_gbest_attraction() {
-  ensure_full_storage("reset_gbest_attraction");
   ignore_gbest_this_iter = true;
 }
 
 void SubSwarm::update_velocities_and_positions(double w, double c1, double c2,
                                                std::mt19937 &gen, double progress_ratio) {
-  ensure_full_storage("update_velocities_and_positions");
   ensure_finite_value(progress_ratio, "progress ratio");
   ensure_finite_value(w, "inertia weight");
   ensure_finite_value(c1, "cognitive coefficient");
@@ -431,8 +387,6 @@ void SubSwarm::update_velocities_and_positions(double w, double c1, double c2,
 }
 
 void SubSwarm::evaluate_and_update(ContextVector &ctx, const TestFunction &f) {
-  ensure_full_storage("evaluate_and_update");
-
   int dim = active_dims.size();
   std::vector<double> temp_pos(dim);
   std::vector<double> temp_best_pos(dim);

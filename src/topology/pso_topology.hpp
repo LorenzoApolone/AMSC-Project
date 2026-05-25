@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../interfaces.hpp"
+#include "../interfaces/interfaces.hpp"
 #include "../interfaces/StoppingCriteriaManager.hpp"
 #include <vector>
 

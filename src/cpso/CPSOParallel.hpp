@@ -53,9 +53,6 @@ public:
                unsigned int seed = DEFAULT_SEED);
 
 protected:
-  /** @copydoc CPSOBase::use_distributed_swarm_ownership */
-  bool use_distributed_swarm_ownership() const override { return true; }
-
   /** @copydoc CPSOBase::run_optimization_loop */
   CpsoRunArtifacts run_optimization_loop(const TestFunction &f,
                                          StoppingCriteriaManager &stop_manager,

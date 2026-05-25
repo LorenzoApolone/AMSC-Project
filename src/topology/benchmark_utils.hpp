@@ -12,8 +12,8 @@
 #include "create_network.hpp"
 #include "confront.hpp"
 #include "pso_topology.hpp"
-#include "../methods.hpp"
-#include "../functions.hpp" 
+#include "../pso/methods.hpp"
+#include "../interfaces/functions.hpp" 
 #include "../interfaces/StoppingCriteriaManager.hpp"
 #include <mpi.h>
 #include <array>

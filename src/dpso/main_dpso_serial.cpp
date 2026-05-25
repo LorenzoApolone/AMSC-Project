@@ -1,5 +1,5 @@
 #include "dpso/methods_dpso.hpp"
-#include "functions.hpp"
+#include "../interfaces/functions.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cmath>

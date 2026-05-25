@@ -1,7 +1,7 @@
 #ifndef METHODS_HPP
 #define METHODS_HPP
 
-#include "interfaces.hpp"
+#include "../interfaces/interfaces.hpp"
 
 /**
  * @brief Parameters for DMS-PSO-HS algorithms

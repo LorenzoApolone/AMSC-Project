@@ -3,7 +3,6 @@
  * @brief Implements the shared setup logic used by the CPSO solvers.
  */
 #include "CPSOBase.hpp"
-#include "SubSwarmOwnershipUtils.hpp"
 #include "NumericValidation.hpp"
 #include <chrono>
 #include <stdexcept>
@@ -193,17 +192,8 @@ CpsoRunArtifacts CPSOBase::optimize_raw(
   int dims_per_swarm = total_dim / num_subswarms;
   int remainder = total_dim % num_subswarms;
 
-  int local_start_idx = 0;
-  int local_end_idx = num_subswarms;
-  // In MPI mode, each rank owns only a contiguous slice of the subswarms.
-  if (use_distributed_swarm_ownership()) {
-    auto [start_idx, end_idx] =
-        compute_local_swarm_range(num_subswarms, mpi_rank, mpi_size);
-    local_start_idx = start_idx;
-    local_end_idx = end_idx;
-  }
-
-  // Prebuild the dimension split once; non-owned MPI swarms stay as lightweight placeholders.
+  // Prebuild the dimension split once. In MPI mode only the owned range is
+  // advanced, but keeping the full list makes the batch indexing simple.
   std::vector<SubSwarm> swarms;
   swarms.reserve(num_subswarms);
 
@@ -215,13 +205,6 @@ CpsoRunArtifacts CPSOBase::optimize_raw(
       active_dims.push_back(current_dim_start + d);
     }
     current_dim_start += swarm_dims;
-
-    const bool is_owned = (i >= local_start_idx && i < local_end_idx);
-    if (!is_owned) {
-      swarms.push_back(
-          SubSwarm::make_placeholder(active_dims, bounds.first, bounds.second));
-      continue;
-    }
 
     std::vector<std::vector<int>> sub_adj_list = build_subswarm_topology(
         subswarm_topologies[i], particles_per_swarm, topology_gens[i]);

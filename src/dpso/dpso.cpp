@@ -3,10 +3,10 @@
  * @brief Distributed DMS-PSO-HS via MPI (Zhao et al., 2011).
  */
 
-#include "interfaces.hpp"
+#include "../interfaces/interfaces.hpp"
 #include "interfaces/StoppingCriteriaManager.hpp"
 #include "methods_dpso.hpp"
-#include "particle.hpp"
+#include "../pso/particle.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>

@@ -9,10 +9,10 @@
  * sub-swarm to intensify the local search.
  */
 
-#include "interfaces.hpp"
+#include "../interfaces/interfaces.hpp"
 #include "interfaces/StoppingCriteriaManager.hpp"
 #include "methods_dpso.hpp"
-#include "particle.hpp"
+#include "../pso/particle.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
