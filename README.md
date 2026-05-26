@@ -20,6 +20,188 @@ communication costs can be compared across methods.
 - `src/benchmarks/`: benchmark launchers, raw results, analysis scripts and plots.
 - `Bibliography/`: reference papers and source material.
 
+## Quick Start: Build and Run
+
+The commands below assume a Linux, WSL or HPC login-node environment. Each
+section states the directory where the command should be launched.
+
+### 1. Install or load prerequisites
+
+Required tools:
+
+- C++17 compiler;
+- `make`;
+- MPI compiler and launcher (`mpic++`, `mpirun`);
+- Python 3 for benchmark orchestration scripts.
+
+Optional documentation tools:
+
+- `doxygen`;
+- Graphviz `dot`, used by Doxygen for class and call graphs.
+
+On Ubuntu/WSL, the usual package set is:
+
+Working directory: any directory.
+
+```bash
+sudo apt update
+sudo apt install build-essential make openmpi-bin libopenmpi-dev python3 doxygen graphviz
+```
+
+On an HPC cluster, load the equivalent compiler, MPI and Python modules before
+building. For example:
+
+Working directory: any directory.
+
+```bash
+module load gcc
+module load openmpi
+module load python
+```
+
+### 2. Build all local executables
+
+Working directory: repository root.
+
+```bash
+make -C src
+make -C src/topology
+make -C src/cpso
+```
+
+This creates:
+
+- `src/main_serial` and `src/main_parallel` for standard PSO;
+- `src/main_dpso` and `src/main_dpso_serial` for DMS-PSO-HS;
+- `src/topology/topology_parallel` and `src/topology/topology_serial`;
+- `src/cpso/test_cpso` and `src/cpso/test_cpso_parallel`.
+
+To remove object files and dependency files:
+
+Working directory: repository root.
+
+```bash
+make -C src clean
+make -C src/topology clean
+make -C src/cpso clean
+```
+
+To also remove the top-level `src` executables:
+
+Working directory: repository root.
+
+```bash
+make -C src distclean
+```
+
+### 3. Run quick smoke tests
+
+These examples use small dimensions and iteration counts so that each executable
+can be checked quickly. Increase the parameters for full experiments.
+
+Standard PSO:
+
+Working directory before running the commands: repository root.
+
+```bash
+cd src
+
+./main_serial 8 64 1000 1e-4 123
+mpirun -np 4 ./main_parallel 8 64 1000 1e-4
+```
+
+DMS-PSO-HS:
+
+Working directory before running the commands: repository root.
+
+```bash
+cd src
+
+./main_dpso_serial 8 64 1000 1e-4 dpso/params.txt 123
+mpirun -np 4 ./main_dpso 8 64 1000 1e-4 dpso/params.txt 123
+```
+
+Topology-based PSO:
+
+Working directory before running the commands: repository root.
+
+```bash
+cd src/topology
+
+./topology_serial 8 64 1000 1e-4 123
+mpirun -np 4 ./topology_parallel 8 64 1000 1e-4 123
+```
+
+Cooperative PSO:
+
+Working directory before running the commands: repository root.
+
+```bash
+cd src/cpso
+
+./test_cpso 8 4 16 1000 123
+mpirun -np 4 ./test_cpso_parallel 8 4 16 1000 50 50 123
+```
+
+For CPSO communication ablation runs, disable the greedy merge fallback with:
+
+Working directory: `src/cpso`.
+
+```bash
+CPSO_MPI_DISABLE_GREEDY_MERGE=1 mpirun -np 4 ./test_cpso_parallel 8 4 16 1000 50 50 123
+```
+
+### 4. Run benchmark batteries
+
+The benchmark scripts build the needed executables by default, generate a case
+matrix and store raw results under ignored `results/` folders. Use `--dry-run`
+first to inspect the commands.
+
+CPSO benchmark battery: validation run. This is a short correctness-oriented
+run used to verify the CPSO benchmark pipeline before launching larger
+experiments.
+
+Working directory: repository root.
+
+```bash
+bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery validation --dry-run
+bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery validation --seeds 123
+```
+
+DMS-PSO-HS benchmark battery: comparable run. This launches the DPSO cases meant
+to be compared against the other PSO variants.
+
+Working directory: repository root.
+
+```bash
+bash src/benchmarks/dpso/run_dpso_benchmarks.sh --battery comparable --dry-run
+bash src/benchmarks/dpso/run_dpso_benchmarks.sh --battery comparable --seeds 123
+```
+
+Topology benchmark artifacts are in `src/topology/script_benchmark/`. The
+available topology run types are strong scaling, weak scaling and dimension
+sweep runs. Before submitting PBS jobs on a cluster, adjust queue names, module
+loads, paths and resource requests to match the target system.
+
+### 5. Generate and view the Doxygen documentation
+
+Working directory: repository root. The first command generates
+`docs/doxygen/html/`; the second command serves that generated HTML locally.
+
+```bash
+doxygen Doxyfile
+python3 -m http.server 8765 --bind 127.0.0.1 --directory docs/doxygen/html
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8765/index.html
+```
+
+The generated `docs/doxygen/` directory is ignored by Git. Commit the Doxygen
+configuration and theme files, but not the generated HTML output.
+
 ## Standard PSO
 
 The base implementation is the reference Particle Swarm Optimization solver.
@@ -33,6 +215,8 @@ is implemented in `src/pso/pso_mpi.cpp`. Both rely on the shared `Particle`,
 
 Typical build and run:
 
+Working directory before running the commands: repository root.
+
 ```bash
 cd src
 make
@@ -41,10 +225,16 @@ make
 mpirun -np 4 ./main_parallel 32 256 10000 0.0001
 ```
 
-Command-line arguments are:
+Serial command-line arguments are:
 
 ```text
 <dimension> <number_of_particles> <max_iterations> <target_error> [seed]
+```
+
+Parallel command-line arguments are:
+
+```text
+<dimension> <number_of_particles> <max_iterations> <target_error>
 ```
 
 ## Variant 1: Topology-Based PSO
@@ -70,6 +260,8 @@ The main files are in `src/topology/`:
 - `main_topology_serial.cpp`: serial benchmark entry point.
 
 Build and run:
+
+Working directory before running the commands: repository root.
 
 ```bash
 cd src/topology
@@ -101,6 +293,8 @@ Main files:
 
 Build and run:
 
+Working directory before running the commands: repository root.
+
 ```bash
 cd src
 make dpso
@@ -110,6 +304,8 @@ mpirun -np 4 ./main_dpso 32 256 10000 0.0001
 ```
 
 To use the provided DPSO parameter file from the `src` directory:
+
+Working directory: `src`.
 
 ```bash
 mpirun -np 4 ./main_dpso 32 256 10000 1e-6 dpso/params.txt 123
@@ -145,6 +341,8 @@ Main files:
 
 Build and run:
 
+Working directory before running the commands: repository root.
+
 ```bash
 cd src/cpso
 make
@@ -162,6 +360,8 @@ Parallel arguments are:
 
 The greedy merge fallback is enabled by default. For communication ablation
 experiments it can be disabled with:
+
+Working directory: `src/cpso`.
 
 ```bash
 CPSO_MPI_DISABLE_GREEDY_MERGE=1 mpirun -np 4 ./test_cpso_parallel ...
