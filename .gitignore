@@ -54,6 +54,7 @@ src/main_dpso
 src/main_dpso_serial
 
 # Doxygen generated documentation
+docs/doxygen/
 doxygen_out/
 html/
 latex/
