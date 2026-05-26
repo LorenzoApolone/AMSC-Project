@@ -16,7 +16,7 @@ Formato Output parallelo: <RESULT> <TOPOLOGIA> <DIM> <N_PARTICELLE> <MAX_ITER> <
 L'erroe è fissato in quasi tutti i test a 0.0001 in modo da essere coerente con i test di cpso e dpso
 I seed sono 123, 456, 789, 2024, 4242
 
-STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 32, K 32, PPS 8 
+STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 32, PARTICEL 256 MAX_ITER 10000
 Cosa plottare: tempo totale, speedup, efficienza
 Numero run: 35
         ./topology_serial 32 256 10000 0.0001 123
@@ -60,7 +60,7 @@ Numero run: 35
         mpirun -np 28 ./topology_parallel 32 256 10000 0.0001 4242
 
 
-STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 64, K 32, PPS 8
+STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 64, PARTICEL 256 MAX_ITER 10000
 Cosa plottare: tempo totale, speedup, efficienza
 Numero run: 35
 
@@ -106,7 +106,7 @@ Numero run: 35
 
 
 
-STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 128, K 32, PPS 8
+STRONG SCALING - PROBLEMA TOTALE FISSO - DIM 128, PARTICEL 256 MAX_ITER 20000
 Cosa plottare: tempo totale, speedup, efficienza
 Numero run: 35
 
@@ -150,7 +150,10 @@ Numero run: 35
         mpirun -np 16 ./topology_parallel 128 256 20000 0.0001 4242
         mpirun -np 28 ./topology_parallel 128 256 20000 0.0001 4242
 
-WEAK SCALING - PARTICELLE PER PROCESSO COSTANTI - DIM 64, PPS 32, K = NP
+
+----------------------------------------------------------------------------------------------------------------------
+
+WEAK SCALING - PARTICELLE PER PROCESSO COSTANTI - DIM 64, PARTICELLE 32*NP MAX_ITER 10000
 Cosa plottare: tempo totale, speedup, efficienza
 Numero run: 35
 
@@ -190,7 +193,7 @@ Numero run: 35
         mpirun -np 1 ./topology_parallel 64 32 10000 0.0001 4242
         mpirun -np 2 ./topology_parallel 64 64 10000 0.0001 4242
         mpirun -np 4 ./topology_parallel 64 128 10000 0.0001 4242
-        mpirun -np 8 ./topology_parallel  lel 64 256 10000 0.0001 4242
+        mpirun -np 8 ./topology_parallel 64 256 10000 0.0001 4242
         mpirun -np 16 ./topology_parallel 64 512 10000 0.0001 4242
         mpirun -np 28 ./topology_parallel 64 896 10000 0.0001 4242
 
@@ -199,7 +202,7 @@ Numero run: 35
 
 ------------------------------------------------------------------------------------------
 
-WEAK SCALING - DIMENSIONE PER PROCESSO COSTANTE - LOCAL DIM 8, PARTICELLE TOTALI 224, K = NP
+WEAK SCALING - DIMENSIONE PER PROCESSO COSTANTE - DIM 8*NP, PARTICELLE TOTALI 224, MAX_ITER: 20000
 Cosa plottare: tempo totale, speedup, efficienza, convergenza
 Numero run: 35
         ./topology/a_serial 8 224 20000 0.0001 123
@@ -245,7 +248,7 @@ Numero run: 35
 
 
 
-WEAK SCALING - CARICO LOCALE COSTANTE - 32 PARTICELLE/SOTTOSWARM, 4 DIM/SOTTOSWARM, K = NP
+WEAK SCALING - CARICO LOCALE COSTANTE - DIM = 4*NP, PARTICELLE = 32*NP, MAX_ITER = 20000
 Cosa plottare: tempo totale, speedup, efficienza, convergenza
 Numero run: 35
         
@@ -292,12 +295,7 @@ Numero run: 35
 
 
 
-DA VOLUTARE BENE, TEST SENSATO A MIO PARETE SE SI VUOLE STUDIARE IL NUMERO 
-DI FUNZIONI CHE CONVERGONO ALL'AUMENTARE DELLA DIMENSIONE OPPURE SE SI 
-VUOLE STUDIARE IL TEMPO RICHIESTO ALL'AUMENTARE DELLA DIMENSIONE MA PER QUESTO 
-NON BISOGNEREBBE VARIARE (A PARER MIO ) IL NUMERO DI MAX_ITER. 
-
-
+----------------------------------------------------------------------------------------------------------------
 DIMENSION SWEEP - NP 8, K 8 
 Numero run: 30
 

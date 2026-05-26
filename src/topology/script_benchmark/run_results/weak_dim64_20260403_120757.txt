@@ -1,3 +1,6 @@
+
+WEAK:  DIM 64, PARTICELLE 32*NP MAX_ITER 10000
+
 ========================================================
 ESECUZIONE: WEAK SCALING - PARTICELLE PER PROCESSO COSTANTI - DIM 64, PPS 32, K = NP
 Avviata il: Fri Apr  3 12:07:57 CEST 2026

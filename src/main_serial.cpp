@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
 
   int iterations_stagnation = std::max(100, static_cast<int>(max_iter / 4)); // number of iterations for stagnation control
   double stagnation_tol = 1e-8; // delta x for
+  double stagnation_rel_tol = 1e-4; // relative tolerance for stagnation
   double diversity_tol = 1e-4; // diversity tolerance for stopping criteria
 
   // Factory Definition
@@ -162,7 +163,7 @@ int main(int argc, char *argv[]) {
   // Run the solver
   for (const auto &name : function_names) {
     auto f_ptr = factory[name](dim);
-    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
+    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, stagnation_rel_tol, diversity_tol);
 
     OutputObject result = pso_serial(*f_ptr, dim, stop, n_points, seed);
     result.terminal_info();

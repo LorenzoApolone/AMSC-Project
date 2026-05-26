@@ -434,6 +434,7 @@ static ExperimentStats run_classic_experiment(
         StoppingCriteriaManager stop(max_iter,
                                      iterations_stagnation,
                                      stagnation_tol,
+                                     stagnation_rel_tol,
                                      diversity_tol);
 
         OutputObject result = pso_mpi(*function, dim, stop, n_points, seed);
@@ -566,6 +567,7 @@ static ExperimentStats run_serial_classic_experiment(
         StoppingCriteriaManager stop(max_iter,
                                      iterations_stagnation,
                                      stagnation_tol,
+                                     stagnation_rel_tol,
                                      diversity_tol);
 
         OutputObject result = pso_serial(*function, dim, stop, n_points, seed);

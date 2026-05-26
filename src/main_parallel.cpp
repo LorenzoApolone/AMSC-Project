@@ -36,6 +36,7 @@ int main(int argc, char **argv)
   int number_of_functions = 0;
   int iterations_stagnation = std::max(100, (int)max_iter / 4);
   double stagnation_tol = 1e-8; // delta x for
+  double stagnation_rel_tol = 1e-4; // relative tolerance for stagnation
   double diversity_tol = 1e-6; // diversity tolerance for stopping criteria
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
@@ -154,7 +155,7 @@ int main(int argc, char **argv)
     number_of_functions++;
     
     auto f_ptr = factory[name](dim);
-    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, diversity_tol);
+    StoppingCriteriaManager stop(max_iter, iterations_stagnation, stagnation_tol, stagnation_rel_tol, diversity_tol);
 
     OutputObject result = pso_mpi(*f_ptr, dim, stop, n_points);
     if (rank == 0)

@@ -1,3 +1,6 @@
+
+WEAK: DIM = 4*NP, PARTICELLE = 32*NP, MAX_ITER = 20000
+
 ========================================================
 ESECUZIONE: WEAK SCALING - CARICO LOCALE COSTANTE - DIM/CORE = 4, SWARM/DIM = 8, K = NP
 Avviata il: Mon Apr  6 01:25:38 CEST 2026
