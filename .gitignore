@@ -54,6 +54,7 @@ src/main_dpso
 src/main_dpso_serial
 
 # Doxygen generated documentation
+docs/doxygen/
 doxygen_out/
 html/
 latex/
@@ -72,7 +73,15 @@ src/topology/topology_serial
 src/Makefile.mpi_only
 # Local build and generated benchmark outputs
 build/
-src/benchmarks/cpso/
+src/benchmarks/**/results/
+src/benchmarks/**/paper_selection/
+src/benchmarks/**/paper_png_selection/
+src/benchmarks/**/*.csv
+src/benchmarks/**/*.json
+src/benchmarks/**/*.log
+src/benchmarks/**/*.out
+src/benchmarks/**/*.txt
+src/benchmarks/**/*.md
 
 # Local scratch files
 src/bounds.second

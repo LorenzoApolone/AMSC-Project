@@ -1,0 +1,217 @@
+/* Project-specific polish for the generated Doxygen HTML. */
+html {
+  --page-background-color: #f7f9fb;
+  --page-foreground-color: #1f2937;
+  --page-link-color: #2563eb;
+  --page-visited-link-color: #5b5fa8;
+  --header-background-color: #ffffff;
+  --header-separator-color: #d6dee8;
+  --title-background-color: #ffffff;
+  --title-separator-color: #0f766e;
+  --separator-color: #d6dee8;
+  --nav-background-color: #eef4f8;
+  --nav-foreground-color: #243447;
+  --nav-text-normal-color: #243447;
+  --nav-text-hover-color: #ffffff;
+  --nav-text-active-color: #ffffff;
+  --nav-menu-button-color: #243447;
+  --nav-arrow-color: #65788b;
+  --nav-arrow-selected-color: #0f766e;
+  --blockquote-background-color: #eef7f4;
+  --blockquote-border-color: #6aa39a;
+  --memdecl-background-color: #ffffff;
+  --memdecl-separator-color: #d9e1ea;
+  --memdef-border-color: #c7d2df;
+  --memdef-title-background-color: #e9f1f6;
+  --memdef-proto-background-color: #f1f7fa;
+  --memdef-proto-text-color: #1f2937;
+  --memdef-doc-background-color: #ffffff;
+  --table-header-background-color: #334e68;
+  --table-header-foreground-color: #ffffff;
+  --fragment-foreground-color: #111827;
+  --fragment-background-color: #f8fafc;
+  --fragment-border-color: #d8e1ea;
+  --font-family-normal: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --font-family-nav: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --font-family-title: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --font-family-monospace: Cascadia Code, Consolas, Monaco, monospace;
+}
+
+body {
+  background: var(--page-background-color) !important;
+  color: var(--page-foreground-color) !important;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+#top,
+#titlearea {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-bottom: 1px solid var(--header-separator-color);
+  box-shadow: 0 1px 10px rgba(31, 41, 51, 0.06);
+}
+
+#projectname {
+  color: #17212b !important;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+#projectbrief {
+  margin-top: 4px;
+  color: #5b6776 !important;
+}
+
+#main-nav {
+  background: #f3f7fa !important;
+  border-bottom: 1px solid #d9e1ea;
+}
+
+#doc-content {
+  background: #ffffff !important;
+}
+
+.contents {
+  max-width: 1160px;
+  padding: 28px 34px 48px;
+}
+
+.contents,
+.contents p,
+.contents li,
+.contents td,
+.contents dd,
+.contents dl,
+.contents table,
+.textblock {
+  color: #263241 !important;
+}
+
+.contents h1,
+.contents h2,
+.contents h3 {
+  color: #111827 !important;
+  letter-spacing: 0;
+}
+
+.contents h1 {
+  font-size: 30px;
+  border-bottom: 1px solid #d9e1ea;
+  padding-bottom: 12px;
+}
+
+.contents h2 {
+  margin-top: 34px;
+  font-size: 24px;
+}
+
+.contents h3 {
+  margin-top: 26px;
+  font-size: 19px;
+}
+
+.contents p,
+.contents li {
+  max-width: 92ch;
+}
+
+.fragment {
+  background: #f8fafc !important;
+  color: #111827 !important;
+  border: 1px solid #d8e1ea !important;
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+div.line {
+  color: #111827 !important;
+  line-height: 1.45;
+}
+
+.memitem,
+.memproto,
+.memdoc,
+.memtitle,
+.memname {
+  border-radius: 6px;
+}
+
+.memproto {
+  box-shadow: none;
+}
+
+.memdoc {
+  border-top: 0;
+}
+
+.directory,
+table.memberdecls {
+  background: #ffffff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+#nav-tree {
+  background: #eef4f8 !important;
+  color: #243447 !important;
+}
+
+#side-nav {
+  background: #eef4f8 !important;
+  border-right: 1px solid #d6dee8 !important;
+}
+
+#nav-tree a,
+#nav-tree .item {
+  color: #243447 !important;
+}
+
+#nav-tree .selected {
+  background-image: none;
+  background-color: #0f766e !important;
+  color: #ffffff !important;
+  text-shadow: none;
+}
+
+.tablist li,
+.tablist a {
+  background-image: none;
+}
+
+.tablist a {
+  color: #243447 !important;
+  text-shadow: none;
+}
+
+.tablist a:hover,
+.tablist li.current a {
+  background-color: #0f766e !important;
+  color: #ffffff !important;
+}
+
+.sm-dox,
+.sm-dox ul,
+.sm-dox a {
+  background-image: none !important;
+}
+
+.sm-dox a {
+  color: #243447 !important;
+  text-shadow: none !important;
+}
+
+.sm-dox a:hover,
+.sm-dox a:focus,
+.sm-dox a:active,
+.sm-dox a.highlighted {
+  background: #0f766e !important;
+  color: #ffffff !important;
+}
+
+code,
+tt,
+.fragment,
+.line {
+  font-family: var(--font-family-monospace);
+}

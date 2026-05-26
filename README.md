@@ -1,381 +1,423 @@
-# Particle Swarm Optimization Framework
+# AMSC Particle Swarm Optimization Project
 
-This project implements two variants of the **Particle Swarm Optimization (PSO)** algorithm in C++ for solving global optimization problems.  
-It includes **serial and parallel versions** (MPI and OpenMP), an **automated testing system**, and tools for **performance analysis** on standard benchmark functions.
+This repository contains a set of Particle Swarm Optimization implementations
+used to compare serial, MPI-parallel, topology-based, DMS-PSO-HS and CPSO
+approaches on a common benchmark suite.
 
-## Introduction
+The code is organized around shared benchmark interfaces in `src/interfaces/`
+and a shared function library in `src/interfaces/functions.hpp`. Each solver returns
+standard output objects or run artifacts so that convergence, execution time and
+communication costs can be compared across methods.
 
-This project was developed as part of the "Advanced Mathod for Scientific Computing" course (2025/2026) teached by Luca Formaggia in "Politecnico di Milano ".  
-Its goal is to explore the Particle Swarm Optimization algorithm.  
-The framework allows easy testing of multiple mathematical benchmark functions and comparison between different PSO variants on both local and distributed systems.
+## Repository Layout
 
-This project is made by the following students: 
+- `src/`: common interfaces, benchmark functions and shared build files.
+- `src/pso/`: standard serial and MPI PSO implementation and drivers.
+- `src/topology/`: topology-based PSO, with classic, small-world, scale-free and
+  random communication graphs.
+- `src/dpso/`: DMS-PSO-HS serial and MPI implementations.
+- `src/cpso/`: Cooperative PSO implementation with serial and MPI solvers.
+- `src/benchmarks/`: benchmark launchers, raw results, analysis scripts and plots.
+- `Bibliography/`: reference papers and source material.
 
-- Lorenzo Apolone
-- Francesco Calzona
-- Alessandro Masini
-- Matteo Parimbelli
-- Giovanni Vaccaro
+## Quick Start: Build and Run
 
+The commands below assume a Linux, WSL or HPC login-node environment. Each
+section states the directory where the command should be launched.
 
-## Objectives
+### 1. Install or load prerequisites
 
-- Implement the **serial PSO algorithm** and   the **parallel PSO algorithm**
-- Test the algorithm on **benchmark functions** such as Sphere, Ellipsoid, Sum of Different Powers, DropWave, Weierstrass, Alpine1, and others.  
-- Develop **parallel implementations** using **OpenMP** and **MPI**, and analyze **speed-up**, **efficiency**, and **convergence**.  
+Required tools:
 
+- C++17 compiler;
+- `make`;
+- MPI compiler and launcher (`mpic++`, `mpirun`);
+- Python 3 for benchmark orchestration scripts.
 
-## Requirements
+Optional documentation tools:
 
-- **Compiler:** GCC or Clang with C++17 support  
-- **Parallelism:** OpenMPI (for distributed version) or OpenMP (for shared-memory version)  
-- **Tools:**  
-  - GNU Make or CMake  
-  - Python 3 + Matplotlib (optional, for plots)  
+- `doxygen`;
+- Graphviz `dot`, used by Doxygen for class and call graphs.
 
+On Ubuntu/WSL, the usual package set is:
 
-## Installation
-
-Clone the repository:
+Working directory: any directory.
 
 ```bash
-git clone https://github.com/AMSC-25-26/swarm-search-2-swarmsearch
-
+sudo apt update
+sudo apt install build-essential make openmpi-bin libopenmpi-dev python3 doxygen graphviz
 ```
 
+On an HPC cluster, load the equivalent compiler, MPI and Python modules before
+building. For example:
 
-## Execution
+Working directory: any directory.
 
-Two type of executions are supported: the serial one and the parallel one. Both can be compiled simultaneously.
-
-### Compilation
-
-From the folder ./swarm-search-2-swarmsearch/:
-
-To compile both files:
-
-```cd src
-make 
-```
-Or compiling individually
-
-```make serial
-make parallel 
-```
-
-### Parallel Execution
-To execute it starting from: 
-
-```
-mpirun -np <Num of prcessor>  ./main_parallel <Dim> <Number of particel> <Max iterations> <Error supported>
-```
-Example: 
-
-```
-mpirun -np 4 ./main_parallel 10 100 1000 0.001
-```
-
-### Serial Execution
-
-If you want to use the serial:  
-
-
-```
-./main_serial <Dim> <Number_of_particles> <Max_iterations> <Error_tolerance>
-```
-
-Example: 
-
-```
-mpirun ./main_serial 10 100 1000 0.001
-```
-
-
-## Project Structure 
 ```bash
-.
-|-- Bibliography
-|   |-- data-07-00046-v2.pdf
-|   |-- s11831-021-09694-4.pdf
-|   |-- s12065-019-00210-z.pdf
-|   `-- s13369-018-03713-6.pdf
-|-- Description_SwarmOptimization.pdf
-|-- README.md
-|-- guides
-|   `-- massive_testing.md
-|-- poetry.lock
-|-- pyproject.toml
-`-- src
-    |-- Makefile
-    |-- __pycache__
-    |-- functions.cpp
-    |-- functions.o
-    |-- interfaces.cpp
-    |-- interfaces.hpp
-    |-- interfaces.o
-    |-- main_parallel
-    |-- main_parallel.cpp
-    |-- main_parallel.o
-    |-- main_serial.cpp
-    |-- make.dep
-    |-- methods.hpp
-    |-- particle.hpp
-    |-- plots.py
-    |-- pso_mpi.cpp
-    |-- pso_mpi.o
-    |-- pso_serial.cpp
-    |-- run_plots.py
-    |-- run_tests.sh
-    |-- tests
-    `-- utilities.hpp
+module load gcc
+module load openmpi
+module load python
 ```
-## functions.cpp
 
-This module implements a **suite of continuous optimization benchmarks** as concrete classes derived from  Bibliography/data-07-00046-v2.pdf
-Each class defines:
-- a **name** (for logging/output),
-- **domain bounds** `(lower, upper)`,
-- the **known global minimizer** `x*`, and
-- the scalar **objective** `double value(const std::vector<double>& x) const`.
+### 2. Build all local executables
 
-The set covers convex, ill-conditioned, separable/non-separable, and strongly multimodal landscapes to stress different PSO behaviors.
+Working directory: repository root.
 
-### Implemented functions
-#### 1. Sphere
-$$
-f(x) = \sum_{i=1}^{D} x_i^2
-$$
+```bash
+make -C src
+make -C src/topology
+make -C src/cpso
+```
 
-#### 2. Ellipsoid
-$$
-f(x) = \sum_{i=1}^{D} i \, x_i^2
-$$
+This creates:
 
-#### 3. Sum of Different Powers
-$$
-f(x) = \sum_{i=1}^{D} |x_i|^{i+1}
-$$
+- `src/main_serial` and `src/main_parallel` for standard PSO;
+- `src/main_dpso` and `src/main_dpso_serial` for DMS-PSO-HS;
+- `src/topology/topology_parallel` and `src/topology/topology_serial`;
+- `src/cpso/test_cpso` and `src/cpso/test_cpso_parallel`.
 
-#### 4. Quintic Function
-$$
-f(x) = \sum_{i=1}^{D} \big(x_i^5 - 3x_i^4 + 4x_i^3 + 2x_i^2 - 10x_i - 4\big)
-$$
+To remove object files and dependency files:
 
-#### 5. Drop-Wave
-$$
-f(x) = 1 - \frac{1 + \cos\left(12\sqrt{\sum_{i=1}^{D} x_i^2}\right)}{0.5 \sum_{i=1}^{D} x_i^2 + 2}
-$$
+Working directory: repository root.
 
-#### 6. Weierstrass
-$$
-f(x) = \sum_{i=1}^{D} \sum_{k=0}^{k_{max}} \big[a^k \cos(2\pi b^k (x_i + 0.5))\big]- D \sum_{k=0}^{k_{max}} \big[a^k \cos(\pi b^k)\big]
-$$
-where $$ a = 0.5, \, b = 3, \, k_{max} = 20 $$
+```bash
+make -C src clean
+make -C src/topology clean
+make -C src/cpso clean
+```
 
-#### 7. Alpine1
-$$
-f(x) = \sum_{i=1}^{D} |x_i \sin(x_i) + 0.1x_i|
-$$
+To also remove the top-level `src` executables:
 
-#### 8. Ackley
-$$
-f(x) = -20 \exp\left(-0.2 \sqrt{\frac{1}{D}\sum x_i^2}\right)-\exp\left(\frac{1}{D}\sum \cos(2\pi x_i)\right) + 20 + e
-$$
+Working directory: repository root.
 
-#### 9. Griewank
-$$
-f(x) = \frac{1}{4000}\sum_{i=1}^{D} x_i^2 - \prod_{i=1}^{D} \cos\left(\frac{x_i}{\sqrt{i}}\right) + 1
-$$
+```bash
+make -C src distclean
+```
 
-#### 10. Rastrigin
-$$
-f(x) = \sum_{i=1}^{D} [x_i^2 - 10 \cos(2\pi x_i) + 10]
-$$
+### 3. Run quick smoke tests
 
-#### 11. HappyCat
-$$
-f(x) = \left(\frac{\|x\|^2 - D}{4} \right)^2 + \frac{1}{D}\sum x_i + 0.5
-$$
+These examples use small dimensions and iteration counts so that each executable
+can be checked quickly. Increase the parameters for full experiments.
 
-#### 12. HGBat
-$$
-f(x) = \sqrt{|\|x\|^2 - (\sum x_i)^2|} + \frac{0.5(\|x\|^2 + (\sum x_i)^2)}{D} + 0.5
-$$
+Standard PSO:
 
-#### 13. Rosenbrock
-$$
-f(x) = \sum_{i=1}^{D-1} [100(x_{i+1} - x_i^2)^2 + (x_i - 1)^2]
-$$
+Working directory before running the commands: repository root.
 
-#### 14. High Conditioned Elliptic
-$$
-f(x) = \sum_{i=1}^{D} (10^6)^{\frac{i-1}{D-1}} x_i^2
-$$
+```bash
+cd src
 
-#### 15. Discus
-$$
-f(x) = 10^6 x_1^2 + \sum_{i=2}^{D} x_i^2
-$$
+./main_serial 8 64 1000 1e-4 123
+mpirun -np 4 ./main_parallel 8 64 1000 1e-4
+```
 
-#### 16. Bent Cigar
-$$
-f(x) = x_1^2 + 10^6 \sum_{i=2}^{D} x_i^2
-$$
+DMS-PSO-HS:
 
-#### 17. Perm D, Beta (PermdbFunc)
-$$
-f(x) = \sum_{k=1}^{D} \left[\sum_{i=1}^{D} \left(\frac{i^k + \beta}{D}(x_i^k - \frac{1}{i^k})\right)\right]^2
-$$
-where $$ \beta = 0.5 $$
+Working directory before running the commands: repository root.
 
-#### 18. Schaffer F7
-$$
-f(x) = \left(\frac{1}{D-1}\sum_{i=1}^{D-1} \sqrt{s_i}(\sin(50 s_i^{0.2}) + 1)\right)^2
-$$
-where $$ s_i = x_i^2 + x_{i+1}^2 $$
+```bash
+cd src
 
-#### 19. Expanded Schaffer F6
-$$
-f(x) = \sum_{i=1}^{D-1} \left[0.5 + \frac{\sin^2(\sqrt{x_i^2 + x_{i+1}^2}) - 0.5}{(1 + 0.001(x_i^2 + x_{i+1}^2))^2}\right]
-$$
+./main_dpso_serial 8 64 1000 1e-4 dpso/params.txt 123
+mpirun -np 4 ./main_dpso 8 64 1000 1e-4 dpso/params.txt 123
+```
 
-#### 20. Rotated Hyper-Ellipsoid
-$$
-f(x) = \sum_{i=1}^{D} \sum_{j=1}^{i} x_j^2
-$$
+Topology-based PSO:
 
-#### 21. Schwefel
-$$
-f(x) = 418.9829D - \sum_{i=1}^{D} x_i \sin(\sqrt{|x_i|})
-$$
+Working directory before running the commands: repository root.
 
-#### 22. Sum of Different Powers 2
-$$
-f(x) = \sum_{i=1}^{D} |x_i|^{i+2}
-$$
+```bash
+cd src/topology
 
-#### 23. Xin-She Yang 1
-$$
-f(x) = \sum_{i=1}^{D} \epsilon_i |x_i|^i, \quad \epsilon_i \sim U(0,1)
-$$
+./topology_serial 8 64 1000 1e-4 123
+mpirun -np 4 ./topology_parallel 8 64 1000 1e-4 123
+```
 
-#### 24. Schwefel 2.21
-$$
-f(x) = \max_i |x_i|
-$$
+Cooperative PSO:
 
-#### 25. Schwefel 2.22
-$$
-f(x) = \sum_{i=1}^{D} |x_i| + \prod_{i=1}^{D} |x_i|
-$$
+Working directory before running the commands: repository root.
 
-#### 26. Salomon
-$$
-f(x) = 1 - \cos(2\pi \sqrt{\sum x_i^2}) + 0.1\sqrt{\sum x_i^2}
-$$
+```bash
+cd src/cpso
 
-#### 27. Modified Ridge
-$$
-f(x) = x_1^2 + 100\sqrt{\sum_{i=2}^{D} x_i^2}
-$$
+./test_cpso 8 4 16 1000 123
+mpirun -np 4 ./test_cpso_parallel 8 4 16 1000 50 50 123
+```
 
-#### 28. Zakharov
-$$
-f(x) = \sum_{i=1}^{D} x_i^2 + \left(\sum_{i=1}^{D} 0.5 i x_i\right)^2 + \left(\sum_{i=1}^{D} 0.5 i x_i\right)^4
-$$
+For CPSO communication ablation runs, disable the greedy merge fallback with:
 
-#### 29. Modified Xin-She Yang 3
-$$
-f(x) = \exp\left(-\sum_{i=1}^{D} \sin(x_i^2)\right) - 2\exp\left(-\sum_{i=1}^{D} (x_i - \pi)^2\right)
-$$
+Working directory: `src/cpso`.
 
-#### 30. Modified Xin-She Yang 5
-$$
-f(x) = \sum_{i=1}^{D} \sin^6(x_i) + 0.1 \sum_{i=1}^{D} (x_i - \pi)^2
-$$
+```bash
+CPSO_MPI_DISABLE_GREEDY_MERGE=1 mpirun -np 4 ./test_cpso_parallel 8 4 16 1000 50 50 123
+```
 
-## Output and Results Management (`interfaces.cpp`)
+### 4. Run benchmark batteries
 
-This component handles **result reporting and data storage** for each PSO optimization run.  
-It is responsible for both **terminal output** (human-readable summaries) and **structured file output** (for later analysis or plotting).
+The benchmark scripts build the needed executables by default, generate a case
+matrix and store raw results under ignored `results/` folders. Use `--dry-run`
+first to inspect the commands.
 
----
+CPSO benchmark battery: validation run. This is a short correctness-oriented
+run used to verify the CPSO benchmark pipeline before launching larger
+experiments.
 
-### **Main Responsibilities**
+Working directory: repository root.
 
-1. **Display concise run summaries**
-   - Function: `void OutputObject::terminal_info()`
-   - Prints to the terminal key information about a completed optimization:
-     - Function name  
-     - Problem dimension  
-     - Number of particles  
-     - Number of cores  
-     - Final convergence value (last Δx)  
-     - Execution time  
-     - Total number of iterations  
+```bash
+bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery validation --dry-run
+bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery validation --seeds 123
+```
 
-   Used for **quick inspection** of single runs.  
-   For large-scale experiments, it’s preferable to use file export instead.
+DMS-PSO-HS benchmark battery: comparable run. This launches the DPSO cases meant
+to be compared against the other PSO variants.
 
----
+Working directory: repository root.
 
-2. **Store results in structured directories**
-   - Function: `void OutputObject::output_to_file()`
-   - Automatically generates a hierarchical directory tree:
+```bash
+bash src/benchmarks/dpso/run_dpso_benchmarks.sh --battery comparable --dry-run
+bash src/benchmarks/dpso/run_dpso_benchmarks.sh --battery comparable --seeds 123
+```
 
-     ```
-     tests/<function_name>/<dimension>/<n_points>/<n_cores>/
-     ```
+Topology benchmark artifacts are in `src/topology/script_benchmark/`. The
+available topology run types are strong scaling, weak scaling and dimension
+sweep runs. Before submitting PBS jobs on a cluster, adjust queue names, module
+loads, paths and resource requests to match the target system.
 
-   - Each test run is saved as:
-     ```
-     test_<N>.txt
-     ```
-     where `<N>` is an auto-incremented index determined by scanning existing files (via `get_max_test_number()`).
+### 5. Generate and view the Doxygen documentation
 
----
+Working directory: repository root. The first command generates
+`docs/doxygen/html/`; the second command serves that generated HTML locally.
 
-3. **File contents**
+```bash
+doxygen Doxyfile
+python3 -m http.server 8765 --bind 127.0.0.1 --directory docs/doxygen/html
+```
 
-   Each output file stores one line per iteration of the PSO run with columns:
+Then open:
 
+```text
+http://127.0.0.1:8765/index.html
+```
 
+The generated `docs/doxygen/` directory is ignored by Git. Commit the Doxygen
+configuration and theme files, but not the generated HTML output.
 
-## Serial PSO (`pso_serial.cpp`)
+## Standard PSO
 
-Implements the **sequential Particle Swarm Optimization (PSO)** algorithm.
+The base implementation is the reference Particle Swarm Optimization solver.
+Particles move in the full `D`-dimensional search space and update their
+velocity from three terms: inertia, personal best attraction and swarm-level
+social attraction.
 
-- Function: `pso_serial(const TestFunction& f, int d, const StopCriterion& stop, int n_points)`
-- Uses time-varying inertia (`0.9 → 0.4`), personal/global best updates, and boundary clamping.
-- Stops when reaching the **maximum iterations** or **convergence tolerance**.
+The serial version is implemented in `src/pso/pso_serial.cpp`, while the MPI version
+is implemented in `src/pso/pso_mpi.cpp`. Both rely on the shared `Particle`,
+`TestFunction`, `OutputObject` and `StoppingCriteriaManager` abstractions.
 
-**Key steps:**
-1. Random initialization of particles within `[LB, UB]`.
-2. Iterative update of velocity and position:
+Typical build and run:
 
-## Parallel PSO (MPI) (`pso_mpi.cpp`)
+Working directory before running the commands: repository root.
 
-Implements a **parallel PSO** using MPI with global-best synchronization.
+```bash
+cd src
+make
 
-- Function: `pso_mpi(const TestFunction& f, int d, const StopCriterion& stop, int n_points)`
-- Work split: particles are partitioned across ranks (`local_n` balanced with remainder).
-- Initialization: per-rank RNG (`seed = rank + 42`), positions in `[LB,UB]`, small random velocities.
-- Iteration:
-  - Velocity/position update with linearly decreasing inertia (`0.9 → 0.4`) and boundary clamping.
-  - Local update of `pbest` and tentative `gbest`.
-  - **Global reduction** of best value via `MPI_Allreduce` with `MPI_MINLOC`, then broadcast of the corresponding `gbest_pos`.
-- Stopping:
-  - Rank 0 computes error `f.error(gbest_pos)`, appends to `history`, evaluates `stop.should_stop(...)`, broadcasts stop signal.
-- Timing & output:
-  - Wall time measured with `MPI_Wtime()`.
-  - Returns `OutputObject` with best solution, convergence history (from rank 0), total time, iterations, and `n_cores = size`.
+./main_serial 32 256 10000 0.0001 123
+mpirun -np 4 ./main_parallel 32 256 10000 0.0001
+```
 
-## Main Parallel (`main_parallel.cpp`)
+Serial command-line arguments are:
 
-This file launches the **parallel execution of the PSO algorithm** on all implemented benchmark functions.  
-It initializes MPI, sets problem parameters from command-line arguments, and runs `pso_mpi` for each test function in sequence.
+```text
+<dimension> <number_of_particles> <max_iterations> <target_error> [seed]
+```
 
-## Main Serial (`main_serial.cpp`)
+Parallel command-line arguments are:
 
-This file launches the **serial execution of the PSO algorithm** on all implemented benchmark functions.  
-It initializes and sets problem parameters from command-line arguments, and runs `pso_serial` for each test function in sequence.
+```text
+<dimension> <number_of_particles> <max_iterations> <target_error>
+```
+
+## Variant 1: Topology-Based PSO
+
+The topology-based variant changes the way particles exchange information.
+Instead of always using the global best particle as the social reference, each
+particle communicates through a graph neighborhood. This makes the information
+flow slower and more structured, which can help preserve diversity.
+
+The supported topologies are:
+
+- classic global PSO;
+- small-world network;
+- scale-free network;
+- random Erdos-Renyi network.
+
+The main files are in `src/topology/`:
+
+- `create_network.hpp/.cpp`: topology generators;
+- `pso_topology.hpp`, `pso_topology.cpp`: MPI topology-based solver;
+- `pso_serial_topology.cpp`: serial topology-based solver;
+- `main_topology.cpp`: parallel benchmark entry point;
+- `main_topology_serial.cpp`: serial benchmark entry point.
+
+Build and run:
+
+Working directory before running the commands: repository root.
+
+```bash
+cd src/topology
+make
+
+mpirun -np 4 ./topology_parallel 64 512 10000 0.0001 456
+./topology_serial 64 512 10000 0.0001 456
+```
+
+## Variant 2: DMS-PSO-HS
+
+The DMS-PSO-HS implementation combines Dynamic Multi-Swarm PSO with a Harmony
+Search inspired refinement phase. The swarm is periodically regrouped into
+smaller dynamic sub-swarms, so particles do not keep the same neighborhood for
+the whole run.
+
+The Harmony Search phase introduces additional exploration through harmony
+memory parameters such as HMCR and PAR. These parameters are collected in
+`DPSOParameters` inside `src/dpso/methods_dpso.hpp`.
+
+Main files:
+
+- `src/dpso/dpso.cpp`: MPI implementation;
+- `src/dpso/dpso_serial.cpp`: serial implementation;
+- `src/dpso/main_dpso.cpp`: MPI benchmark driver;
+- `src/dpso/main_dpso_serial.cpp`: serial benchmark driver;
+- `src/dpso/methods_dpso.hpp`: public interface and parameters.
+- `src/dpso/params.txt`: optional per-function parameter configuration.
+
+Build and run:
+
+Working directory before running the commands: repository root.
+
+```bash
+cd src
+make dpso
+
+mpirun -np 4 ./main_dpso 32 256 10000 0.0001
+./main_dpso_serial 32 256 10000 0.0001
+```
+
+To use the provided DPSO parameter file from the `src` directory:
+
+Working directory: `src`.
+
+```bash
+mpirun -np 4 ./main_dpso 32 256 10000 1e-6 dpso/params.txt 123
+./main_dpso_serial 32 256 10000 1e-6 dpso/params.txt 123
+```
+
+## Variant 3: CPSO
+
+The CPSO implementation decomposes the original `D`-dimensional search space
+into `k` sub-swarms. Each sub-swarm owns only a subset of coordinates and
+optimizes those coordinates through a local topology-aware PSO step. Partial
+solutions are evaluated through a shared `ContextVector`, so every local
+candidate is still tested as part of a full objective vector.
+
+The serial solver accepts improvements greedily: each sub-swarm is processed in
+sequence and can immediately update the shared context. The MPI solver uses a
+batch-based protocol instead. Each rank owns a contiguous range of sub-swarms,
+proposes sparse coordinate deltas, exchanges them with `MPI_Allgather`, and then
+uses full, salvaged and greedy merge policies to keep all ranks synchronized on
+the same accepted context.
+
+Main files:
+
+- `CPSOBase.hpp/.cpp`: common setup, decomposition, topologies and context init;
+- `CPSOSerial.hpp/.cpp`: serial CPSO loop;
+- `CPSOParallel.hpp/.cpp`: MPI CPSO loop and merge policy;
+- `SubSwarm.hpp/.cpp`: local particles, memories, active dimensions and PSO step;
+- `ContextVector.hpp/.cpp`: full-vector context used for partial evaluations;
+- `SubSwarmOwnershipUtils.hpp`: sub-swarm to rank ownership ranges;
+- `SubSwarmTopologyFactory.hpp/.cpp`: local graph construction;
+- `SwarmMetrics.hpp/.cpp`: diversity and distance metrics;
+- `CPSOBenchmarkUtils.hpp`: CPSO benchmark factory and output helpers.
+
+Build and run:
+
+Working directory before running the commands: repository root.
+
+```bash
+cd src/cpso
+make
+
+./test_cpso 32 32 8 10000 789
+mpirun -np 4 ./test_cpso_parallel 32 32 8 10000 50 50 789
+```
+
+Parallel arguments are:
+
+```text
+<dimension> <k_subswarms> <particles_per_swarm> [max_iters]
+[shuffle_freq] [stagnation_patience] [seed]
+```
+
+The greedy merge fallback is enabled by default. For communication ablation
+experiments it can be disabled with:
+
+Working directory: `src/cpso`.
+
+```bash
+CPSO_MPI_DISABLE_GREEDY_MERGE=1 mpirun -np 4 ./test_cpso_parallel ...
+```
+
+## Benchmark Functions
+
+All benchmark functions are defined in `src/interfaces/functions.hpp` and derive from
+`TestFunction`. The current suite contains:
+
+- `Sphere`
+- `Ellipsoid`
+- `SumOfDiffPowers`
+- `QuinticFunction`
+- `DropWave`
+- `Weierstrass`
+- `Alpine1`
+- `Ackley`
+- `Griewank`
+- `Rastrigin`
+- `HappyCat`
+- `HGBat`
+- `Rosenbrock`
+- `HighCondElliptic`
+- `Discus`
+- `BentCigar`
+- `Schafferf7Func`
+- `ExpSchafferF6`
+- `RotatedHyper`
+- `Schwefel`
+- `SumOfDifferentPowers2`
+- `XinSheYang1`
+- `Schwefel221`
+- `Schwefel222`
+- `Salomon`
+- `ModifiedRidge`
+- `Zakharov`
+- `ModifiedXinSheYang3`
+- `ModifiedXinSheYang5`
+- `Levy`
+- `Michalewicz`
+- `Bohachevsky`
+- `Powell`
+- `DixonPrice`
+- `StyblinskiTang`
+- `Step`
+- `Qing`
+- `Trid`
+- `Shubert`
+- `Alpine2`
+- `Eggholder`
+- `Easom`
+- `Brown`
+- `Csendes`
+- `Vincent`
+
+Each function stores its dimension, domain, known reference solution and
+typology tags, such as unimodal/multimodal, separable/non-separable and
+differentiable/non-differentiable.

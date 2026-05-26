@@ -1,1 +1,0 @@
-battery,suite,family,case_id,execution_mode,run_label,mpi_processes,dim,sub_swarm_size,total_particles,max_iters,seed,run_outcome,function_outcome,function_name,best_fitness,fitness_error,iterations,function_time_s,comm_total_s,compute_total_s,comm_allgather_s,comm_bcast_s,comm_allreduce_s,comm_barrier_s,wait_total_s,status
