@@ -119,10 +119,11 @@ OutputObject pso_topology(const TestFunction &f,
   // Find and share global best among all ranks
   loc_data.val = gbest_val;
   loc_data.rank = rank;
-  MPI_Allreduce(&loc_data, &glob_data, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD);
-  gbest_val = glob_data.val;
-  MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank, MPI_COMM_WORLD);
+  MPI_Allreduce(&loc_data, &glob_data, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD); // find the global minimum with MPI_MINLOC
+  gbest_val = glob_data.val; // save global best value
+  MPI_Bcast(gbest_pos.data(), d, MPI_DOUBLE, glob_data.rank, MPI_COMM_WORLD); // Broadcast gbest position from winner rank
 
+  // mapping from global particle id to owning rank, useful to determine which particles to exchange with neighbors
   std::vector<int> particle_owner(n_points);
   for (int r = 0; r < size; ++r) {
     for (int i = 0; i < counts[r]; ++i) {
@@ -130,6 +131,7 @@ OutputObject pso_topology(const TestFunction &f,
     }
   }
 
+  // Constraction of export list, each rank analyze the particel he doesn't own and check if they have neighbors  he own, if yes it adds them to the export list. 
   std::vector<std::vector<int>> export_particles(size);
   for (int p = 0; p < n_points; ++p) {
     if (particle_owner[p] == rank) continue;
@@ -141,9 +143,10 @@ OutputObject pso_topology(const TestFunction &f,
   }
   for (int r = 0; r < size; ++r) {
     std::sort(export_particles[r].begin(), export_particles[r].end());
-    export_particles[r].erase(std::unique(export_particles[r].begin(), export_particles[r].end()), export_particles[r].end());
+    export_particles[r].erase(std::unique(export_particles[r].begin(), export_particles[r].end()), export_particles[r].end()); // remove duplicates to avoid usless communication
   }
 
+  // Construction of import list, each rank analyze the particles he own and check if they have neighbors he doesn't own, if yes it adds them to the import list.
   std::vector<std::vector<int>> import_particles(size);
   for (int i = 0; i < local_n; ++i) {
     int gid = displs[rank] + i;
@@ -156,7 +159,7 @@ OutputObject pso_topology(const TestFunction &f,
   }
   for (int r = 0; r < size; ++r) {
     std::sort(import_particles[r].begin(), import_particles[r].end());
-    import_particles[r].erase(std::unique(import_particles[r].begin(), import_particles[r].end()), import_particles[r].end());
+    import_particles[r].erase(std::unique(import_particles[r].begin(), import_particles[r].end()), import_particles[r].end()); // remove duplicates to avoid usless communication
   }
 
   std::vector<int> send_ranks, recv_ranks;
@@ -165,18 +168,19 @@ OutputObject pso_topology(const TestFunction &f,
     if (!import_particles[r].empty()) recv_ranks.push_back(r);
   }
 
+  // Allocation of contiguous sedn/recv buffers
   std::vector<std::vector<double>> send_buffers(size);
   std::vector<std::vector<double>> recv_buffers(size);
   for (int r : send_ranks) {
-    send_buffers[r].resize(export_particles[r].size() * (1 + d));
+    send_buffers[r].resize(export_particles[r].size() * (1 + d)); // (1 + d) for finess + one number for every dimension
   }
   for (int r : recv_ranks) {
     recv_buffers[r].resize(import_particles[r].size() * (1 + d));
   }
 
+  // ghost mapping and storage, we need to store the ghost particles in a contiguous way to update them with the recv buffer, and we need a mapping from global id to ghost index to easily access them when we compute lbest
   int total_ghosts = 0;
   for (int r : recv_ranks) total_ghosts += import_particles[r].size();
-  
   std::vector<double> ghost_val(total_ghosts, std::numeric_limits<double>::max());
   std::vector<double> ghost_pos(total_ghosts * d);
   std::vector<int> gid_to_ghost_idx(n_points, -1);

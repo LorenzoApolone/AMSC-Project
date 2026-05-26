@@ -140,7 +140,7 @@ static void update_experiment_stats(const std::string& name,
     const double final_fitness = result.get_best_fitness();
     const double f_star = function.value(function.get_true_solution());
     const double diff = std::abs(final_fitness - f_star);
-    std::cout << name << "," << diff << "\n"; 
+  //  std::cout << name << "," << diff << "\n"; 
     for (auto t : function.get_typologies()) {
         stats.total_by_typology[t]++;
     }
@@ -329,7 +329,9 @@ static ExperimentStats run_topology_experiment(
     MPI_Barrier(MPI_COMM_WORLD);
     double t_start = MPI_Wtime();
 
+    
     ExperimentStats stats;
+    /*
      if (rank == 0) {
             switch (mode) {
                 case TopologyMode::SMALL_WORLD:
@@ -343,6 +345,7 @@ static ExperimentStats run_topology_experiment(
                     break;
             }
         }
+    */
     for (const auto& name : function_names) {
         auto function = factory.at(name)(dim);
         std::vector<std::vector<int>> adjacency_list;
@@ -423,7 +426,7 @@ static ExperimentStats run_classic_experiment(
 
     ExperimentStats stats;
     if (rank == 0) {
-        std::cout << "\nClassic\n\n";
+     //   std::cout << "\nClassic\n\n";
     }
     for (const auto& name : function_names) {
         auto function = factory.at(name)(dim);
