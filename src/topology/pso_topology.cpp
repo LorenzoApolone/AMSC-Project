@@ -203,12 +203,9 @@ OutputObject pso_topology(const TestFunction &f,
 
   // Main loop that stop when at least one of the stopping criterion is met 
   while (!must_stop) {
+    stop.increment_iterations();
 
-    // incrementing iteration counter of the stopping criteria
-    if (rank == 0){
-          stop.increment_iterations();
-
-    }
+    
 
     // Compute inertia weight for the current iteration
     double current_w =
