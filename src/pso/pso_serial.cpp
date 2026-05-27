@@ -171,7 +171,7 @@ OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& s
         }
         // Prepare for next iteration
         //prev_gbest_val = gbest_val;
-        iter++;
+       
         if (iter >= max_iter_limit) {
             // Reached maximum number of iterations
             must_stop = true;
