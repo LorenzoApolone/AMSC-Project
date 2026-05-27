@@ -171,7 +171,6 @@ int main(int argc, char *argv[]) {
 
     OutputObject result = pso_serial(*f_ptr, dim, stop, n_points, seed);
     result.terminal_info();
-    // result.output_to_file();
   }
   auto t_end = clock::now();
 

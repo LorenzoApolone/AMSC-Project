@@ -198,7 +198,6 @@ int main(int argc, char **argv)
           correct_when_early_stop++;
       }
       result.terminal_info();
-  //    result.output_to_file();
       
     }
   }

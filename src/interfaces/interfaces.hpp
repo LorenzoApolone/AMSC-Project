@@ -22,8 +22,6 @@ enum class FunctionTypology {
   COUPLED
 };
 
-using namespace std;
-
 /**
  * @class TestFunction
  * @brief Abstract base class for optimization problems.
@@ -39,43 +37,43 @@ public:
    * @param true_solution_ Global optimum vector
    */
   TestFunction(unsigned int dim_,
-               string function_name_,
-               pair<double, double> domain_,
-               const vector<double> true_solution_,
-               const vector<FunctionTypology> typologies_ = {}) : dim(dim_),
+               const std::string& function_name_,
+               const std::pair<double, double>& domain_,
+               const std::vector<double>& true_solution_,
+               const std::vector<FunctionTypology>& typologies_ = {}) : dim(dim_),
                                                       function_name(function_name_),
                                                       domain(domain_),
                                                       true_solution(true_solution_),
                                                       typologies(typologies_) {};
 
   unsigned int dim;                       ///< Dimensionality
-  const string function_name;             ///< Function name
-  const pair<double, double> domain;      ///< Search domain
-  const vector<double> true_solution;     ///< Global optimum
-  const vector<FunctionTypology> typologies; ///< Typologies of the function
+  const std::string function_name;             ///< Function name
+  const std::pair<double, double> domain;      ///< Search domain
+  const std::vector<double> true_solution;     ///< Global optimum
+  const std::vector<FunctionTypology> typologies; ///< Typologies of the function
 
   /// @return Function name
-  const string get_name() const { return function_name; }
+  const std::string get_name() const { return function_name; }
 
   /// @return Function typologies
-  const vector<FunctionTypology>& get_typologies() const { return typologies; }
+  const std::vector<FunctionTypology>& get_typologies() const { return typologies; }
 
   /// @return Search domain pair [min, max]
-  const pair<double, double> &get_domain() const { return domain; };
+  const std::pair<double, double> &get_domain() const { return domain; };
 
   /// @brief Calculates fitness f(x), this is a pure virtual function
-  virtual double value(const vector<double> &x) const = 0;
+  virtual double value(const std::vector<double> &x) const = 0;
 
   /// @return Known true solution vector x*
-  const vector<double> &get_true_solution() const { return true_solution; };
+  const std::vector<double> &get_true_solution() const { return true_solution; };
   
   /**
    * @brief Calculates normalized RMSE error between x and true solution
    */
-  double error(const vector<double> &x) const
+  double error(const std::vector<double> &x) const
   {
     auto truth = get_true_solution();
-    const pair<double, double> bounds = get_domain();
+    const std::pair<double, double> bounds = get_domain();
     double range = bounds.second - bounds.first;
     if (range == 0) range = 1.0;
 
@@ -98,20 +96,16 @@ public:
  */
 class OutputObject
 {
-  void output_to_file(string filename)
-  {
-    cout << "Writing results to " << filename << "..." << endl;
-    cout << "Final Fitness: " << f_val << " | Time: " << execution_time << "s" << endl;
-  }
+
 
 public:
-  string function_name;             ///< Problem name
+  std::string function_name;             ///< Problem name
   int d;                            ///< Dimensions
   unsigned int n_points;            ///< Particle count
-  vector<double> x_best;            ///< Best position found
-  vector<double> x_star;            ///< True solution
+  std::vector<double> x_best;            ///< Best position found
+  std::vector<double> x_star;            ///< True solution
   double f_val;                     ///< Best fitness value
-  vector<double> conv_history;      ///< Convergence history
+  std::vector<double> conv_history;      ///< Convergence history
   int n_cores;                      ///< MPI cores used
   double execution_time;            ///< Execution time (in seconds)
   int iterations;                   ///< Total iterations
@@ -127,13 +121,13 @@ public:
 
   const StoppingCriteriaManager &stopcriterion;
 
-  OutputObject(string function_name_,
+  OutputObject(const std::string& function_name_,
                int d_,
                unsigned int n_points_,
-               vector<double> x_best_,
-               vector<double> x_star_,
+               const std::vector<double>& x_best_,
+               const std::vector<double>& x_star_,
                double f_val_,
-               vector<double> conv_history_,
+               const std::vector<double>& conv_history_,
                int n_cores_,
                double execution_time_,
                int iterations_,
@@ -151,8 +145,6 @@ public:
         stopcriterion(stopcriterion_) {};
 
   void terminal_info();
-  void output_to_file();
-void append_summary_csv_by_method(const std::string& method_name, int rep) const;
 double get_best_fitness() const { return f_val; }
 const std::vector<double>& get_best_position() const { return x_best; }
 int get_iterations() const { return iterations; }

@@ -1,0 +1,29 @@
+interfaces/interfaces.o: interfaces/interfaces.cpp \
+ interfaces/interfaces.hpp interfaces/StoppingCriteriaManager.hpp
+pso/main_parallel.o: pso/main_parallel.cpp \
+ pso/../interfaces/functions.hpp pso/../interfaces/interfaces.hpp \
+ pso/../interfaces/StoppingCriteriaManager.hpp pso/methods.hpp \
+ pso/../interfaces/interfaces.hpp
+pso/main_serial.o: pso/main_serial.cpp pso/../interfaces/functions.hpp \
+ pso/../interfaces/interfaces.hpp \
+ pso/../interfaces/StoppingCriteriaManager.hpp \
+ pso/../interfaces/interfaces.hpp pso/methods.hpp
+pso/pso_mpi.o: pso/pso_mpi.cpp pso/../interfaces/interfaces.hpp \
+ pso/../interfaces/StoppingCriteriaManager.hpp
+pso/pso_serial.o: pso/pso_serial.cpp pso/../interfaces/interfaces.hpp \
+ pso/../interfaces/StoppingCriteriaManager.hpp
+dpso/dpso.o: dpso/dpso.cpp dpso/../interfaces/interfaces.hpp \
+ dpso/../interfaces/StoppingCriteriaManager.hpp dpso/methods_dpso.hpp \
+ dpso/../pso/particle.hpp
+dpso/dpso_serial.o: dpso/dpso_serial.cpp \
+ dpso/../interfaces/interfaces.hpp \
+ dpso/../interfaces/StoppingCriteriaManager.hpp dpso/methods_dpso.hpp \
+ dpso/../pso/particle.hpp
+dpso/main_dpso.o: dpso/main_dpso.cpp dpso/methods_dpso.hpp \
+ dpso/../interfaces/interfaces.hpp \
+ dpso/../interfaces/StoppingCriteriaManager.hpp \
+ dpso/../interfaces/functions.hpp dpso/../interfaces/interfaces.hpp
+dpso/main_dpso_serial.o: dpso/main_dpso_serial.cpp dpso/methods_dpso.hpp \
+ dpso/../interfaces/interfaces.hpp \
+ dpso/../interfaces/StoppingCriteriaManager.hpp \
+ dpso/../interfaces/functions.hpp dpso/../interfaces/interfaces.hpp
