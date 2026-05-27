@@ -95,7 +95,7 @@ struct ExperimentStats {
     int correct_when_early_stop = 0;
     int correct_total = 0;
     int number_of_converged = 0;
-    double t_allgatherv = 0.0;
+    double t_communication = 0.0;
     double total_time = 0.0;
     std::vector<std::string> functions_converged;
     std::map<FunctionTypology, int> converged_by_typology;
@@ -377,7 +377,7 @@ static ExperimentStats run_topology_experiment(
                                            stop,
                                            n_points,
                                            adjacency_list,
-                                           stats.t_allgatherv,
+                                           stats.t_communication,
                                            seed);
         
         if (rank == 0) {

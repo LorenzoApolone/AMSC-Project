@@ -28,6 +28,16 @@ int main(int argc, char **argv)
   unsigned int max_iter = atoi(argv[3]);
   double delta_x = atof(argv[4]);
   int size;
+
+  if (dim == 0 || n_points == 0 || max_iter == 0) {
+    int current_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &current_rank);
+    if (current_rank == 0) {
+      std::cerr << "Error: <dim>, <n_points> and <max_iter> must be strictly greater than 0!\n";
+    }
+    MPI_Finalize();
+    return 1;
+  }
   int stopped_by_maxiter_and_incorrect = 0;   
   int stopped_by_maxiter_and_correct = 0;   
   int incorrect_when_early_stop = 0;  

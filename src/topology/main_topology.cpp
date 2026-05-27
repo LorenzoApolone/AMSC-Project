@@ -54,6 +54,16 @@ int main(int argc, char **argv)
   unsigned int max_iter= std::atoi(argv[3]);
   double delta_x       = std::atof(argv[4]);
   unsigned int seed    = (argc > 5) ? static_cast<unsigned int>(std::stoul(argv[5])) : 12345;
+
+  if (dim == 0 || n_points == 0 || max_iter == 0) {
+    int current_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &current_rank);
+    if (current_rank == 0) {
+      std::cerr << "Error: <dim>, <n_points> and <max_iter> must be strictly greater than 0!\n";
+    }
+    MPI_Finalize();
+    return 1;
+  }
   int m = 3;                                // for scale-free network, number of edges of each new node
   int iterations_stagnation = std::max(100, static_cast<int>(max_iter / 4)); // number of iterations for stagnation control
   double stagnation_tol = 1e-8;             // tolerance for stagnation-based stopping
@@ -162,13 +172,13 @@ int main(int argc, char **argv)
     std::cout << "Total time classic PSO: " << classic_stats.total_time << " s\n";
     std::cout << "Convergence rate classic PSO: " << classic_stats.number_of_converged << "/" << number_of_functions  << std::endl;
 
-    std::cout << "Total time small-world network timer version: " << small_stats.t_allgatherv << "/"  << small_stats.total_time << " s\n";
+    std::cout << "Total time small-world network timer version: " << small_stats.t_communication << "/"  << small_stats.total_time << " s\n";
     std::cout << "Convergence rate small-world network: " << small_stats.number_of_converged << "/" << number_of_functions << std::endl;
 
-    std::cout << "Total time scale-free network timer version: " << scale_stats.t_allgatherv << "/"  << scale_stats.total_time << " s\n";
+    std::cout << "Total time scale-free network timer version: " << scale_stats.t_communication << "/"  << scale_stats.total_time << " s\n";
     std::cout << "Convergence rate scale-free network: " << scale_stats.number_of_converged << "/" << number_of_functions << std::endl;
 
-    std::cout << "Total time random network timer version: " << random_stats.t_allgatherv << "/"  << random_stats.total_time << " s\n";
+    std::cout << "Total time random network timer version: " << random_stats.t_communication << "/"  << random_stats.total_time << " s\n";
     std::cout << "Convergence rate random network: " << random_stats.number_of_converged << "/" << number_of_functions << std::endl << std::endl;
     */
 
@@ -179,19 +189,19 @@ int main(int argc, char **argv)
     // std::cout << "RESULT,method,dim,n_points,max_iter,delta_x,seed,time_total,time_comm,converged,total\n";
 
     std::cout << "RESULT,classic," << dim << "," << n_points << "," << max_iter << "," << delta_x << "," << seed << "," 
-              << classic_stats.total_time << "," << classic_stats.t_allgatherv << "," 
+              << classic_stats.total_time << "," << classic_stats.t_communication << "," 
               << classic_stats.number_of_converged << "," << number_of_functions << "\n";
 
     std::cout << "RESULT,scale_free," << dim << "," << n_points << "," << max_iter << "," << delta_x << "," << seed << "," 
-              << scale_stats.total_time << "," << scale_stats.t_allgatherv << "," 
+              << scale_stats.total_time << "," << scale_stats.t_communication << "," 
               << scale_stats.number_of_converged << "," << number_of_functions << "\n";
 
     std::cout << "RESULT,small_world," << dim << "," << n_points << "," << max_iter << "," << delta_x << "," << seed << "," 
-              << small_stats.total_time << "," << small_stats.t_allgatherv << "," 
+              << small_stats.total_time << "," << small_stats.t_communication << "," 
               << small_stats.number_of_converged << "," << number_of_functions << "\n";
 
     std::cout << "RESULT,random," << dim << "," << n_points << "," << max_iter << "," << delta_x << "," << seed << "," 
-              << random_stats.total_time << "," << random_stats.t_allgatherv << "," 
+              << random_stats.total_time << "," << random_stats.t_communication << "," 
               << random_stats.number_of_converged << "," << number_of_functions << "\n";
 
     std::cout << "RESULT,not_converged," << n << "," << number_of_functions << "\n";

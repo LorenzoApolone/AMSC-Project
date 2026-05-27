@@ -40,7 +40,7 @@
  * @param adjacency_list Adjacency list defining the communication topology
  *        between particles. Each index corresponds to a particle and stores
  *        the list of its neighbors.
- * @param t_allgatherv_tot Accumulator for the total communication time spent
+ * @param t_communication_tot Accumulator for the total communication time spent
  *        in MPI_Allgatherv operations.
  *
  * @return OutputObject containing the results of the optimization,
@@ -52,7 +52,7 @@ OutputObject pso_topology(const TestFunction &f,
                        int d,
                         StoppingCriteriaManager &stop,
                        int n_points,
-                       const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot, unsigned int seed = 12345);
+                       const std::vector<std::vector<int>> &adjacency_list,  double &t_communication_tot, unsigned int seed = 12345);
 
 /**
  * @brief Execute the topology-based serial PSO algorithm.
@@ -61,7 +61,7 @@ OutputObject pso_topology(const TestFunction &f,
  * It has the same characteristics as the parallel version, it's his copy whitouth
  * MPI command. Particles are distributed across processes and exchange their
  * personal-best information in order to compute neighborhood-best solutions
- * according to a given communication topology. The t_allgatherv_tot parameter is not used
+ * according to a given communication topology. The t_communication_tot parameter is not used
  * in this version.
  *
  * The algorithm iteratively updates particle velocities and positions until

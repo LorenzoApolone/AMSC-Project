@@ -76,7 +76,7 @@ OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &sto
   double UB = bounds.second;
 
   /// @brief Seed for random number generator (using different seeds per rank is crucial)
-  std::mt19937 gen(seed);
+  std::mt19937 gen(seed + rank);
   std::uniform_real_distribution<> dis(LB, UB);
   std::uniform_real_distribution<> dis_01(0.0, 1.0);
 

@@ -52,6 +52,11 @@ int main(int argc, char *argv[]) {
   unsigned int max_iter = std::atoi(argv[3]);
   unsigned int seed = (argc > 5) ? static_cast<unsigned int>(std::stoul(argv[5])) : 12345;
 
+  if (dim == 0 || n_points == 0 || max_iter == 0) {
+    std::cerr << "Error: <dim>, <n_points> and <max_iter> must be strictly greater than 0!\n";
+    return 1;
+  }
+
   int iterations_stagnation = std::max(100, static_cast<int>(max_iter / 4)); // number of iterations for stagnation control
   double stagnation_tol = 1e-8; // delta x for
   double stagnation_rel_tol = 1e-4; // relative tolerance for stagnation

@@ -30,7 +30,7 @@ OutputObject pso_topology(const TestFunction &f,
                        int d,
                       StoppingCriteriaManager &stop,
                        int n_points,
-                       const std::vector<std::vector<int>> &adjacency_list,  double &t_allgatherv_tot, unsigned int seed) {
+                       const std::vector<std::vector<int>> &adjacency_list,  double &t_communication_tot, unsigned int seed) {
 
   // MPI Setup
   int rank, size;
@@ -75,7 +75,7 @@ OutputObject pso_topology(const TestFunction &f,
   double UB = bounds.second;
 
   // Random generators to dinstribute particel on the domain
-  std::mt19937 gen(seed);
+  std::mt19937 gen(seed + rank);
   std::uniform_real_distribution<> dis(LB, UB);
   std::uniform_real_distribution<> dis_01(0.0, 1.0);
   std::uniform_real_distribution<> vel_dis(-1.0, 1.0);
@@ -260,7 +260,7 @@ OutputObject pso_topology(const TestFunction &f,
 
     double t_end = MPI_Wtime();
     // Accumulate P2P time, useful to monitor this bottleneck 
-    t_allgatherv_tot += (t_end - t_start);
+    t_communication_tot += (t_end - t_start);
 
 
     // 2) For each local particle, compute lbest from adjacency_list using all_pbest_

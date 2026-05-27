@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file CPSOBase.cpp
  * @brief Implements the shared setup logic used by the CPSO solvers.
  */

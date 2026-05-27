@@ -59,6 +59,11 @@ int main(int argc, char **argv)
   unsigned int max_iter= std::atoi(argv[3]);
   double delta_x       = std::atof(argv[4]);
   unsigned int seed    = (argc > 5) ? static_cast<unsigned int>(std::stoul(argv[5])) : 12345;
+
+  if (dim == 0 || n_points == 0 || max_iter == 0) {
+    std::cerr << "Error: <dim>, <n_points> and <max_iter> must be strictly greater than 0!\n";
+    return 1;
+  }
   int m = 3;                                // for scale-free network, number of edges of each new node
   int iterations_stagnation = std::max(100, static_cast<int>(max_iter / 4)); // number of iterations for stagnation control
   double stagnation_tol = 1e-8;             // tolerance for stagnation-based stopping
