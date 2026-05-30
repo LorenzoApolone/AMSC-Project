@@ -168,7 +168,7 @@ Available batteries via the `--battery <NAME>` argument:
 
 ```bash
 cd AMSC-Project
-bash src/dpso/run_benchmarks.sh --battery all
+bash src/benchmarks/dpso/run_benchmarks.sh --battery all
 ```
 
 ### Topology Benchmark Batteries
