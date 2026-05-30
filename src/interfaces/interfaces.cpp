@@ -29,14 +29,6 @@ using namespace std;
  * overview of results. not suggested for massive testing, in this case use output_to_file() 
  */
 
-static std::string sanitize_filename(std::string s)
-{
-    for (char& c : s) {
-        if (!(std::isalnum(static_cast<unsigned char>(c)) || c=='-' || c=='_'))
-            c = '_';
-    }
-    return s;
-}
 void OutputObject::terminal_info(){
     std::cout << "\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
     std::cout << "Test function: " << function_name << std::endl;
