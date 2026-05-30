@@ -61,9 +61,8 @@ module load python
 
 ### 2. Build all local executables
 
-Working directory: repository root.
-
 ```bash
+cd AMSC-Project
 make -C src
 make -C src/topology
 make -C src/cpso
@@ -78,9 +77,8 @@ This creates:
 
 To remove object files and dependency files:
 
-Working directory: repository root.
-
 ```bash
+cd AMSC-Project
 make -C src clean
 make -C src/topology clean
 make -C src/cpso clean
@@ -88,9 +86,8 @@ make -C src/cpso clean
 
 To also remove the top-level `src` executables:
 
-Working directory: repository root.
-
 ```bash
+cd AMSC-Project
 make -C src distclean
 ```
 
@@ -167,9 +164,8 @@ Available batteries via the `--battery <NAME>` argument:
 - **`appendix`**: Transition observation runs. Fixed `k=28` varying MPI processes to observe the transition towards `np=28`.
 - **`all`**: Runs all the above batteries.
 
-Working directory: repository root.
-
 ```bash
+cd AMSC-Project
 bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery all --dry-run
 bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery all --seeds 123
 ```
@@ -184,9 +180,8 @@ Available batteries via the `--battery <NAME>` argument:
 - **`serial`**: Serial baseline. Runs `main_dpso_serial` with the same configurations as the strong scaling and dimension sweep for direct comparison.
 - **`all`**: Runs all the above specific DPSO tests.
 
-Working directory: repository root.
-
 ```bash
+cd AMSC-Project
 bash src/dpso/run_benchmarks.sh --battery all
 ```
 
@@ -199,18 +194,18 @@ The topology benchmarks are launched sequentially from a predefined input list. 
 - **Weak Scaling (Constant Local Load)**: Both dimensions (`4 * np`) and particles (`32 * np`) scale with MPI processes.
 - **Dimension Sweep**: Fixed `np=8`, dimension varies from 16 to 256.
 
-Working directory: repository root.
-
 ```bash
+cd AMSC-Project
 bash src/benchmarks/topology/run_topology_benchmarks.sh
 ```
 
 ### 5. Generate and view the Doxygen documentation
 
-Working directory: repository root. The first command generates
+The first command generates
 `docs/doxygen/html/`; the second command serves that generated HTML locally.
 
 ```bash
+cd AMSC-Project
 doxygen Doxyfile
 python3 -m http.server 8765 --bind 127.0.0.1 --directory docs/doxygen/html
 ```
