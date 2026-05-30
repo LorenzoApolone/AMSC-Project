@@ -157,31 +157,53 @@ The benchmark scripts build the needed executables by default, generate a case
 matrix and store raw results under ignored `results/` folders. Use `--dry-run`
 first to inspect the commands.
 
-CPSO benchmark battery: validation run. This is a short correctness-oriented
-run used to verify the CPSO benchmark pipeline before launching larger
-experiments.
+### CPSO Benchmark Batteries
+
+Available batteries via the `--battery <NAME>` argument:
+- **`validation`**: Short correctness check to verify the pipeline. Runs `dim=64` and `dim=128` with `k=28` subswarms on serial, np=1, np=4, and np=28.
+- **`comparable`**: Inter-method comparison. Strong scaling with a fixed total problem (`dim=32, 64, 128`), `k=32`, and 8 particles per swarm. Varies MPI processes.
+- **`cpso`**: CPSO specific runs. Includes weak scaling tests (constant particles per process, constant dimension per process, constant local load) and a dimension sweep up to `dim=256` for `np=8`.
+- **`communication`**: Ablation study on MPI communication policies. Compares baseline greedy merge versus no-greedy fallback for `dim=64, 128`.
+- **`appendix`**: Transition observation runs. Fixed `k=28` varying MPI processes to observe the transition towards `np=28`.
+- **`all`**: Runs all the above batteries.
 
 Working directory: repository root.
 
 ```bash
-bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery validation --dry-run
-bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery validation --seeds 123
+bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery all --dry-run
+bash src/benchmarks/cpso/run_cpso_benchmarks.sh --battery all --seeds 123
 ```
 
-DMS-PSO-HS benchmark battery: comparable run. This launches the DPSO cases meant
-to be compared against the other PSO variants.
+### DMS-PSO-HS (DPSO) Benchmark Batteries
+
+Available batteries via the `--battery <NAME>` argument:
+- **`strong`**: Strong scaling benchmark. Fixed total problem (dim=32, 64, 128) with 256 particles. Varies MPI processes.
+- **`weak_ppc`**: Weak scaling with constant particles per process. `dim=64` fixed, total particles scale with MPI processes.
+- **`weak_local`**: Weak scaling with constant local load. Each process gets a fixed portion of dimensions and particles. Total dimensions and particles scale with MPI processes.
+- **`dim_sweep`**: Dimension sweep with a fixed number of MPI processes (`np=8`) and fixed total particles (`128`).
+- **`serial`**: Serial baseline. Runs `main_dpso_serial` with the same configurations as the strong scaling and dimension sweep for direct comparison.
+- **`all`**: Runs all the above specific DPSO tests.
 
 Working directory: repository root.
 
 ```bash
-bash src/benchmarks/dpso/run_dpso_benchmarks.sh --battery comparable --dry-run
-bash src/benchmarks/dpso/run_dpso_benchmarks.sh --battery comparable --seeds 123
+bash src/benchmarks/dpso/run_benchmarks.sh --battery all
 ```
 
-Topology benchmark artifacts are in `src/topology/script_benchmark/`. The
-available topology run types are strong scaling, weak scaling and dimension
-sweep runs. Before submitting PBS jobs on a cluster, adjust queue names, module
-loads, paths and resource requests to match the target system.
+### Topology Benchmark Batteries
+
+The topology benchmarks are launched sequentially from a predefined input list. It executes the following test campaigns:
+- **Strong Scaling**: Fixed total problem size for `dim=32`, `dim=64`, and `dim=128` with 256 particles. Runs serial and MPI from np=1 up to np=28.
+- **Weak Scaling (Constant Particles)**: `dim=64`, particles scale with MPI processes (`32 * np`).
+- **Weak Scaling (Constant Dimension)**: Total particles fixed at 224, dimension scales with MPI processes (`8 * np`).
+- **Weak Scaling (Constant Local Load)**: Both dimensions (`4 * np`) and particles (`32 * np`) scale with MPI processes.
+- **Dimension Sweep**: Fixed `np=8`, dimension varies from 16 to 256.
+
+Working directory: repository root.
+
+```bash
+bash src/benchmarks/topology/run_topology_benchmarks.sh
+```
 
 ### 5. Generate and view the Doxygen documentation
 
