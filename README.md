@@ -18,7 +18,10 @@ communication costs can be compared across methods.
 - `src/dpso/`: DMS-PSO-HS serial and MPI implementations.
 - `src/cpso/`: Cooperative PSO implementation with serial and MPI solvers.
 - `src/benchmarks/`: benchmark launchers, raw results, analysis scripts and plots.
+- `docs/`: Paper and doxygen files.
 - `Bibliography/`: reference papers and source material.
+ 
+
 
 ## Quick Start: Build and Run
 
