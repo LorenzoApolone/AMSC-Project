@@ -41,8 +41,6 @@ Optional documentation tools:
 
 On Ubuntu/WSL, the usual package set is:
 
-Working directory: any directory.
-
 ```bash
 sudo apt update
 sudo apt install build-essential make openmpi-bin libopenmpi-dev python3 doxygen graphviz
@@ -50,8 +48,6 @@ sudo apt install build-essential make openmpi-bin libopenmpi-dev python3 doxygen
 
 On an HPC cluster, load the equivalent compiler, MPI and Python modules before
 building. For example:
-
-Working directory: any directory.
 
 ```bash
 module load gcc
@@ -98,8 +94,6 @@ can be checked quickly. Increase the parameters for full experiments.
 
 Standard PSO:
 
-Working directory before running the commands: repository root.
-
 ```bash
 cd src
 
@@ -108,8 +102,6 @@ mpirun -np 4 ./main_parallel 8 64 1000 1e-4
 ```
 
 DMS-PSO-HS:
-
-Working directory before running the commands: repository root.
 
 ```bash
 cd src
@@ -120,8 +112,6 @@ mpirun -np 4 ./main_dpso 8 64 1000 1e-4 dpso/params.txt 123
 
 Topology-based PSO:
 
-Working directory before running the commands: repository root.
-
 ```bash
 cd src/topology
 
@@ -131,8 +121,6 @@ mpirun -np 4 ./topology_parallel 8 64 1000 1e-4 123
 
 Cooperative PSO:
 
-Working directory before running the commands: repository root.
-
 ```bash
 cd src/cpso
 
@@ -141,8 +129,6 @@ mpirun -np 4 ./test_cpso_parallel 8 4 16 1000 50 50 123
 ```
 
 For CPSO communication ablation runs, disable the greedy merge fallback with:
-
-Working directory: `src/cpso`.
 
 ```bash
 CPSO_MPI_DISABLE_GREEDY_MERGE=1 mpirun -np 4 ./test_cpso_parallel 8 4 16 1000 50 50 123
@@ -232,8 +218,6 @@ is implemented in `src/pso/pso_mpi.cpp`. Both rely on the shared `Particle`,
 
 Typical build and run:
 
-Working directory before running the commands: repository root.
-
 ```bash
 cd src
 make
@@ -278,8 +262,6 @@ The main files are in `src/topology/`:
 
 Build and run:
 
-Working directory before running the commands: repository root.
-
 ```bash
 cd src/topology
 make
@@ -310,8 +292,6 @@ Main files:
 
 Build and run:
 
-Working directory before running the commands: repository root.
-
 ```bash
 cd src
 make dpso
@@ -321,8 +301,6 @@ mpirun -np 4 ./main_dpso 32 256 10000 0.0001
 ```
 
 To use the provided DPSO parameter file from the `src` directory:
-
-Working directory: `src`.
 
 ```bash
 mpirun -np 4 ./main_dpso 32 256 10000 1e-6 dpso/params.txt 123
@@ -358,8 +336,6 @@ Main files:
 
 Build and run:
 
-Working directory before running the commands: repository root.
-
 ```bash
 cd src/cpso
 make
@@ -377,8 +353,6 @@ Parallel arguments are:
 
 The greedy merge fallback is enabled by default. For communication ablation
 experiments it can be disabled with:
-
-Working directory: `src/cpso`.
 
 ```bash
 CPSO_MPI_DISABLE_GREEDY_MERGE=1 mpirun -np 4 ./test_cpso_parallel ...
