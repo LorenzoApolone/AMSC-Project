@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # =============================================================================
-# run_dpso_benchmarks.sh
+# run_benchmarks.sh
 # Script di benchmark per DPSO (parallelo MPI) e DPSO seriale.
 # Analogo a run_cpso_benchmarks.sh ma adattato alla firma di main_dpso:
 #   mpirun -np <p> main_dpso <dim> <total_particles> <max_iter> [conv_tol]
 #   main_dpso_serial     <dim> <total_particles> <max_iter> [conv_tol]
 #
 # Utilizzo:
-#   bash run_dpso_benchmarks.sh [--battery <battery>] [--tag <tag>]
+#   bash run_benchmarks.sh [--battery <battery>] [--tag <tag>]
 #
 # --battery:  strong | weak_ppc | weak_local | dim_sweep | serial | all
 #             (default: all)
@@ -18,16 +18,16 @@ set -euo pipefail
 # Parametri di default (adattabili)
 # ---------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SRC_DIR="$(cd "${SCRIPT_DIR}/../../src" && pwd)"
-DPSO_EXE="/home/matteoparimbelli/Desktop/amsc_mk_25-shared-folder/AMSC-Project/src/main_dpso"
-DPSO_SERIAL_EXE="/home/matteoparimbelli/Desktop/amsc_mk_25-shared-folder/AMSC-Project/src/main_dpso_serial"
+SRC_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
+DPSO_EXE="${SRC_DIR}/main_dpso"
+DPSO_SERIAL_EXE="${SRC_DIR}/main_dpso_serial"
 BATTERY="all"
 TAG="test"
 SEEDS=(123 456 789 2024 4242)
 NPS=(1 2 4 8 16 32)
 CONV_TOL="1e-4"
 # Cartella output
-OUTPUT_BASE="/home/matteoparimbelli/Desktop/amsc_mk_25-shared-folder/AMSC-Project/results/dpso"
+OUTPUT_BASE="${SCRIPT_DIR}/results"
 # ---------------------------------------------------------------------------
 # Parsing argomenti
 # ---------------------------------------------------------------------------
