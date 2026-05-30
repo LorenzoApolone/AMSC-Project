@@ -94,8 +94,8 @@ if [[ -z "$REMOTE_RESULTS_ROOT" ]]; then
   REMOTE_RESULTS_ROOT="$REMOTE_SRC/benchmarks/dpso/results"
 fi
 
-REMOTE_RUNNER="$REMOTE_SRC/benchmarks/dpso/run_dpso_benchmarks.sh"
-REMOTE_CMD="cd $(printf '%q' "$REMOTE_SRC") && bash $(printf '%q' "$REMOTE_RUNNER") --battery $(printf '%q' "$BATTERY") --results-root $(printf '%q' "$REMOTE_RESULTS_ROOT")"
+REMOTE_RUNNER="$REMOTE_SRC/benchmarks/dpso/run_benchmarks.sh"
+REMOTE_CMD="cd $(printf '%q' "$REMOTE_SRC") && bash $(printf '%q' "$REMOTE_RUNNER") --battery $(printf '%q' "$BATTERY")"
 if [[ -n "$SEEDS_ARG" ]]; then
   REMOTE_CMD+=" --seeds $(printf '%q' "$SEEDS_ARG")"
 fi

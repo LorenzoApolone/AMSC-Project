@@ -187,7 +187,7 @@ Available batteries via the `--battery <NAME>` argument:
 Working directory: repository root.
 
 ```bash
-bash src/benchmarks/dpso/run_benchmarks.sh --battery all
+bash src/dpso/run_benchmarks.sh --battery all
 ```
 
 ### Topology Benchmark Batteries
