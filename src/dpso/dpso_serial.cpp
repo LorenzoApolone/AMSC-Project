@@ -50,23 +50,6 @@ static int random_int_serial(int min, int max, std::mt19937 &gen) {
 }
 
 /**
- * @brief Computes the squared Euclidean distance between two vectors.
- *
- * @param v1 First vector.
- * @param v2 Second vector.
- * @return The squared Euclidean distance.
- */
-static double euclidean_dist_squared_serial(const std::vector<double> &v1,
-                                            const std::vector<double> &v2) {
-  double sum = 0.0;
-  for (size_t i = 0; i < v1.size(); ++i) {
-    double diff = v1[i] - v2[i];
-    sum += diff * diff;
-  }
-  return sum;
-}
-
-/**
  * @brief Applies Harmony Search to a sub-swarm.
  *
  * @param pos Swarm positions (SoA).
