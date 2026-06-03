@@ -108,7 +108,7 @@ OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& s
     // Main optimization loop
     // ------------------------------
 
-    int iter = 0;
+    int iter = 0; //@note this iter seems unused
     bool must_stop = false;
     int max_iter_limit = stop.get_max_iters();
 
@@ -172,7 +172,7 @@ OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& s
         // Prepare for next iteration
         //prev_gbest_val = gbest_val;
        
-        if (iter >= max_iter_limit) {
+        if (iter >= max_iter_limit) {//@note iter is not incremented anywhere, so this condition will never be true. The stopping criterion is effectively only based on the StoppingCriteriaManager's internal logic, which may include max iterations or stagnation. This check can be removed or iter should be incremented at the end of the loop if we want to use it as a hard limit on iterations.
             // Reached maximum number of iterations
             must_stop = true;
         }
