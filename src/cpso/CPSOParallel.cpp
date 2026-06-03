@@ -816,7 +816,9 @@ CpsoRunArtifacts CPSOParallel::run_optimization_loop(
             static_cast<size_t>(mpi_size * max_swarm_dims), 0.0);
         std::vector<int> gathered_salvaged_flags(
             static_cast<size_t>(mpi_size), 0);
-
+//@note A lot of all to all communication here, 
+// Probably inevitable, but they slow down the parallization a lot.
+// Maybe one can pack all data in a single allgather call to reduce the overhead?
         time_mpi_call(mpi_timings.allgather_s, [&]() {
           MPI_Allgather(local_full_delta.data(), max_swarm_dims, MPI_DOUBLE,
                         gathered_full_deltas.data(), max_swarm_dims,

@@ -563,7 +563,9 @@ public:
     double sum = 0.0;
     unsigned int D = x.size();
 
-    for (unsigned int i = 0; i < D; ++i) {
+    for (unsigned int i = 0; i < D; ++i) {//@note if D=1, you get a 0/0 division.
+      // maybe it never happens in practice, 
+      //but we can handle it gracefully by defining the exponent as 2.0 in that case.
       double exponent =
           2.0 + 4.0 * static_cast<double>(i) / static_cast<double>(D - 1);
       sum += pow(fabs(x[i]), exponent);
@@ -850,7 +852,7 @@ private:
  */
 class Michalewicz : public TestFunction {
 public:
-  Michalewicz(unsigned int dim)
+  Michalewicz(unsigned int dim)//@note what happens if dim is not 2, 5, or 10?
       : TestFunction(dim, "Michalewicz", std::pair<double, double>{0.0, PI()},
                      [](unsigned int d) {
                        if (d == 2)

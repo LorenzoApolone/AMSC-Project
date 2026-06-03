@@ -138,7 +138,10 @@ OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &sto
     double current_w =
         PSOHyperparameters::W_MAX -
         ((PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) * iter /
-         max_iter_limit);
+         max_iter_limit);//@note. I do not know if it works, you are relying on the
+         // fact the the multiplication by iter is made before the division by max_iter_limit, which is dangerous.
+         // To be safe, do a cast to avoid integer division: 
+         // ((PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) * static_cast<double>(iter) / max_iter_limit)
 
     // Update Particles (this is the local Work)
     std::vector<double> old_gbest_pos = gbest_pos;
