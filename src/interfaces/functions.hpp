@@ -564,8 +564,11 @@ public:
     unsigned int D = x.size();
 
     for (unsigned int i = 0; i < D; ++i) {
-      double exponent =
-          2.0 + 4.0 * static_cast<double>(i) / static_cast<double>(D - 1);
+      const double exponent =
+          (D == 1)
+              ? 2.0
+              : 2.0 + 4.0 * static_cast<double>(i) /
+                          static_cast<double>(D - 1);
       sum += pow(fabs(x[i]), exponent);
     }
 
@@ -849,19 +852,91 @@ private:
  * @note Highly multimodal. Often defined on [0, pi]^D.
  */
 class Michalewicz : public TestFunction {
+  static double coordinate_score(unsigned int coordinate_index, double x) {
+    const double m = 10.0;
+    const double a = std::sin(x);
+    const double b =
+        std::sin((static_cast<double>(coordinate_index) * x * x) / PI());
+    return a * std::pow(b, 2.0 * m);
+  }
+
+  static double approximate_coordinate_optimum(unsigned int coordinate_index) {
+    unsigned int samples = 2048;
+    const unsigned int adaptive_samples = 64 * coordinate_index;
+    if (adaptive_samples > samples) {
+      samples = adaptive_samples;
+    }
+
+    double best_x = 0.0;
+    double best_score = coordinate_score(coordinate_index, best_x);
+    for (unsigned int s = 1; s <= samples; ++s) {
+      const double x = PI() * static_cast<double>(s) /
+                       static_cast<double>(samples);
+      const double score = coordinate_score(coordinate_index, x);
+      if (score > best_score) {
+        best_score = score;
+        best_x = x;
+      }
+    }
+
+    const double step = PI() / static_cast<double>(samples);
+    double left = best_x - step;
+    double right = best_x + step;
+    if (left < 0.0) {
+      left = 0.0;
+    }
+    if (right > PI()) {
+      right = PI();
+    }
+
+    const double inv_phi = 0.6180339887498948482;
+    double x1 = right - inv_phi * (right - left);
+    double x2 = left + inv_phi * (right - left);
+    double f1 = coordinate_score(coordinate_index, x1);
+    double f2 = coordinate_score(coordinate_index, x2);
+
+    for (int iter = 0; iter < 80; ++iter) {
+      if (f1 < f2) {
+        left = x1;
+        x1 = x2;
+        f1 = f2;
+        x2 = left + inv_phi * (right - left);
+        f2 = coordinate_score(coordinate_index, x2);
+      } else {
+        right = x2;
+        x2 = x1;
+        f2 = f1;
+        x1 = right - inv_phi * (right - left);
+        f1 = coordinate_score(coordinate_index, x1);
+      }
+    }
+
+    return 0.5 * (left + right);
+  }
+
+  static std::vector<double> make_true_solution(unsigned int d) {
+    if (d == 2) {
+      return std::vector<double>{2.2029055, 1.5707963};
+    }
+    if (d == 5) {
+      return std::vector<double>{2.2029, 1.5707, 1.2849, 1.9230, 1.7204};
+    }
+    if (d == 10) {
+      return std::vector<double>{2.2029, 1.5707, 1.2849, 1.9230, 1.7204,
+                                 1.5707, 1.4544, 1.7560, 1.6557, 1.5707};
+    }
+
+    std::vector<double> solution(d, 0.0);
+    for (unsigned int i = 0; i < d; ++i) {
+      solution[i] = approximate_coordinate_optimum(i + 1);
+    }
+    return solution;
+  }
+
 public:
   Michalewicz(unsigned int dim)
       : TestFunction(dim, "Michalewicz", std::pair<double, double>{0.0, PI()},
-                     [](unsigned int d) {
-                       if (d == 2)
-                         return std::vector<double>{2.2029055, 1.5707963};
-                       else if (d == 5)
-                         return std::vector<double>{2.2029, 1.5707, 1.2849, 1.9230, 1.7204};
-                       else if (d == 10)
-                         return std::vector<double>{2.2029, 1.5707, 1.2849, 1.9230, 1.7204,
-                                                    1.5707, 1.4544, 1.7560, 1.6557, 1.5707};
-                       return std::vector<double>(d, 0.0);
-                     }(dim), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
+                     make_true_solution(dim), {FunctionTypology::MULTIMODAL, FunctionTypology::SEPARABLE, FunctionTypology::DIFFERENTIABLE}) {}
 
   double value(const std::vector<double> &x) const override {
     if (x.empty())
