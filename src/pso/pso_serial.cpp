@@ -115,7 +115,11 @@ OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& s
     while (!must_stop) {
         stop.increment_iterations();
         // Dynamic inertia weight calculation (linearly decreases)
-        double current_w = PSOHyperparameters::W_MAX - ((PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) * iter / max_iter_limit);
+        const double progress =
+            static_cast<double>(iter) / static_cast<double>(max_iter_limit);
+        double current_w =
+            PSOHyperparameters::W_MAX -
+            (PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) * progress;
 
         // Update each particle
         std::vector<double> old_gbest_pos = gbest_pos;
@@ -172,6 +176,7 @@ OutputObject pso_serial(const TestFunction& f, int d, StoppingCriteriaManager& s
         // Prepare for next iteration
         //prev_gbest_val = gbest_val;
        
+        iter++;
         if (iter >= max_iter_limit) {
             // Reached maximum number of iterations
             must_stop = true;

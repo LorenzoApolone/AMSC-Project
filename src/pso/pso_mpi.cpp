@@ -135,10 +135,11 @@ OutputObject pso_mpi(const TestFunction &f, int d,  StoppingCriteriaManager &sto
   while (!must_stop) {
     stop.increment_iterations();
     /// @brief We calculatee dynamic inertia weight (which is linearlly decreasing)
+    const double progress =
+        static_cast<double>(iter) / static_cast<double>(max_iter_limit);
     double current_w =
         PSOHyperparameters::W_MAX -
-        ((PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) * iter /
-         max_iter_limit);
+        (PSOHyperparameters::W_MAX - PSOHyperparameters::W_MIN) * progress;
 
     // Update Particles (this is the local Work)
     std::vector<double> old_gbest_pos = gbest_pos;
